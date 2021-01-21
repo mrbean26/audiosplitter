@@ -1,0 +1,25 @@
+﻿  audio.cpp
+D:\Projects\Audio Splitter App\Code\C++ Audio Samples Into Neural Network\C++ Audio Samples Into Neural Network\Headers\minimp3_ex.h(274,65): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+D:\Projects\Audio Splitter App\Code\C++ Audio Samples Into Neural Network\C++ Audio Samples Into Neural Network\Headers\minimp3_ex.h(355,99): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+D:\Projects\Audio Splitter App\Code\C++ Audio Samples Into Neural Network\C++ Audio Samples Into Neural Network\Headers\minimp3_ex.h(360,79): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+D:\Projects\Audio Splitter App\Code\C++ Audio Samples Into Neural Network\C++ Audio Samples Into Neural Network\Headers\minimp3_ex.h(441,124): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+D:\Projects\Audio Splitter App\Code\C++ Audio Samples Into Neural Network\C++ Audio Samples Into Neural Network\Headers\minimp3_ex.h(445,134): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+D:\Projects\Audio Splitter App\Code\C++ Audio Samples Into Neural Network\C++ Audio Samples Into Neural Network\Headers\minimp3_ex.h(469,32): warning C4267: '-=': conversion from 'size_t' to 'int', possible loss of data
+D:\Projects\Audio Splitter App\Code\C++ Audio Samples Into Neural Network\C++ Audio Samples Into Neural Network\Headers\minimp3_ex.h(470,32): warning C4267: '-=': conversion from 'size_t' to 'int', possible loss of data
+D:\Projects\Audio Splitter App\Code\C++ Audio Samples Into Neural Network\C++ Audio Samples Into Neural Network\Headers\minimp3_ex.h(495,57): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
+D:\Projects\Audio Splitter App\Code\C++ Audio Samples Into Neural Network\C++ Audio Samples Into Neural Network\Headers\minimp3_ex.h(513,79): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+D:\Projects\Audio Splitter App\Code\C++ Audio Samples Into Neural Network\C++ Audio Samples Into Neural Network\Headers\minimp3_ex.h(572,99): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+D:\Projects\Audio Splitter App\Code\C++ Audio Samples Into Neural Network\C++ Audio Samples Into Neural Network\Headers\minimp3_ex.h(665,127): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+D:\Projects\Audio Splitter App\Code\C++ Audio Samples Into Neural Network\C++ Audio Samples Into Neural Network\Headers\minimp3_ex.h(821,29): warning C4244: '=': conversion from 'uint64_t' to 'int', possible loss of data
+D:\Projects\Audio Splitter App\Code\C++ Audio Samples Into Neural Network\C++ Audio Samples Into Neural Network\Headers\minimp3_ex.h(893,140): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+D:\Projects\Audio Splitter App\Code\C++ Audio Samples Into Neural Network\C++ Audio Samples Into Neural Network\Headers\minimp3_ex.h(901,76): warning C4244: 'argument': conversion from 'uint64_t' to 'int', possible loss of data
+D:\Projects\Audio Splitter App\Code\C++ Audio Samples Into Neural Network\C++ Audio Samples Into Neural Network\Headers\minimp3_ex.h(916,45): warning C4267: '+=': conversion from 'size_t' to 'int', possible loss of data
+D:\Projects\Audio Splitter App\Code\C++ Audio Samples Into Neural Network\C++ Audio Samples Into Neural Network\Headers\minimp3_ex.h(917,37): warning C4267: '-=': conversion from 'size_t' to 'int', possible loss of data
+D:\Projects\Audio Splitter App\Code\C++ Audio Samples Into Neural Network\C++ Audio Samples Into Neural Network\Headers\minimp3_ex.h(943,40): warning C4267: '+=': conversion from 'size_t' to 'int', possible loss of data
+D:\Projects\Audio Splitter App\Code\C++ Audio Samples Into Neural Network\C++ Audio Samples Into Neural Network\audio.cpp(66,38): warning C4244: '=': conversion from 'int' to '_Ty', possible loss of data
+          with
+          [
+              _Ty=float
+          ]
+D:\Projects\Audio Splitter App\Code\C++ Audio Samples Into Neural Network\C++ Audio Samples Into Neural Network\audio.cpp(69,29): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+  C++ Audio Samples Into Neural Network.vcxproj -> D:\Projects\Audio Splitter App\Code\C++ Audio Samples Into Neural Network\x64\Debug\C++ Audio Samples Into Neural Network.exe
