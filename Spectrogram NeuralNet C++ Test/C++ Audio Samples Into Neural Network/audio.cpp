@@ -58,6 +58,12 @@ vector<vector<float>> spectrogramOutput(const char* mp3Filename, int samplesPerC
 					float waveEndTime = ((float)sampleNum / (float)audioData.hz);
 					float waveFrequency = 1.0f / (waveEndTime - waveStartTime);
 					
+					if (waveFrequency > maxFrequency) { // Nyquest Limit
+						zeroCount = 0;
+						currentWaveMaxVolume = 0.0f;
+						continue;
+					}
+
 					int usedIndex = (int)((waveFrequency / maxFrequency) * (frequencyResolution - 1));
 					maxValue = max(maxValue, currentWaveMaxVolume);
 					currentChunkResult[usedIndex] = currentWaveMaxVolume;
