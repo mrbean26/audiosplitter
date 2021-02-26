@@ -1,0 +1,4 @@
+﻿  NeuralNetwork.cpp
+D:\Projects\Audio Splitter App\C++\Neural Net Library 2 Design\Neural Net Library 2 Design\NeuralNetwork.cpp(77): warning C4715: 'NeuralNetwork::activate': not all control paths return a value
+D:\Projects\Audio Splitter App\C++\Neural Net Library 2 Design\Neural Net Library 2 Design\NeuralNetwork.cpp(84): warning C4715: 'NeuralNetwork::derive': not all control paths return a value
+  Neural Net Library 2 Design.vcxproj -> D:\Projects\Audio Splitter App\C++\Neural Net Library 2 Design\Debug\Neural Net Library 2 Design.exe

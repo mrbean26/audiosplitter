@@ -1,0 +1,93 @@
+StringBuilder getParams(HashMap<String, String> args){
+       int index = 0;
+       StringBuilder result = new StringBuilder();
+
+       for(String key : args.keySet()){
+           try{
+               if(index > 0){
+                   result.append("&");
+               }
+
+               result.append(key);
+               result.append("=");
+               result.append(URLEncoder.encode(args.get(key), "UTF-8"));
+           } catch(UnsupportedEncodingException exception){
+               exception.printStackTrace();
+           }
+           index = index + 1;
+       }
+
+       return result;
+}
+
+   HttpURLConnection getHttpConnection(StringBuilder params, String url){
+       HttpURLConnection result = null;
+
+       try{
+           URL urlObj = new URL(url);
+           result = (HttpURLConnection) urlObj.openConnection();
+           result.setDoOutput(true);
+
+           result.setRequestMethod("POST");
+           result.setRequestProperty("Accept-Charset", "UTF-8");
+
+           result.setReadTimeout(10000);
+           result.setConnectTimeout(15000);
+           result.connect();
+
+           String input = params.toString();
+
+           DataOutputStream outputStream = new DataOutputStream(result.getOutputStream());
+           outputStream.writeBytes(input);
+           outputStream.flush();
+           outputStream.close();
+       } catch(IOException exception){
+           exception.printStackTrace();
+       }
+
+       return result;
+   }
+
+   String getPostOutput(HttpURLConnection connection){
+       String result = "Error";
+
+       try{
+           InputStream inputStream = new BufferedInputStream(connection.getInputStream());
+           BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+           StringBuilder resultString = new StringBuilder();
+
+           String line;
+           while((line = reader.readLine()) != null){
+               resultString.append(line);
+           }
+
+           return resultString.toString();
+
+       } catch(IOException exception){
+           exception.printStackTrace();
+       }
+
+       if(connection != null){
+           connection.disconnect();
+       }
+
+       return result;
+   }
+
+   void runHTTPPost(final String url, final HashMap<String, String> args){
+       Thread newThread = new Thread(new Runnable() {
+           @Override
+           public void run() {
+               try {
+                   StringBuilder params = getParams(args);
+                   HttpURLConnection connection = getHttpConnection(params, url);
+                   String output = getPostOutput(connection);
+                   Log.d("test", output);
+               } catch (Exception exception) {
+                   exception.printStackTrace();
+               }
+           }
+       });
+       newThread.start();
+
+   }

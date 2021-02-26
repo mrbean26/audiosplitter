@@ -1,0 +1,8 @@
+﻿  main.cpp
+D:\Projects\Audio Splitter App\C++\Neural Net Library 2 Design\Neural Net Library 2 Design\main.cpp(9,12): warning C4244: 'argument': conversion from 'time_t' to 'unsigned int', possible loss of data
+  Generating code
+  2 of 452 functions ( 0.4%) were compiled, the rest were copied from previous compilation.
+    0 functions were new in current compilation
+    0 functions had inline decision re-evaluated but remain unchanged
+  Finished generating code
+  Neural Net Library 2 Design.vcxproj -> D:\Projects\Audio Splitter App\C++\Neural Net Library 2 Design\x64\Release\Neural Net Library 2 Design.exe

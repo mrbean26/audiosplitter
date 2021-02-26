@@ -1,0 +1,12 @@
+﻿  NeuralNetwork.cpp
+D:\Projects\Audio Splitter App\C++\Neural Net Library 2 Design\Neural Net Library 2 Design\NeuralNetwork.cpp(14,27): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+D:\Projects\Audio Splitter App\C++\Neural Net Library 2 Design\Neural Net Library 2 Design\NeuralNetwork.cpp(109,39): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
+D:\Projects\Audio Splitter App\C++\Neural Net Library 2 Design\Neural Net Library 2 Design\NeuralNetwork.cpp(115,43): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+D:\Projects\Audio Splitter App\C++\Neural Net Library 2 Design\Neural Net Library 2 Design\NeuralNetwork.cpp(138,37): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+D:\Projects\Audio Splitter App\C++\Neural Net Library 2 Design\Neural Net Library 2 Design\NeuralNetwork.cpp(185,39): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+D:\Projects\Audio Splitter App\C++\Neural Net Library 2 Design\Neural Net Library 2 Design\NeuralNetwork.cpp(186,45): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+D:\Projects\Audio Splitter App\C++\Neural Net Library 2 Design\Neural Net Library 2 Design\NeuralNetwork.cpp(216,39): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+D:\Projects\Audio Splitter App\C++\Neural Net Library 2 Design\Neural Net Library 2 Design\NeuralNetwork.cpp(217,59): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+D:\Projects\Audio Splitter App\C++\Neural Net Library 2 Design\Neural Net Library 2 Design\NeuralNetwork.cpp(254,39): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+D:\Projects\Audio Splitter App\C++\Neural Net Library 2 Design\Neural Net Library 2 Design\NeuralNetwork.cpp(266,34): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+  Neural Net Library 2 Design.vcxproj -> D:\Projects\Audio Splitter App\C++\Neural Net Library 2 Design\x64\Debug\Neural Net Library 2 Design.exe
