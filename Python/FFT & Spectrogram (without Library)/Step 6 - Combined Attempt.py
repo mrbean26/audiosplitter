@@ -2,44 +2,59 @@
 print("1")
 from scipy.io import wavfile
 sampleRate, samples = wavfile.read('Audio/exampleAudio.wav')
+samples = list(samples)
 
 # Split into chunks
 print("2")
 samplesPerChunk = 2 ** 14
-samplesPerOverlap = samplesPerChunk // 2
+samplesPerStride = samplesPerChunk // 2
 sampleCount = len(samples)
 
 outputChunks = []
-for i in range(0, sampleCount - samplesPerOverlap * 2, samplesPerOverlap):
-    currentChunk = []
-
-    for j in range(samplesPerChunk):
-        currentChunk.append(samples[i + j])
-
+for i in range(0, sampleCount - samplesPerChunk, samplesPerStride):
+    currentChunk = samples[i : i + samplesPerChunk]
     outputChunks.append(currentChunk)
 
 # Apply window function
 print("3")
 import math
-def windowChunk(chunk):
+def getHannWindow(size):
+    result = []
+
+    for i in range(size):
+        cosValue = math.cos(2 * math.pi * (i / (size - 1)))
+        value = 0.5 * (1 - cosValue)
+        result.append(value)
+
+    return result
+
+def windowChunk(chunk, window):
     result = chunk
 
     chunkLength = len(chunk)
     for i in range(chunkLength):
-        cosValue = math.cos(2 * math.pi * (i / (chunkLength - 1)))
-        multiplier = 0.5 * (1 - cosValue)
-        chunk[i] = chunk[i] * multiplier
+        chunk[i] = chunk[i] * window[i]
 
     return result
 
 chunkCount = len(outputChunks)
+hannWindow = getHannWindow(len(outputChunks[0]))
 for i in range(chunkCount):
-    outputChunks[i] = windowChunk(outputChunks[i])
+    outputChunks[i] = windowChunk(outputChunks[i], hannWindow)
 
 # FFT each chunk
 print("4")
 def oddValueMultiplier(sampleLength, sampleNum):
   return math.e ** ((2.0 * math.pi * 1j * -sampleNum) / sampleLength)
+
+# Precalculate oddvaluemultipliers as they are used more than once
+oddValueMultipliers = []
+for i in range(1, int(math.log(samplesPerChunk, 2)) + 1): # powers of 2 from 1 to the size of each chunk
+    currentArray = []
+    for j in range(2 ** i):
+        currentArray.append(oddValueMultiplier(2 ** i, j))
+
+    oddValueMultipliers.append(currentArray)
 
 def FFT(signal):
   sampleLength = len(signal)
@@ -60,7 +75,8 @@ def FFT(signal):
 
      combined = [0] * sampleLength
      for sampleNum in range(sampleLength // 2):
-        currentOddValueMultiplier = oddValueMultiplier(sampleLength, sampleNum)
+        twoIndex = int(math.log(sampleLength, 2))
+        currentOddValueMultiplier = oddValueMultipliers[twoIndex - 1][sampleNum]
 
         combined[sampleNum] = frequencyEvenValues[sampleNum] + currentOddValueMultiplier * frequencyOddValues[sampleNum]
         combined[sampleNum + sampleLength // 2] = frequencyEvenValues[sampleNum] - currentOddValueMultiplier * frequencyOddValues[sampleNum]
@@ -72,50 +88,41 @@ for i in range(chunkCount):
     outputChunks[i] = FFT(outputChunks[i])
     print(i, chunkCount)
 
-# Log magnitude and change range
+# Log magnitude, downsize frequency output with average values, and take max value
 print("5")
-for i in range(len(outputChunks)):
-    for j in range(len(outputChunks[0])):
-        logValue = abs(outputChunks[i][j])
-        if logValue > 0:
-            currentValue = math.log(logValue)
-        else:
-            currentValue = 0
-
-        outputChunks[i][j] = currentValue
-
-# Downsize frequency output
-print("6")
-finalChunks = []
-numbersPerBand = 16
+valuesPerBand = 64
 maxValue = 0
 
-for i in range(chunkCount):
-    currentArray = []
+for i in range(len(outputChunks)):
+    resultantArray = []
 
-    for j in range(0, len(outputChunks[0]), numbersPerBand):
+    for j in range(0, len(outputChunks[i]), valuesPerBand):
         currentAccumulative = 0
 
-        for a in range(numbersPerBand):
-            currentAccumulative += outputChunks[i][j + a]
+        for a in range(valuesPerBand):
+            currentValue = abs(outputChunks[i][j + a])
+            if currentValue > 0:
+                currentValue = math.log(currentValue)
 
-        currentAccumulative = currentAccumulative / numbersPerBand
+            currentAccumulative = currentAccumulative + currentValue
+
+        currentAccumulative = currentAccumulative / valuesPerBand
         currentAccumulative = 1.5 ** currentAccumulative
+        maxValue = max(maxValue, currentAccumulative)
 
-        maxValue = max(currentAccumulative, maxValue)
-        currentArray.append(currentAccumulative)
+        resultantArray.append(currentAccumulative)
 
-    finalChunks.append(currentArray)
+    outputChunks[i] = resultantArray
 
 # Write to image
 print("7")
 from PIL import Image
-newImage = Image.new('RGB', (len(finalChunks), len(finalChunks[0]) // 2), color = (0, 0, 0))
+newImage = Image.new('RGB', (len(outputChunks), len(outputChunks[0]) // 2), color = (0, 0, 0))
 imagePixels = newImage.load()
 
-for i in range(len(finalChunks)):
-    for j in range(len(finalChunks[0]) // 2):
-        colourValue = int(finalChunks[i][j] / maxValue * 255)
-        imagePixels[i, (len(finalChunks[0]) // 2) - 1 - j] = (colourValue, colourValue, colourValue)
+for i in range(len(outputChunks)):
+    for j in range(len(outputChunks[0]) // 2):
+        colourValue = int(outputChunks[i][j] / maxValue * 255)
+        imagePixels[i, (len(outputChunks[0]) // 2) - 1 - j] = (colourValue, colourValue, colourValue)
 
-newImage.save("Output Spectrograms/Functions After Frequency Downscaling/logx.png")
+newImage.save("Output Spectrograms/spectrogram.png")
