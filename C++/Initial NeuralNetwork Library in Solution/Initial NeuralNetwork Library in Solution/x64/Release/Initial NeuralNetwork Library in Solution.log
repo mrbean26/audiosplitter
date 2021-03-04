@@ -1,8 +1,0 @@
-﻿  main.cpp
-D:\Projects\Audio Splitter App\C++\Initial NeuralNetwork Library in Solution\Initial NeuralNetwork Library in Solution\main.cpp(7,15): warning C4244: 'argument': conversion from 'time_t' to 'unsigned int', possible loss of data
-  Generating code
-  1 of 642 functions ( 0.2%) were compiled, the rest were copied from previous compilation.
-    0 functions were new in current compilation
-    0 functions had inline decision re-evaluated but remain unchanged
-  Finished generating code
-  Initial NeuralNetwork Library in Solution.vcxproj -> D:\Projects\Audio Splitter App\C++\Initial NeuralNetwork Library in Solution\x64\Release\Initial NeuralNetwork Library in Solution.exe

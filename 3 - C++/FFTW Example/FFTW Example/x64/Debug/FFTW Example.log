@@ -1,0 +1,5 @@
+﻿  main.cpp
+C:\Users\adam\Desktop\FFTW Example\FFTW Example\miniwav.h(73,30): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\adam\Desktop\FFTW Example\FFTW Example\miniwav.h(78,35): warning C4244: '-=': conversion from 'double' to 'int', possible loss of data
+C:\Users\adam\Desktop\FFTW Example\FFTW Example\miniwav.h(81,36): warning C4244: '+=': conversion from 'double' to 'int', possible loss of data
+  FFTW Example.vcxproj -> C:\Users\adam\Desktop\FFTW Example\x64\Debug\FFTW Example.exe
