@@ -41,5 +41,8 @@
     <ClInclude Include="Headers\NeuralNetwork.h">
       <Filter>Source Files\Headers</Filter>
     </ClInclude>
+    <ClInclude Include="Headers\fftw3.h">
+      <Filter>Source Files\Headers</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

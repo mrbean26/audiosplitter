@@ -120,7 +120,11 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>$(ProjectDir)FFTW\libfftw3-3.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PreBuildEvent>
+      <Command>xcopy /d /y "$(ProjectDir)FFTW\libfftw3-3.dll" "$(TargetDir)"</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -136,7 +140,11 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>$(ProjectDir)FFTW\libfftw3-3.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PreBuildEvent>
+      <Command>xcopy /d /y "$(ProjectDir)FFTW\libfftw3-3.dll" "$(TargetDir)"</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="audio.cpp" />
@@ -145,6 +153,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Headers\audio.h" />
+    <ClInclude Include="Headers\fftw3.h" />
     <ClInclude Include="Headers\minimp3.h" />
     <ClInclude Include="Headers\minimp3_ex.h" />
     <ClInclude Include="Headers\NeuralNetwork.h" />

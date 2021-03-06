@@ -333,18 +333,23 @@ void NeuralNetwork::train(vector<vector<float>> trainInputs, vector<vector<float
         random_shuffle(trainIndexes.begin(), trainIndexes.end());
 
         for(int t = 0; t < trainDataCount; t++){
-            cout << t << " / " << trainDataCount << endl;
-
             int currentIndex = trainIndexes[t];
             vector<float> result = predict(trainInputs[currentIndex]);
 
             vector<float> errors;
+            float totalError = 0.0f;
+
             for(int e = 0; e < outputCount; e++){
+                totalError += trainOutputs[currentIndex][e] - result[e];
                 errors.push_back(trainOutputs[currentIndex][e] - result[e]);
             }
 
             calculateDerivatives(errors);
             adjustWeights(lr, momentum);
+
+            if (t % (trainDataCount / 4) == 0) {
+                cout << "Epoch: " << epoch + 1 << " / " << epochs << ", Train data item: " << t + 1 << " / " << trainDataCount << endl;
+           }
         }
     }
 }

@@ -4,19 +4,26 @@
 #include <iostream>
 using namespace std;
 
-vector<vector<float>> generateInputs(int samplesPerChunk, int frequencyResolution, int chunksPerInputHalf, int zeroRange) {
+vector<vector<float>> generateInputs(int samplesPerChunk, int samplesPerOverlap, int frequencyResolution, int chunksPerInputHalf) {
 	vector<vector<float>> result;
 
-	for (int f = 7; f < 10; f++) {
+	for (int f = 1; f < 3; f++) {
 		string fileName = "inputs/" + to_string(f) + ".mp3";
-		vector<vector<float>> fullAudioInput = spectrogramOutput(fileName.data(), samplesPerChunk, frequencyResolution, zeroRange, false);
+		vector<vector<float>> fullAudioInput = spectrogramOutput(fileName.data(), samplesPerChunk, samplesPerOverlap, frequencyResolution);
 
 		for (int i = chunksPerInputHalf; i < fullAudioInput.size() - chunksPerInputHalf; i++) {
 			vector<float> currentInput;
 
 			for (int c = i - chunksPerInputHalf; c < i + chunksPerInputHalf; c++) {
 				for (int f = 0; f < frequencyResolution; f++) {
-					currentInput.push_back(fullAudioInput[c][f]);
+					float value = fullAudioInput[i][f];
+
+					// Remove NaN values, very very rare bug in visual studio
+					if (isnan(value)) {
+						value = 0.0f;
+					}
+
+					currentInput.push_back(value);
 				}
 			}
 
@@ -27,24 +34,24 @@ vector<vector<float>> generateInputs(int samplesPerChunk, int frequencyResolutio
 	return result;
 }
 
-vector<vector<float>> generateOutputs(int samplesPerChunk, int frequencyResolution, int chunksPerInputHalf, int zeroRange) {
+vector<vector<float>> generateOutputs(int samplesPerChunk, int samplesPerOverlap, int frequencyResolution, int chunksPerInputHalf) {
 	vector<vector<float>> result;
 
-	for (int f = 5; f < 10; f++) {
+	for (int f = 1; f < 3; f++) {
 		string fileName = "outputs/" + to_string(f) + ".mp3";
-		vector<vector<float>> fullAudioInput = spectrogramOutput(fileName.data(), samplesPerChunk, frequencyResolution, zeroRange, true);
+		vector<vector<float>> fullAudioInput = spectrogramOutput(fileName.data(), samplesPerChunk, samplesPerOverlap, frequencyResolution);
 
 		for (int i = chunksPerInputHalf; i < fullAudioInput.size() - chunksPerInputHalf; i++) {
 			vector<float> currentInput;
 			for (int f = 0; f < frequencyResolution; f++) {
-				if (fullAudioInput[i][f] > zeroRange) {
-					//fullAudioInput[i][f] = 1.0f;
-				}
-				if (fullAudioInput[i][f] <= zeroRange) {
-					//fullAudioInput[i][f] = 0.0f;
+				float value = fullAudioInput[i][f];
+
+				// Remove NaN values, very very rare bug in visual studio
+				if (isnan(value)) {
+					value = 0.0f;
 				}
 
-				currentInput.push_back(fullAudioInput[i][f]);
+				currentInput.push_back(value);
 			}
 			result.push_back(currentInput);
 		}
@@ -54,13 +61,14 @@ vector<vector<float>> generateOutputs(int samplesPerChunk, int frequencyResoluti
 }
 
 int main() {
-	int samplesPerChunk = 1000;
-	int frequencyResolution = 25;
-	int zeroRange = 500;
+	int samplesPerChunk = 16384;
+	int samplesPerOverlap = samplesPerChunk / 2;
+
+	int frequencyResolution = 128;
 	int chunkBorder = 20;
 
-	vector<vector<float>> inputSet = generateInputs(samplesPerChunk, frequencyResolution, chunkBorder, zeroRange);
-	vector<vector<float>> outputSet = generateOutputs(samplesPerChunk, frequencyResolution, chunkBorder, zeroRange);
+	vector<vector<float>> inputSet = generateInputs(samplesPerChunk, samplesPerOverlap, frequencyResolution, chunkBorder);
+	vector<vector<float>> outputSet = generateOutputs(samplesPerChunk, samplesPerOverlap, frequencyResolution, chunkBorder);
 
 	int inputSize = inputSet[0].size();
 	int outputSize = outputSet[0].size();
@@ -68,7 +76,7 @@ int main() {
 	vector<int> layers = { inputSize, inputSize * 2, outputSize };
 	vector<int> biases = { 1, 1, 1,1 ,1, 1,1 ,1  };
 
-	NeuralNetwork network = NeuralNetwork(layers, biases, "sigmoid");
+	NeuralNetwork network = NeuralNetwork(layers, biases, "tanh");
 	//network.loadWeightsFromFile("outputWeights/");
 	network.train(inputSet, outputSet, 4, 0.25f, 0.0f);
 	network.saveWeightsToFile("outputWeights/");

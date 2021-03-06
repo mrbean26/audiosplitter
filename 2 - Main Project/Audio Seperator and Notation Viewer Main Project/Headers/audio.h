@@ -5,6 +5,6 @@
 #include <iostream>
 using namespace std;
 
-vector<vector<float>> spectrogramOutput(const char* mp3Filename, int samplesPerChunk, int frequencyResolution, int zeroRange, bool output);
+vector<vector<float>> spectrogramOutput(const char* mp3Filename, int samplesPerChunk, int samplesPerStride, int frequencyResolution);
 
 #endif // !AUDIO_H
