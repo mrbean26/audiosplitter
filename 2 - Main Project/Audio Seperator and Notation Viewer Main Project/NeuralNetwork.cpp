@@ -1,5 +1,8 @@
 #include "Headers/NeuralNetwork.h"
 
+#include <fstream>
+#include <sstream>
+
 // activations
 namespace activations{
     float sigmoid(float x){
@@ -346,10 +349,7 @@ void NeuralNetwork::train(vector<vector<float>> trainInputs, vector<vector<float
 
             calculateDerivatives(errors);
             adjustWeights(lr, momentum);
-
-            if (t % (trainDataCount / 4) == 0) {
-                cout << "Epoch: " << epoch + 1 << " / " << epochs << ", Train data item: " << t + 1 << " / " << trainDataCount << endl;
-           }
+            cout << "Epoch: " << epoch + 1 << " / " << epochs << ", Train data item: " << t + 1 << " / " << trainDataCount << ", Total Error: " << totalError << endl;
         }
     }
 }
@@ -365,7 +365,8 @@ void NeuralNetwork::saveWeightsToFile(string directory){
     string fileNameNodes = directory + "nodeWeights.txt";
     string fileNameBias = directory + "biasWeights.txt";
 
-    vector<string> newLinesNodes;
+    ofstream nodeFile;
+    nodeFile.open(fileNameNodes);
     for(int i = 0; i < layerCount; i++){
         int currentNodeCount = layerNodes[i].size();
 
@@ -383,11 +384,13 @@ void NeuralNetwork::saveWeightsToFile(string directory){
             }
 
             currentNodeWeights.pop_back();
-            newLinesNodes.push_back(currentNodeWeights);
+            nodeFile << currentNodeWeights << endl;
         }
     }
+    nodeFile.close();
 
-    vector<string> newLinesBias;
+    ofstream biasFile;
+    biasFile.open(fileNameBias);
     for(int i = 0; i < layerCount; i++){
         int currentBiasCount = layerBiases[i].size();
 
@@ -400,53 +403,60 @@ void NeuralNetwork::saveWeightsToFile(string directory){
             }
 
             currentBiasWeights.pop_back();
-            newLinesBias.push_back(currentBiasWeights);
+            biasFile << currentBiasWeights << endl;
         }
     }
-
-    // write to file
-    writeToFile(fileNameNodes.c_str(), newLinesNodes);
-    writeToFile(fileNameBias.c_str(), newLinesBias);
+    biasFile.close();
 }
 
 void NeuralNetwork::loadWeightsFromFile(string directory){
     string fileNameNodes = directory + "nodeWeights.txt";
     string fileNameBias = directory + "biasWeights.txt";
 
-    vector<string> nodeLines = readFile(fileNameNodes.c_str());
-    vector<string> biasLines = readFile(fileNameBias.c_str());
+    // Nodes
+    ifstream nodeFile(fileNameNodes);
+    string currentLine;
 
-    // nodes
-    int currentNodesSeen = 0;
-    for(int i = 0; i < layerCount; i++){
-        int currentNodeCount = layerNodes[i].size();
+    int layerIndex = 0;
+    int nodeIndex = 0;
 
-        for(int n = 0; n < currentNodeCount; n++){
-            vector<string> currentLineData = splitStringByCharacter(nodeLines[currentNodesSeen], ',');
+    while (getline(nodeFile, currentLine)) {
+        int currentNodeCount = layerNodes[layerIndex].size();
 
-            int weightCount = layerNodes[i][n].outWeights.size();
-            for(int w = 0; w < weightCount; w++){
-                layerNodes[i][n].outWeights[w] = stof(currentLineData[w]);
-            }
+        vector<string> currentLineData = splitStringByCharacter(currentLine, ',');
+        int weightCount = layerNodes[layerIndex][nodeIndex].outWeights.size();
+        for (int w = 0; w < weightCount; w++) {
+            layerNodes[layerIndex][nodeIndex].outWeights[w] = stof(currentLineData[w]);
+        }
 
-            currentNodesSeen += 1;
+        nodeIndex += 1;
+        if (nodeIndex == currentNodeCount) {
+            layerIndex += 1;
+            nodeIndex = 0;
         }
     }
+    nodeFile.close();
 
-    // bias
-    currentNodesSeen = 0;
-    for(int i = 0; i < layerCount; i++){
-        int currentBiasCount = layerBiases[i].size();
+    // Bias
+    ifstream biasFile(fileNameBias);
+    
+    layerIndex = 0;
+    int biasIndex = 0;
 
-        for(int n = 0; n < currentBiasCount; n++){
-            vector<string> currentLineData = splitStringByCharacter(biasLines[currentNodesSeen], ',');
+    while (getline(biasFile, currentLine)) {
+        int currentBiasCount = layerBiases[layerIndex].size();
 
-            int weightCount = layerBiases[i][n].outWeights.size();
-            for(int w = 0; w < weightCount; w++){
-                layerBiases[i][n].outWeights[w] = stof(currentLineData[w]);
-            }
+        vector<string> currentLineData = splitStringByCharacter(currentLine, ',');
+        int weightCount = layerBiases[layerIndex][biasIndex].outWeights.size();
+        for (int w = 0; w < weightCount; w++) {
+            layerBiases[layerIndex][biasIndex].outWeights[w] = stof(currentLineData[w]);           
+        }
 
-            currentNodesSeen += 1;
+        biasIndex += 1;
+        if (biasIndex == currentBiasCount) {
+            layerIndex += 1;
+            biasIndex = 0;
         }
     }
+    biasFile.close();
 }
