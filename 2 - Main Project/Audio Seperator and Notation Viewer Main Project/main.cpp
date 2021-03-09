@@ -9,7 +9,7 @@ using namespace std;
 vector<vector<float>> generateInputs(int samplesPerChunk, int samplesPerOverlap, int frequencyResolution, int chunksPerInputHalf) {
 	vector<vector<float>> result;
 
-	for (int f = 35; f < 50; f++) {
+	for (int f = 1; f < 3; f++) {
 		string fileName = "inputs/" + to_string(f) + ".mp3";
 		vector<vector<float>> fullAudioInput = spectrogramOutput(fileName.data(), samplesPerChunk, samplesPerOverlap, frequencyResolution);
 
@@ -39,7 +39,7 @@ vector<vector<float>> generateInputs(int samplesPerChunk, int samplesPerOverlap,
 vector<vector<float>> generateOutputs(int samplesPerChunk, int samplesPerOverlap, int frequencyResolution, int chunksPerInputHalf) {
 	vector<vector<float>> result;
 
-	for (int f = 35; f < 50; f++) {
+	for (int f = 1; f < 3; f++) {
 		string fileName = "outputs/" + to_string(f) + ".mp3";
 		vector<vector<float>> fullAudioInput = spectrogramOutput(fileName.data(), samplesPerChunk, samplesPerOverlap, frequencyResolution);
 
@@ -66,7 +66,7 @@ int main() {
 	int samplesPerChunk = 8192;
 	int samplesPerOverlap = samplesPerChunk; // no overlap
 
-	int frequencyResolution = 256;
+	int frequencyResolution = 64;
 	int chunkBorder = 20;
 
 	vector<vector<float>> inputSet = generateInputs(samplesPerChunk, samplesPerOverlap, frequencyResolution, chunkBorder);
@@ -75,13 +75,13 @@ int main() {
 	int inputSize = inputSet[0].size();
 	int outputSize = outputSet[0].size();
 
-	vector<int> layers = { inputSize, inputSize * 2, outputSize };
-	vector<int> biases = { 1, 1, 1, 1,  };
+	vector<int> layers = { inputSize, inputSize, outputSize, outputSize, outputSize };
+	vector<int> biases = { 1, 1, 1, 1, 1, 1, 1  };
 
 	NeuralNetwork network = NeuralNetwork(layers, biases, "tanh");
-	network.loadWeightsFromFile("outputWeights/");
-	network.train(inputSet, outputSet, 1, 0.25f, 0.1f);
-	network.saveWeightsToFile("outputWeights/");
+	//network.loadWeightsFromFile("outputWeights/");
+	network.train(inputSet, outputSet, 150, 0.05f, 0.0f);
+	//network.saveWeightsToFile("outputWeights/");
 
 	system("pause");
 	return -1;
