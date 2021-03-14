@@ -343,7 +343,7 @@ void NeuralNetwork::train(vector<vector<float>> trainInputs, vector<vector<float
             float totalError = 0.0f;
 
             for(int e = 0; e < outputCount; e++){
-                totalError += trainOutputs[currentIndex][e] - result[e];
+                totalError += abs(trainOutputs[currentIndex][e] - result[e]);
                 errors.push_back(trainOutputs[currentIndex][e] - result[e]);
             }
 
