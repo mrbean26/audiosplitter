@@ -91,7 +91,7 @@ vector<vector<float>> spectrogramOutput(const char* mp3Filename, int samplesPerC
 	for (int chunkNum = 0; chunkNum < chunkCount; chunkNum++) {
 		vector<double> resultantArray;
 
-		for (int i = 0; i < samplesPerChunk; i += valuesPerBand) {
+		for (int i = 0; i < samplesPerChunk / 2; i += valuesPerBand) {
 			double accumulativeValue = 0.0;
 
 			for (int j = 0; j < valuesPerBand; j++) {
@@ -121,8 +121,7 @@ vector<vector<float>> spectrogramOutput(const char* mp3Filename, int samplesPerC
 			spectrogramChunks[chunkNum][i] = spectrogramChunks[chunkNum][i] / maxValue;
 		}
 
-		// cut off duplicates - to see what this does replace end variable with spectrogramChunks[chunkNum].end()
-		vector<float> currentVector(spectrogramChunks[chunkNum].begin(), spectrogramChunks[chunkNum].begin() + newSamplesPerChunk / 4);
+		vector<float> currentVector(spectrogramChunks[chunkNum].begin(), spectrogramChunks[chunkNum].end());
 		result.push_back(currentVector);
 	}
 
@@ -180,6 +179,10 @@ vector<fftw_complex*> getFullTrackComplex(const char* fileNameMP3, int samplesPe
 
 		result.push_back(fftOutput);
 	}
+
+	fftw_destroy_plan(fftwPlan);
+	fftw_free(fftInputArray);
+	fftw_free(fftOutput);
 
 	return result;
 }

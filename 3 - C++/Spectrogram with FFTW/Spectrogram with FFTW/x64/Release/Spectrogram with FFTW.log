@@ -78,8 +78,8 @@ D:\Projects\Audio Splitter App\3 - C++\Spectrogram with FFTW\Spectrogram with FF
               _Alloc=std::allocator<float>
           ]
   Generating code
-  5 of 550 functions ( 0.9%) were compiled, the rest were copied from previous compilation.
+  1 of 550 functions ( 0.2%) were compiled, the rest were copied from previous compilation.
     0 functions were new in current compilation
-    0 functions had inline decision re-evaluated but remain unchanged
+    2 functions had inline decision re-evaluated but remain unchanged
   Finished generating code
   Spectrogram with FFTW.vcxproj -> D:\Projects\Audio Splitter App\3 - C++\Spectrogram with FFTW\x64\Release\Spectrogram with FFTW.exe

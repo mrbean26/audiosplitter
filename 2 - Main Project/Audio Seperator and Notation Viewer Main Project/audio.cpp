@@ -19,19 +19,30 @@ mp3dec_file_info_t loadAudioData(const char* mp3Filename) {
 	return fileInfo;
 }
 
-vector<int> loadAudioSamples(mp3d_sample_t* buffer, int sampleCount) {
-	vector<int> result(sampleCount);
+vector<int> loadAudioSamples(mp3d_sample_t* buffer, int sampleCount, int channels) {
+	if (channels == 1) {
+		vector<int> result(sampleCount);
 
-	for (int i = 0; i < sampleCount; i++) {
-		result[i] = buffer[i];
+		for (int i = 0; i < sampleCount; i++) {
+			result[i] = buffer[i];
+		}
+		return result;
 	}
+	if (channels == 2) {
+		// Convert Stereo to Mono
 
-	return result;
+		vector<int> result(sampleCount / 2);
+
+		for (int i = 0; i < sampleCount / 2; i++) {
+			result[i] = (buffer[i * 2] + buffer[i * 2 + 1]) / 2;
+		}
+		return result;
+	}
 }
 
 vector<vector<float>> spectrogramOutput(const char* mp3Filename, int samplesPerChunk, int samplesPerStride, int frequencyResolution) {
 	mp3dec_file_info_t audioData = loadAudioData(mp3Filename);
-	vector<int> audioSamples = loadAudioSamples(audioData.buffer, audioData.samples);
+	vector<int> audioSamples = loadAudioSamples(audioData.buffer, audioData.samples, audioData.channels);
 
 	vector<double> doubleAudioSamples(audioSamples.begin(), audioSamples.end());
 	vector<vector<double>> spectrogramChunks;
@@ -91,7 +102,7 @@ vector<vector<float>> spectrogramOutput(const char* mp3Filename, int samplesPerC
 	for (int chunkNum = 0; chunkNum < chunkCount; chunkNum++) {
 		vector<double> resultantArray;
 
-		for (int i = 0; i < samplesPerChunk; i += valuesPerBand) {
+		for (int i = 0; i < samplesPerChunk / 4; i += valuesPerBand) {
 			double accumulativeValue = 0.0;
 
 			for (int j = 0; j < valuesPerBand; j++) {
@@ -121,8 +132,7 @@ vector<vector<float>> spectrogramOutput(const char* mp3Filename, int samplesPerC
 			spectrogramChunks[chunkNum][i] = spectrogramChunks[chunkNum][i] / maxValue;
 		}
 
-		// cut off duplicates - to see what this does replace end variable with spectrogramChunks[chunkNum].end()
-		vector<float> currentVector(spectrogramChunks[chunkNum].begin(), spectrogramChunks[chunkNum].begin() + newSamplesPerChunk / 4);
+		vector<float> currentVector(spectrogramChunks[chunkNum].begin(), spectrogramChunks[chunkNum].end());
 		result.push_back(currentVector);
 	}
 
