@@ -9,7 +9,7 @@ using namespace std;
 vector<vector<float>> generateInputs(int samplesPerChunk, int samplesPerOverlap, int frequencyResolution, int chunksPerInputHalf) {
 	vector<vector<float>> result;
 
-	for (int f = 1; f < 3; f++) {
+	for (int f = 51; f < 101; f++) {
 		string fileName = "inputs/" + to_string(f) + ".mp3";
 		vector<vector<float>> fullAudioInput = spectrogramOutput(fileName.data(), samplesPerChunk, samplesPerOverlap, frequencyResolution);
 
@@ -39,7 +39,7 @@ vector<vector<float>> generateInputs(int samplesPerChunk, int samplesPerOverlap,
 vector<vector<float>> generateOutputs(int samplesPerChunk, int samplesPerOverlap, int frequencyResolution, int chunksPerInputHalf) {
 	vector<vector<float>> result;
 
-	for (int f = 1; f < 3; f++) {
+	for (int f = 51; f < 101; f++) {
 		string fileName = "outputs/" + to_string(f) + ".mp3";
 		vector<vector<float>> fullAudioInput = spectrogramOutput(fileName.data(), samplesPerChunk, samplesPerOverlap, frequencyResolution);
 
@@ -78,9 +78,9 @@ int main() {
 	vector<int> biases = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,  };
 
 	NeuralNetwork network = NeuralNetwork(layers, biases, "sigmoid");
-	//network.loadWeightsFromFile("outputWeights/");
-	network.train(inputSet, outputSet, 200, 0.05f, 0.0f);
-	//network.saveWeightsToFile("outputWeights/");
+	network.loadWeightsFromFile("outputWeights/");
+	network.train(inputSet, outputSet, 25, 0.05f, 0.05f);
+	network.saveWeightsToFile("outputWeights/");
 
 	system("pause");
 	return -1;
