@@ -355,91 +355,107 @@ void NeuralNetwork::runTests(vector<vector<float>> inputs){
 }
 
 void NeuralNetwork::saveWeightsToFile(string directory){
-    string fileNameNodes = directory + "nodeWeights.txt";
-    string fileNameBias = directory + "biasWeights.txt";
+    string fileNameNodes = directory + "nodeWeights.bin";
+    string fileNameBias = directory + "biasWeights.bin";
 
-    vector<string> newLinesNodes;
-    for(int i = 0; i < layerCount; i++){
-        int currentNodeCount = layerNodes[i].size();
+    vector<float> allWeightsNode;
+    for (int layerNum = 0; layerNum < layerCount; layerNum++) {
+        int nodeCount = layerNodes[layerNum].size();
 
-        for(int n = 0; n < currentNodeCount; n++){
-            string currentNodeWeights = "";
-
-            int outWeightCount = layerNodes[i][n].outWeights.size();
-            for(int w = 0; w < outWeightCount; w++){
-                currentNodeWeights += to_string(layerNodes[i][n].outWeights[w]) + ",";
+        for (int node = 0; node < nodeCount; node++) {
+            int outCount = layerNodes[layerNum][node].outWeights.size();
+            for (int weight = 0; weight < outCount; weight++) {
+                allWeightsNode.push_back(layerNodes[layerNum][node].outWeights[weight]);
             }
-
-            int stringLength = currentNodeWeights.size();
-            if(stringLength == 0){
-                continue;
-            }
-
-            currentNodeWeights.pop_back();
-            newLinesNodes.push_back(currentNodeWeights);
         }
     }
 
-    vector<string> newLinesBias;
-    for(int i = 0; i < layerCount; i++){
-        int currentBiasCount = layerBiases[i].size();
+    vector<float> allWeightsBias;
+    for (int layerNum = 0; layerNum < layerCount; layerNum++) {
+        int nodeCount = layerBiases[layerNum].size();
 
-        for(int b = 0; b < currentBiasCount; b++){
-            string currentBiasWeights = "";
-
-            int outWeightCount = layerBiases[i][b].outWeights.size();
-            for(int w = 0; w < outWeightCount; w++){
-                currentBiasWeights += to_string(layerBiases[i][b].outWeights[w]) + ",";
+        for (int node = 0; node < nodeCount; node++) {
+            int outCount = layerBiases[layerNum][node].outWeights.size();
+            for (int weight = 0; weight < outCount; weight++) {
+                allWeightsBias.push_back(layerBiases[layerNum][node].outWeights[weight]);
             }
-
-            currentBiasWeights.pop_back();
-            newLinesBias.push_back(currentBiasWeights);
         }
     }
 
-    // write to file
-    writeToFile(fileNameNodes.c_str(), newLinesNodes);
-    writeToFile(fileNameBias.c_str(), newLinesBias);
+    ofstream outputNodes;
+    outputNodes.open(fileNameNodes, ios::out | ios::binary);
+    outputNodes.write(reinterpret_cast<char*>(&allWeightsNode[0]), allWeightsNode.size() * sizeof(float));
+    outputNodes.close();
+
+    ofstream outputBias;
+    outputBias.open(fileNameBias, ios::out | ios::binary);
+    outputBias.write(reinterpret_cast<char*>(&allWeightsBias[0]), allWeightsBias.size() * sizeof(float));
+    outputBias.close();
 }
 
 void NeuralNetwork::loadWeightsFromFile(string directory){
-    string fileNameNodes = directory + "nodeWeights.txt";
-    string fileNameBias = directory + "biasWeights.txt";
+    string fileNameNodes = directory + "nodeWeights.bin";
+    string fileNameBias = directory + "biasWeights.bin";
 
-    vector<string> nodeLines = readFile(fileNameNodes.c_str());
-    vector<string> biasLines = readFile(fileNameBias.c_str());
+    int totalNodeWeightCount = 0;
+    for (int i = 0; i < layerCount - 1; i++) {
+        totalNodeWeightCount += layerNodes[i].size() * layerNodes[i + 1].size();;
+    }
 
-    // nodes
-    int currentNodesSeen = 0;
-    for(int i = 0; i < layerCount; i++){
-        int currentNodeCount = layerNodes[i].size();
+    int totalBiasWeightCount = 0;
+    for (int i = 0; i < layerCount - 1; i++) {
+        totalBiasWeightCount += layerBiases[i].size() * layerNodes[i + 1].size();
+    }
 
-        for(int n = 0; n < currentNodeCount; n++){
-            vector<string> currentLineData = splitStringByCharacter(nodeLines[currentNodesSeen], ',');
+    vector<float> allNodeWeights(totalNodeWeightCount);
+    vector<float> allBiasWeights(totalBiasWeightCount);
+    
+    ifstream inputNodes;
+    inputNodes.open(fileNameNodes, ios::in | ios::binary);
+    inputNodes.read(reinterpret_cast<char*>(&allNodeWeights[0]), totalNodeWeightCount * sizeof(float));
+    inputNodes.close();
+    
+    ifstream inputBiases;
+    inputBiases.open(fileNameBias, ios::in | ios::binary);
+    inputBiases.read(reinterpret_cast<char*>(&allBiasWeights[0]), totalBiasWeightCount * sizeof(float));
+    inputBiases.close();
+    
+    int layerNum = 0;
+    int nodeNum = 0;
+    int weightNum = 0;
 
-            int weightCount = layerNodes[i][n].outWeights.size();
-            for(int w = 0; w < weightCount; w++){
-                layerNodes[i][n].outWeights[w] = stof(currentLineData[w]);
+    for (int i = 0; i < totalNodeWeightCount; i++) {
+        layerNodes[layerNum][nodeNum].outWeights[weightNum] = allNodeWeights[i];
+
+        weightNum += 1;
+        if (weightNum == layerNodes[layerNum][nodeNum].outWeights.size()) {
+            weightNum = 0;
+            nodeNum += 1;
+
+            if (nodeNum == layerNodes[layerNum].size()) {
+                nodeNum = 0;
+                layerNum += 1;
             }
-
-            currentNodesSeen += 1;
         }
     }
 
-    // bias
-    currentNodesSeen = 0;
-    for(int i = 0; i < layerCount; i++){
-        int currentBiasCount = layerBiases[i].size();
+    layerNum = 0;
+    nodeNum = 0;
+    weightNum = 0;
+    
+    for (int i = 0; i < totalBiasWeightCount; i++) {
+        layerBiases[layerNum][nodeNum].outWeights[weightNum] = allBiasWeights[i];
 
-        for(int n = 0; n < currentBiasCount; n++){
-            vector<string> currentLineData = splitStringByCharacter(biasLines[currentNodesSeen], ',');
+        weightNum += 1;
+        if (weightNum == layerBiases[layerNum][nodeNum].outWeights.size()) {
+            weightNum = 0;
+            nodeNum += 1;
 
-            int weightCount = layerBiases[i][n].outWeights.size();
-            for(int w = 0; w < weightCount; w++){
-                layerBiases[i][n].outWeights[w] = stof(currentLineData[w]);
+            if (nodeNum == layerBiases[layerNum].size()) {
+                nodeNum = 0;
+                layerNum += 1;
             }
-
-            currentNodesSeen += 1;
         }
     }
+    
 }

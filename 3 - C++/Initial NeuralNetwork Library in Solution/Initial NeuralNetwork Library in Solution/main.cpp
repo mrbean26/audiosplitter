@@ -8,8 +8,10 @@ int main(){
     vector<vector<float>> inputs = {{0.0f, 0.0f}, {1.0f, 0.0f}, {0.0f, 1.0f}, {1.0f, 1.0f}};
     vector<vector<float>> outputs = {{0.0f}, {1.0f}, {1.0f}, {0.0f}};
 
-    net.train(inputs, outputs, 100000, 0.1f, 0.5f);
+    net.loadWeightsFromFile("outputWeights/");
+    //net.train(inputs, outputs, 10000, 0.1f, 0.5f);
     net.runTests(inputs);
+    net.saveWeightsToFile("outputWeights/");
 
     system("pause");
     return 0;
