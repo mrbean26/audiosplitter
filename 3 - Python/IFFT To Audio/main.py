@@ -4,7 +4,7 @@ import math
 
 # Variables
 samplesPerChunk = 8192
-frequencyResolution = 1024
+frequencyResolution = 2048
 vocalThreshold = 0.005
 
 # Read Files
@@ -55,33 +55,35 @@ for i in range(chunkCount):
 
     vocalTrackChunks[i] = outptutChunk
 
-# Find max value in vocals
+# Find max value in vocal track
 maxValue = 0
 
 for i in range(chunkCount):
     for j in range(frequencyResolution):
         maxValue = max(maxValue, abs(vocalTrackChunks[i][j]))
 
+# Find max value in full track
+maxValueFull = 0
+for i in range(chunkCount):
+    for j in range(samplesPerChunk):
+        maxValueFull = max(maxValueFull, abs(fullTrackChunks[i][j]))
+
 # Convert vocal track to 0s or 1s
 vocalThresholdValue = vocalThreshold * maxValue
 
 for i in range(chunkCount):
     for j in range(frequencyResolution):
-        value = abs(vocalTrackChunks[i][j])
         vocalTrackChunks[i][j] = abs(vocalTrackChunks[i][j]) / maxValue
 
 # Remove complex values when corresponding vocal is 0
-
 for i in range(chunkCount):
     for j in range(frequencyResolution):
         for k in range(valuesPerBand):
-            fullTrackChunks[i][j * valuesPerBand + k] = fullTrackChunks[i][j * valuesPerBand + k] * vocalTrackChunks[i][j]
+            fullTrackChunks[i][j * valuesPerBand + k] = fullTrackChunks[i][j * valuesPerBand + k] * vocalTrackChunks[i][j] * (maxValueFull / maxValue)
 
 # IFFT
-
 for i in range(chunkCount):
     fullTrackChunks[i] = numpy.fft.ifft(fullTrackChunks[i])
-
 
 # Combine chunks
 outputTrackSamples = []
