@@ -9,7 +9,7 @@ using namespace std;
 vector<vector<float>> generateInputs(int samplesPerChunk, int samplesPerOverlap, int frequencyResolution, int chunksPerInputHalf) {
 	vector<vector<float>> result;
 
-	for (int f = 51; f < 101; f++) {
+	for (int f = 1; f < 101; f++) {
 		string fileName = "inputs/" + to_string(f) + ".mp3";
 		vector<vector<float>> fullAudioInput = spectrogramOutput(fileName.data(), samplesPerChunk, samplesPerOverlap, frequencyResolution);
 
@@ -39,7 +39,7 @@ vector<vector<float>> generateInputs(int samplesPerChunk, int samplesPerOverlap,
 vector<vector<float>> generateOutputs(int samplesPerChunk, int samplesPerOverlap, int frequencyResolution, int chunksPerInputHalf) {
 	vector<vector<float>> result;
 
-	for (int f = 51; f < 101; f++) {
+	for (int f = 1; f < 101; f++) {
 		string fileName = "outputs/" + to_string(f) + ".mp3";
 		vector<vector<float>> fullAudioInput = spectrogramOutput(fileName.data(), samplesPerChunk, samplesPerOverlap, frequencyResolution);
 
@@ -65,7 +65,7 @@ int main() {
 	int samplesPerChunk = 8192; // I think this should be a power of 2
 	int samplesPerOverlap = samplesPerChunk; // no overlap
 
-	int frequencyResolution = 1024; // Each float represents (sampleRate / frequencyResolution) frequencies
+	int frequencyResolution = 512; // Each float represents (sampleRate / frequencyResolution) frequencies
 	int chunkBorder = 20; // How many chunks are added to each side of the input chunk, giving audio "context"
 
 	vector<vector<float>> inputSet = generateInputs(samplesPerChunk, samplesPerOverlap, frequencyResolution, chunkBorder);
@@ -74,12 +74,12 @@ int main() {
 	int inputSize = inputSet[0].size();
 	int outputSize = outputSet[0].size();
 
-	vector<int> layers = { inputSize, outputSize * 2, outputSize, outputSize };
+	vector<int> layers = { inputSize, outputSize, outputSize, outputSize };
 	vector<int> biases = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,  };
 
-	NeuralNetwork network = NeuralNetwork(layers, biases, "sigmoid");
+	NeuralNetwork network = NeuralNetwork(layers, biases, "tanh");
 	network.loadWeightsFromFile("outputWeights/");
-	network.train(inputSet, outputSet, 25, 0.05f, 0.05f);
+	network.train(inputSet, outputSet, 25, 0.05f, 0.00f);
 	network.saveWeightsToFile("outputWeights/");
 
 	system("pause");
