@@ -79,7 +79,7 @@ int main() {
 
 	NeuralNetwork network = NeuralNetwork(layers, biases, "tanh");
 	network.loadWeightsFromFile("outputWeights/");
-	network.train(inputSet, outputSet, 25, 0.05f, 0.00f);
+	network.train(inputSet, outputSet, 5, 0.05f, 0.00f);
 	network.saveWeightsToFile("outputWeights/");
 
 	system("pause");
