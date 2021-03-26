@@ -125,7 +125,7 @@ vector<vector<float>> spectrogramOutput(const char* mp3Filename, int samplesPerC
 			spectrogramChunks[chunkNum][i] = spectrogramChunks[chunkNum][i] / maxValue;
 		}
 
-		vector<float> currentVector(spectrogramChunks[chunkNum].begin(), spectrogramChunks[chunkNum].end());
+		vector<float> currentVector(spectrogramChunks[chunkNum].begin(), spectrogramChunks[chunkNum].begin() + newSamplesPerChunk / 2);
 		result.push_back(currentVector);
 	}
 
@@ -134,6 +134,15 @@ vector<vector<float>> spectrogramOutput(const char* mp3Filename, int samplesPerC
 }
 
 vector<int16_t> vocalSamples(const char* fullFileNameMP3, int samplesPerChunk, int samplesPerStride, vector<vector<float>> networkOutput) {
+	// Recreate full spectrogram
+	for (int i = 0; i < networkOutput.size(); i++) {
+		vector<float> currentChunk = networkOutput[i];
+		currentChunk.insert(currentChunk.end(), networkOutput[i].begin(), networkOutput[i].end());
+
+		networkOutput[i] = currentChunk;
+	}
+
+	// IFFT Total
 	mp3dec_file_info_t audioData = loadAudioData(fullFileNameMP3);
 	vector<int> audioSamples = loadAudioSamples(audioData.buffer, audioData.samples, audioData.channels);
 
@@ -174,6 +183,7 @@ vector<int16_t> vocalSamples(const char* fullFileNameMP3, int samplesPerChunk, i
 
 	for (int chunkNum = 0; chunkNum < chunkCount; chunkNum++) {
 		for (int i = 0; i < samplesPerChunk; i++) {
+			// Recreating full spectrogram here
 			fftInputArray[i][0] = spectrogramChunks[chunkNum][i];
 			fftInputArray[i][1] = 0;
 		}

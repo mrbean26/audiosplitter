@@ -6,18 +6,19 @@ using namespace std;
 
 #include <chrono>
 
-vector<vector<float>> generateInputs(int samplesPerChunk, int samplesPerOverlap, int frequencyResolution, int chunksPerInputHalf) {
+vector<vector<float>> generateInputs(int samplesPerChunk, int samplesPerOverlap, int frequencyResolution, int chunksPerInputHalf, int startFileIndex, int endIndex) {
 	vector<vector<float>> result;
 
-	for (int f = 1; f < 101; f++) {
+	for (int f = startFileIndex; f < endIndex; f++) {
 		string fileName = "inputs/" + to_string(f) + ".mp3";
 		vector<vector<float>> fullAudioInput = spectrogramOutput(fileName.data(), samplesPerChunk, samplesPerOverlap, frequencyResolution);
+		int newFrequencyResolution = fullAudioInput[0].size();
 
 		for (int i = chunksPerInputHalf; i < fullAudioInput.size() - chunksPerInputHalf; i++) {
 			vector<float> currentInput;
 
 			for (int c = i - chunksPerInputHalf; c < i + chunksPerInputHalf; c++) {
-				for (int f = 0; f < frequencyResolution / 4; f++) {
+				for (int f = 0; f < newFrequencyResolution; f++) {
 					float value = fullAudioInput[i][f];
 
 					// Remove NaN values, very very rare bug in visual studio
@@ -36,16 +37,17 @@ vector<vector<float>> generateInputs(int samplesPerChunk, int samplesPerOverlap,
 	return result;
 }
 
-vector<vector<float>> generateOutputs(int samplesPerChunk, int samplesPerOverlap, int frequencyResolution, int chunksPerInputHalf) {
+vector<vector<float>> generateOutputs(int samplesPerChunk, int samplesPerOverlap, int frequencyResolution, int chunksPerInputHalf, int startFileIndex, int endIndex) {
 	vector<vector<float>> result;
 
-	for (int f = 1; f < 101; f++) {
+	for (int f = startFileIndex; f < endIndex; f++) {
 		string fileName = "outputs/" + to_string(f) + ".mp3";
 		vector<vector<float>> fullAudioInput = spectrogramOutput(fileName.data(), samplesPerChunk, samplesPerOverlap, frequencyResolution);
+		int newFrequencyResolution = fullAudioInput[0].size();
 
 		for (int i = chunksPerInputHalf; i < fullAudioInput.size() - chunksPerInputHalf; i++) {
 			vector<float> currentInput;
-			for (int f = 0; f < frequencyResolution / 4; f++) {
+			for (int f = 0; f < newFrequencyResolution; f++) {
 				float value = fullAudioInput[i][f];
 
 				if (isnan(value)) {
@@ -68,8 +70,8 @@ int main() {
 	int frequencyResolution = 512; // Each float represents (sampleRate / frequencyResolution) frequencies
 	int chunkBorder = 20; // How many chunks are added to each side of the input chunk, giving audio "context"
 
-	vector<vector<float>> inputSet = generateInputs(samplesPerChunk, samplesPerOverlap, frequencyResolution, chunkBorder);
-	vector<vector<float>> outputSet = generateOutputs(samplesPerChunk, samplesPerOverlap, frequencyResolution, chunkBorder);
+	vector<vector<float>> inputSet = generateInputs(samplesPerChunk, samplesPerOverlap, frequencyResolution, chunkBorder, 1, 26);
+	vector<vector<float>> outputSet = generateOutputs(samplesPerChunk, samplesPerOverlap, frequencyResolution, chunkBorder, 1, 26);
 	
 	int inputSize = inputSet[0].size();
 	int outputSize = outputSet[0].size();
@@ -78,8 +80,22 @@ int main() {
 	vector<int> biases = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,  };
 
 	NeuralNetwork network = NeuralNetwork(layers, biases, "tanh");
-	network.loadWeightsFromFile("outputWeights/");
-	network.train(inputSet, outputSet, 5, 0.05f, 0.00f);
+	//network.loadWeightsFromFile("outputWeights/");
+
+	network.train(inputSet, outputSet, 50, 0.05f, 0.00f);
+	inputSet = generateInputs(samplesPerChunk, samplesPerOverlap, frequencyResolution, chunkBorder, 26, 51);
+	outputSet = generateOutputs(samplesPerChunk, samplesPerOverlap, frequencyResolution, chunkBorder, 26, 51);
+
+	network.train(inputSet, outputSet, 50, 0.05f, 0.00f);
+	inputSet = generateInputs(samplesPerChunk, samplesPerOverlap, frequencyResolution, chunkBorder, 51, 76);
+	outputSet = generateOutputs(samplesPerChunk, samplesPerOverlap, frequencyResolution, chunkBorder, 51, 76);
+
+	network.train(inputSet, outputSet, 50, 0.05f, 0.00f);
+	inputSet = generateInputs(samplesPerChunk, samplesPerOverlap, frequencyResolution, chunkBorder, 76, 101);
+	outputSet = generateOutputs(samplesPerChunk, samplesPerOverlap, frequencyResolution, chunkBorder, 76, 101);
+
+	network.train(inputSet, outputSet, 50, 0.05f, 0.00f);
+
 	network.saveWeightsToFile("outputWeights/");
 
 	system("pause");

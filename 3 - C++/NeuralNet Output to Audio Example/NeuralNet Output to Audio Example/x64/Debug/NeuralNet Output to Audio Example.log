@@ -1,6 +1,0 @@
-﻿  0 File(s) copied
-  main.cpp
-D:\Projects\Audio Splitter App\3 - C++\NeuralNet Output to Audio Example\NeuralNet Output to Audio Example\main.cpp(36,42): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\3 - C++\NeuralNet Output to Audio Example\NeuralNet Output to Audio Example\main.cpp(72,15): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-D:\Projects\Audio Splitter App\3 - C++\NeuralNet Output to Audio Example\NeuralNet Output to Audio Example\main.cpp(73,15): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-  NeuralNet Output to Audio Example.vcxproj -> D:\Projects\Audio Splitter App\3 - C++\NeuralNet Output to Audio Example\x64\Debug\NeuralNet Output to Audio Example.exe

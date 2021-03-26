@@ -7,7 +7,7 @@ using namespace std;
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
 
-vector<vector<float>> spectrogramValuesFromSamples(vector<int> audioSamples, int samplesPerChunk, int samplesPerStride, int frequencyResolution) {
+vector<vector<float>> spectrogramOutput(vector<int> audioSamples, int samplesPerChunk, int samplesPerStride, int frequencyResolution) {
 	vector<double> doubleAudioSamples(audioSamples.begin(), audioSamples.end());
 	vector<vector<double>> spectrogramChunks;
 
@@ -39,7 +39,7 @@ vector<vector<float>> spectrogramValuesFromSamples(vector<int> audioSamples, int
 	fftw_complex* fftInputArray = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) * samplesPerChunk);
 	fftw_complex* fftOutput = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) * samplesPerChunk);
 	fftw_plan fftwPlan = fftw_plan_dft_1d(samplesPerChunk, fftInputArray, fftOutput, FFTW_FORWARD, FFTW_ESTIMATE);
-	
+
 	// Execute FFTW Plan and Convert Complex to Real
 	int chunkCount = spectrogramChunks.size();
 	for (int chunkNum = 0; chunkNum < chunkCount; chunkNum++) {
@@ -57,31 +57,26 @@ vector<vector<float>> spectrogramValuesFromSamples(vector<int> audioSamples, int
 			spectrogramChunks[chunkNum][i] = sqrt(real * real + imaginary * imaginary);
 		}
 	}
-	
 
-	// Take Log Magnitude, Downsize Frequency Output with Average, and Take Max Value
+	// Downsize Frequency Output with Average, and Take Max Value
 	int valuesPerBand = samplesPerChunk / frequencyResolution;
 	double maxValue = 0.0;
 
 	for (int chunkNum = 0; chunkNum < chunkCount; chunkNum++) {
 		vector<double> resultantArray;
-		
-		for (int i = 0; i < samplesPerChunk / 2; i += valuesPerBand) {
+
+		for (int i = 0; i < samplesPerChunk; i += valuesPerBand) {
 			double accumulativeValue = 0.0;
 
 			for (int j = 0; j < valuesPerBand; j++) {
-				double currentValue = abs(spectrogramChunks[chunkNum][i + j]);
-				if (currentValue > 0) {
-					currentValue = log(currentValue);
-				}
+				double currentValue = spectrogramChunks[chunkNum][i + j];
 
 				accumulativeValue = accumulativeValue + currentValue;
 			}
 
 			accumulativeValue = accumulativeValue / valuesPerBand;
-			accumulativeValue = pow(1.5, accumulativeValue);
 			maxValue = max(maxValue, accumulativeValue);
-			
+
 			resultantArray.push_back(accumulativeValue);
 		}
 
@@ -96,7 +91,7 @@ vector<vector<float>> spectrogramValuesFromSamples(vector<int> audioSamples, int
 			spectrogramChunks[chunkNum][i] = spectrogramChunks[chunkNum][i] / maxValue;
 		}
 
-		vector<float> currentVector(spectrogramChunks[chunkNum].begin(), spectrogramChunks[chunkNum].end());
+		vector<float> currentVector(spectrogramChunks[chunkNum].begin(), spectrogramChunks[chunkNum].begin() + newSamplesPerChunk / 2);
 		result.push_back(currentVector);
 	}
 
@@ -106,10 +101,10 @@ vector<vector<float>> spectrogramValuesFromSamples(vector<int> audioSamples, int
 
 int main() {
 	wavData audioData = readWAVData("scartissue.wav");
-	vector<vector<float>> spectrogramOutput = spectrogramValuesFromSamples(audioData.data, 16384, 16384 / 2, 128);
+	vector<vector<float>> spectrogramOutputValues = spectrogramOutput(audioData.data, 16384, 16384 / 2, 128);
 
-	int width = spectrogramOutput.size();
-	int height = spectrogramOutput[0].size();
+	int width = spectrogramOutputValues.size();
+	int height = spectrogramOutputValues[0].size();
 	int channelCount = 3;
 
 	unsigned char * data = new unsigned char[width * height * channelCount];
@@ -117,7 +112,7 @@ int main() {
 
 	for (int y = height - 1; y >= 0; y--) {
 		for (int x = 0; x < width; x++) {
-			int intColour = int(255.0 * spectrogramOutput[x][y]);
+			int intColour = int(255.0 * spectrogramOutputValues[x][y]);
 
 			data[index++] = intColour;
 			data[index++] = intColour;

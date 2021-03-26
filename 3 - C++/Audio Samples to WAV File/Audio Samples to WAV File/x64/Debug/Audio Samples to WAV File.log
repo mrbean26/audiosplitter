@@ -1,0 +1,3 @@
+﻿  main.cpp
+D:\Projects\Audio Splitter App\3 - C++\Audio Samples to WAV File\Audio Samples to WAV File\main.cpp(26,23): warning C4244: 'initializing': conversion from 'double' to 'int16_t', possible loss of data
+  Audio Samples to WAV File.vcxproj -> D:\Projects\Audio Splitter App\3 - C++\Audio Samples to WAV File\x64\Debug\Audio Samples to WAV File.exe
