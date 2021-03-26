@@ -68,10 +68,16 @@ int main() {
 	int samplesPerOverlap = samplesPerChunk; // no overlap
 
 	int frequencyResolution = 512; // Each float represents (sampleRate / frequencyResolution) frequencies
-	int chunkBorder = 20; // How many chunks are added to each side of the input chunk, giving audio "context"
+	int chunkBorder = 10; // How many chunks are added to each side of the input chunk, giving audio "context"
+	
+	int epochs = 10;
+	float lr = 0.05;
+	float momentum = 0.0f;
 
-	vector<vector<float>> inputSet = generateInputs(samplesPerChunk, samplesPerOverlap, frequencyResolution, chunkBorder, 1, 26);
-	vector<vector<float>> outputSet = generateOutputs(samplesPerChunk, samplesPerOverlap, frequencyResolution, chunkBorder, 1, 26);
+	int songsPerTrain = 5;
+	
+	vector<vector<float>> inputSet = generateInputs(samplesPerChunk, samplesPerOverlap, frequencyResolution, chunkBorder, 1, songsPerTrain + 1);
+	vector<vector<float>> outputSet = generateOutputs(samplesPerChunk, samplesPerOverlap, frequencyResolution, chunkBorder, 1, songsPerTrain + 1);
 	
 	int inputSize = inputSet[0].size();
 	int outputSize = outputSet[0].size();
@@ -80,24 +86,17 @@ int main() {
 	vector<int> biases = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,  };
 
 	NeuralNetwork network = NeuralNetwork(layers, biases, "tanh");
-	//network.loadWeightsFromFile("outputWeights/");
-
-	network.train(inputSet, outputSet, 50, 0.05f, 0.00f);
-	inputSet = generateInputs(samplesPerChunk, samplesPerOverlap, frequencyResolution, chunkBorder, 26, 51);
-	outputSet = generateOutputs(samplesPerChunk, samplesPerOverlap, frequencyResolution, chunkBorder, 26, 51);
-
-	network.train(inputSet, outputSet, 50, 0.05f, 0.00f);
-	inputSet = generateInputs(samplesPerChunk, samplesPerOverlap, frequencyResolution, chunkBorder, 51, 76);
-	outputSet = generateOutputs(samplesPerChunk, samplesPerOverlap, frequencyResolution, chunkBorder, 51, 76);
-
-	network.train(inputSet, outputSet, 50, 0.05f, 0.00f);
-	inputSet = generateInputs(samplesPerChunk, samplesPerOverlap, frequencyResolution, chunkBorder, 76, 101);
-	outputSet = generateOutputs(samplesPerChunk, samplesPerOverlap, frequencyResolution, chunkBorder, 76, 101);
-
-	network.train(inputSet, outputSet, 50, 0.05f, 0.00f);
-
+	network.loadWeightsFromFile("outputWeights/");
+	
+	network.train(inputSet, outputSet, epochs, lr, momentum);
+	for (int i = songsPerTrain + 1; i < 101; i += songsPerTrain) {
+		inputSet = generateInputs(samplesPerChunk, samplesPerOverlap, frequencyResolution, chunkBorder, i, i + songsPerTrain);
+		outputSet = generateOutputs(samplesPerChunk, samplesPerOverlap, frequencyResolution, chunkBorder, i, i + songsPerTrain);
+		network.train(inputSet, outputSet, epochs, lr, momentum);
+	}
+	
 	network.saveWeightsToFile("outputWeights/");
 
 	system("pause");
-	return -1;
+	return 0;
 }
