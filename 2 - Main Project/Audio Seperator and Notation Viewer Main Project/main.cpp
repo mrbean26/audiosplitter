@@ -64,21 +64,24 @@ vector<vector<float>> generateOutputs(int samplesPerChunk, int samplesPerOverlap
 }
 
 int main() {
+	// Initial Variables
 	int samplesPerChunk = 8192; // I think this should be a power of 2
 	int samplesPerOverlap = samplesPerChunk; // no overlap
 
 	int frequencyResolution = 512; // Each float represents (sampleRate / frequencyResolution) frequencies
 	int chunkBorder = 10; // How many chunks are added to each side of the input chunk, giving audio "context"
 	
-	int epochs = 10;
-	float lr = 0.05;
+	int epochs = 35;
+	float lr = 0.025;
 	float momentum = 0.0f;
 
 	int songsPerTrain = 5;
 	
+
+	// Train Network
 	vector<vector<float>> inputSet = generateInputs(samplesPerChunk, samplesPerOverlap, frequencyResolution, chunkBorder, 1, songsPerTrain + 1);
 	vector<vector<float>> outputSet = generateOutputs(samplesPerChunk, samplesPerOverlap, frequencyResolution, chunkBorder, 1, songsPerTrain + 1);
-	
+
 	int inputSize = inputSet[0].size();
 	int outputSize = outputSet[0].size();
 
@@ -87,7 +90,7 @@ int main() {
 
 	NeuralNetwork network = NeuralNetwork(layers, biases, "tanh");
 	network.loadWeightsFromFile("outputWeights/");
-	
+
 	network.train(inputSet, outputSet, epochs, lr, momentum);
 	for (int i = songsPerTrain + 1; i < 101; i += songsPerTrain) {
 		inputSet = generateInputs(samplesPerChunk, samplesPerOverlap, frequencyResolution, chunkBorder, i, i + songsPerTrain);
@@ -96,6 +99,21 @@ int main() {
 	}
 	
 	network.saveWeightsToFile("outputWeights/");
+
+	// Test with first test songs
+	vector<vector<float>> testTrackSpectrogram = generateInputs(samplesPerChunk, samplesPerChunk, frequencyResolution, chunkBorder, 1, 2); // First track only, for testing
+	vector<vector<float>> predictedTrackSpectrogram;
+
+	int chunkCount = testTrackSpectrogram.size();
+	int networkLayerCount = layers.size();
+	
+	for (int i = 0; i < chunkCount; i++) {
+		vector<float> currentChunkPrection = network.predict(testTrackSpectrogram[i]);
+		predictedTrackSpectrogram.push_back(currentChunkPrection);
+	}
+
+	vector<int16_t> testTrackOutputSamples = vocalSamples("inputs/1.mp3", samplesPerChunk, samplesPerChunk, predictedTrackSpectrogram);
+	writeToWAV("testTrackOutput.wav", testTrackOutputSamples);
 
 	system("pause");
 	return 0;

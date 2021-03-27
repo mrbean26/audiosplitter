@@ -1,5 +1,6 @@
 #include "Headers/audio.h"
 #include <iomanip>
+#include <fstream>
 
 #define MINIMP3_IMPLEMENTATION
 #include "Headers/minimp3.h"
@@ -133,4 +134,134 @@ vector<vector<float>> spectrogramOutput(const char* mp3Filename, int samplesPerC
 
 	// Return as vector<vector<float>>
 	return result;
+}
+
+vector<int16_t> vocalSamples(const char* fullFileNameMP3, int samplesPerChunk, int samplesPerStride, vector<vector<float>> networkOutput) {
+	// Recreate full spectrogram
+	for (int i = 0; i < networkOutput.size(); i++) {
+		vector<float> currentChunk = networkOutput[i];
+		currentChunk.insert(currentChunk.end(), networkOutput[i].begin(), networkOutput[i].end());
+
+		networkOutput[i] = currentChunk;
+	}
+
+	// IFFT Total
+	mp3dec_file_info_t audioData = loadAudioData(fullFileNameMP3);
+	vector<int> audioSamples = loadAudioSamples(audioData.buffer, audioData.samples, audioData.channels);
+
+	int maxInitialSample = 0;
+	for (int i = 0; i < audioSamples.size(); i++) {
+		maxInitialSample = max(maxInitialSample, abs(audioSamples[i]));
+	}
+
+	vector<double> doubleAudioSamples(audioSamples.begin(), audioSamples.end());
+	vector<vector<double>> spectrogramChunks;
+
+	// Split into chunks
+	int sampleCount = doubleAudioSamples.size();
+	for (int i = 0; i < sampleCount - samplesPerChunk; i += samplesPerStride) {
+		vector<double> currentChunk(doubleAudioSamples.begin() + i, doubleAudioSamples.begin() + i + samplesPerChunk);
+
+		for (int j = 0; j < samplesPerChunk; j++) {
+			double currentValue = currentChunk[j];
+			currentChunk[j] = currentValue;
+		}
+
+		spectrogramChunks.push_back(currentChunk);
+	}
+
+	// FFT each chunk 1D with FFTW
+	fftw_complex* fftInputArray = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) * samplesPerChunk);
+	fftw_complex* fftOutput = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) * samplesPerChunk);
+	fftw_plan fftwPlan = fftw_plan_dft_1d(samplesPerChunk, fftInputArray, fftOutput, FFTW_FORWARD, FFTW_ESTIMATE);
+	fftw_plan fftwInversePlan = fftw_plan_dft_1d(samplesPerChunk, fftOutput, fftInputArray, FFTW_BACKWARD, FFTW_ESTIMATE);
+
+	// Execute FFTW Plans
+	int chunkCount = networkOutput.size();
+	int frequencyResolution = networkOutput[0].size();
+	int valuesPerBand = samplesPerChunk / frequencyResolution;
+
+	vector<int16_t> resultantSamples;
+	int maxNewSample = 0;
+
+	for (int chunkNum = 0; chunkNum < chunkCount; chunkNum++) {
+		for (int i = 0; i < samplesPerChunk; i++) {
+			// Recreating full spectrogram here
+			fftInputArray[i][0] = spectrogramChunks[chunkNum][i];
+			fftInputArray[i][1] = 0;
+		}
+
+		fftw_execute(fftwPlan);
+
+		for (int i = 0; i < samplesPerChunk; i += valuesPerBand) {
+			for (int j = 0; j < valuesPerBand; j++) {
+				fftOutput[i + j][0] = networkOutput[chunkNum][i / valuesPerBand] * fftOutput[i + j][0];
+				fftOutput[i + j][1] = networkOutput[chunkNum][i / valuesPerBand] * fftOutput[i + j][1];
+			}
+		}
+
+		fftw_execute(fftwInversePlan);
+
+		for (int i = 0; i < samplesPerChunk; i++) {
+			double normalisedReal = fftInputArray[i][0] / samplesPerChunk;
+			double normalisedImag = fftInputArray[i][1] / samplesPerChunk;
+
+			int16_t currentSample = normalisedReal;
+			maxNewSample = max(maxNewSample, currentSample);
+			resultantSamples.push_back(currentSample);
+		}
+	}
+
+	fftw_destroy_plan(fftwPlan);
+	fftw_destroy_plan(fftwInversePlan);
+	fftw_free(fftInputArray);
+	fftw_free(fftOutput);
+
+	for (int i = 0; i < resultantSamples.size(); i++) {
+		resultantSamples[i] = resultantSamples[i] * (double(maxInitialSample) / double(maxNewSample));
+	}
+
+	return resultantSamples;
+}
+
+void writeToWAV(const char* fileName, vector<int16_t> samples) {
+	int sampleCount = samples.size();
+
+	int16_t bitsPerSample = 16;
+	const int32_t sampleRate = 44100;
+	int16_t channelCount = 1;
+	int32_t subChunk2Size = sampleCount * bitsPerSample * channelCount;
+	int32_t chunkSize = subChunk2Size + 32;
+	int16_t audioFormat = 1;
+	int32_t subChunk1Size = 16;
+	int32_t byteRate = sampleRate * channelCount * (bitsPerSample / 8);
+	int16_t blockAlign = channelCount * (bitsPerSample / 8);
+
+	// Open File
+	std::ofstream outputFile(fileName, ios::out | ios::binary);
+
+	// Write Header Info to File
+	outputFile << "RIFF";
+	outputFile.write((char*)&chunkSize, sizeof(chunkSize));
+	outputFile << "WAVE";
+
+	outputFile << "fmt ";
+	outputFile.write((char*)&subChunk1Size, sizeof(subChunk1Size));
+	outputFile.write((char*)&audioFormat, sizeof(audioFormat));
+	outputFile.write((char*)&channelCount, sizeof(channelCount));
+	outputFile.write((char*)&sampleRate, sizeof(sampleRate));
+	outputFile.write((char*)&byteRate, sizeof(byteRate));
+	outputFile.write((char*)&blockAlign, sizeof(blockAlign));
+	outputFile.write((char*)&bitsPerSample, sizeof(bitsPerSample));
+
+	// Data Chunk
+	outputFile << "data";
+	outputFile.write((char*)&subChunk2Size, sizeof(subChunk2Size));
+
+	for (int i = 0; i < sampleCount; i++) {
+		int16_t currentSample = samples[i];
+		outputFile.write((char*)&currentSample, sizeof(currentSample));
+	}
+	// Close
+	outputFile.close();
 }
