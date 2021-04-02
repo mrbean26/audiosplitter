@@ -65,20 +65,21 @@ vector<vector<float>> generateOutputs(int samplesPerChunk, int samplesPerOverlap
 
 int main() {
 	// Initial Variables
-	int samplesPerChunk = 8192; // I think this should be a power of 2
+	int samplesPerChunk = 4096; // I think this should be a power of 2
 	int samplesPerOverlap = samplesPerChunk; // no overlap
 
-	int frequencyResolution = 512; // Each float represents (sampleRate / frequencyResolution) frequencies
-	int chunkBorder = 10; // How many chunks are added to each side of the input chunk, giving audio "context"
+	int frequencyResolution = 128; // Each float represents (sampleRate / frequencyResolution) frequencies
+	int chunkBorder = 20; // How many chunks are added to each side of the input chunk, giving audio "context"
 	
-	int epochs = 35;
-	float lr = 0.025;
-	float momentum = 0.0f;
+	int epochs = 1000;
+	float lr = 0.5;
+	float momentum = 0.25f;
 
 	int songsPerTrain = 5;
-	
 
 	// Train Network
+	
+	/*
 	vector<vector<float>> inputSet = generateInputs(samplesPerChunk, samplesPerOverlap, frequencyResolution, chunkBorder, 1, songsPerTrain + 1);
 	vector<vector<float>> outputSet = generateOutputs(samplesPerChunk, samplesPerOverlap, frequencyResolution, chunkBorder, 1, songsPerTrain + 1);
 
@@ -88,7 +89,7 @@ int main() {
 	vector<int> layers = { inputSize, outputSize, outputSize, outputSize };
 	vector<int> biases = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,  };
 
-	NeuralNetwork network = NeuralNetwork(layers, biases, "tanh");
+	NeuralNetwork network = NeuralNetwork(layers, biases, "sigmoid");
 	network.loadWeightsFromFile("outputWeights/");
 
 	network.train(inputSet, outputSet, epochs, lr, momentum);
@@ -99,6 +100,20 @@ int main() {
 	}
 	
 	network.saveWeightsToFile("outputWeights/");
+	*/
+
+	vector<vector<float>> inputSet = generateInputs(samplesPerChunk, samplesPerOverlap, frequencyResolution, chunkBorder, 1, 2);
+	vector<vector<float>> outputSet = generateOutputs(samplesPerChunk, samplesPerOverlap, frequencyResolution, chunkBorder, 1, 2);
+
+	int inputSize = inputSet[0].size();
+	int outputSize = outputSet[0].size();
+
+	vector<int> layers = { inputSize, outputSize * 4, outputSize * 2, outputSize, outputSize };
+	vector<int> biases = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, };
+
+	NeuralNetwork network = NeuralNetwork(layers, biases, "relu");
+
+	network.train(inputSet, outputSet, epochs, lr, momentum);
 
 	// Test with first test songs
 	vector<vector<float>> testTrackSpectrogram = generateInputs(samplesPerChunk, samplesPerChunk, frequencyResolution, chunkBorder, 1, 2); // First track only, for testing

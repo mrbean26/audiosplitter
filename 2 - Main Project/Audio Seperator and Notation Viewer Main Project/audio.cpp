@@ -16,7 +16,7 @@ mp3dec_file_info_t loadAudioData(const char* mp3Filename) {
 		cout << "MP3 Load Error" << endl;
 		return mp3dec_file_info_t();
 	}
-
+	
 	return fileInfo;
 }
 
