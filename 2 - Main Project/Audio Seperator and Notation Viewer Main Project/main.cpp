@@ -71,8 +71,8 @@ int main() {
 	int frequencyResolution = 128; // Each float represents (sampleRate / frequencyResolution) frequencies
 	int chunkBorder = 20; // How many chunks are added to each side of the input chunk, giving audio "context"
 	
-	int epochs = 1000;
-	float lr = 0.5;
+	int epochs = 3000;
+	float lr = 0.3;
 	float momentum = 0.25f;
 
 	int songsPerTrain = 5;
@@ -92,11 +92,14 @@ int main() {
 	NeuralNetwork network = NeuralNetwork(layers, biases, "sigmoid");
 	network.loadWeightsFromFile("outputWeights/");
 
-	network.train(inputSet, outputSet, epochs, lr, momentum);
+	vector<float> trainingErrors = network.train(inputSet, outputSet, epochs, lr, momentum);
+
 	for (int i = songsPerTrain + 1; i < 101; i += songsPerTrain) {
 		inputSet = generateInputs(samplesPerChunk, samplesPerOverlap, frequencyResolution, chunkBorder, i, i + songsPerTrain);
 		outputSet = generateOutputs(samplesPerChunk, samplesPerOverlap, frequencyResolution, chunkBorder, i, i + songsPerTrain);
-		network.train(inputSet, outputSet, epochs, lr, momentum);
+
+		vector<float> currentTrainingErrors = network.train(inputSet, outputSet, epochs, lr, momentum);
+		trainingErrors.insert(trainingErrors.end(), currentTrainingErrors.begin(), currentTrainingErrors.end());
 	}
 	
 	network.saveWeightsToFile("outputWeights/");
@@ -111,9 +114,9 @@ int main() {
 	vector<int> layers = { inputSize, outputSize * 4, outputSize * 2, outputSize, outputSize };
 	vector<int> biases = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, };
 
-	NeuralNetwork network = NeuralNetwork(layers, biases, "relu");
+	NeuralNetwork network = NeuralNetwork(layers, biases, "tanh");
 
-	network.train(inputSet, outputSet, epochs, lr, momentum);
+	vector<float> trainingErrors = network.train(inputSet, outputSet, epochs, lr, momentum);
 
 	// Test with first test songs
 	vector<vector<float>> testTrackSpectrogram = generateInputs(samplesPerChunk, samplesPerChunk, frequencyResolution, chunkBorder, 1, 2); // First track only, for testing

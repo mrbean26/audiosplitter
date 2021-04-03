@@ -322,7 +322,7 @@ void NeuralNetwork::resetDerivativesAndResults(){
     }
 }
 
-void NeuralNetwork::train(vector<vector<float>> trainInputs, vector<vector<float>> trainOutputs, int epochs, float lr, float momentum){
+vector<float> NeuralNetwork::train(vector<vector<float>> trainInputs, vector<vector<float>> trainOutputs, int epochs, float lr, float momentum){
     int trainDataCount = trainInputs.size();
     int outputCount = trainOutputs[0].size();
 
@@ -331,6 +331,7 @@ void NeuralNetwork::train(vector<vector<float>> trainInputs, vector<vector<float
         trainIndexes.push_back(i);
     }
 
+    vector<float> result;
     for(int epoch = 0; epoch < epochs; epoch++){
         cout << ((float) (epoch + 1) / (float) epochs) * 100.0f << "%" << endl;
         random_shuffle(trainIndexes.begin(), trainIndexes.end());
@@ -347,11 +348,15 @@ void NeuralNetwork::train(vector<vector<float>> trainInputs, vector<vector<float
                 errors.push_back(trainOutputs[currentIndex][e] - result[e]);
             }
 
+            result.push_back(totalError);
+
             calculateDerivatives(errors);
             adjustWeights(lr, momentum);
             cout << "Epoch: " << epoch + 1 << " / " << epochs << ", Train data item: " << t + 1 << " / " << trainDataCount << ", Total Error: " << totalError << endl;
         }
     }
+
+    return result;
 }
 
 void NeuralNetwork::runTests(vector<vector<float>> inputs){

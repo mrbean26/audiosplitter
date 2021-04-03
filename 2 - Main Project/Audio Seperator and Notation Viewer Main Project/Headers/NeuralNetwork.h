@@ -61,7 +61,7 @@ public:
     void adjustWeights(float lr, float momentum);
     void resetDerivativesAndResults();
 
-    void train(vector<vector<float>> trainInputs, vector<vector<float>> trainOutputs,
+    vector<float> train(vector<vector<float>> trainInputs, vector<vector<float>> trainOutputs,
         int epochs, float lr, float momentum);
     void runTests(vector<vector<float>> inputs);
 
