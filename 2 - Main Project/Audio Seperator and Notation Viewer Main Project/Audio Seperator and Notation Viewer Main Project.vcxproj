@@ -157,7 +157,7 @@
     <ClInclude Include="Headers\minimp3.h" />
     <ClInclude Include="Headers\minimp3_ex.h" />
     <ClInclude Include="Headers\NeuralNetwork.h" />
-    <ClInclude Include="stb_image_write.h" />
+    <ClInclude Include="Headers\stb_image_write.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

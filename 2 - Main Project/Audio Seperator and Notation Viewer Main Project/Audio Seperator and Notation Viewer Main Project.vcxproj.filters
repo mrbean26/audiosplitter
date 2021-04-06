@@ -44,8 +44,8 @@
     <ClInclude Include="Headers\fftw3.h">
       <Filter>Source Files\Headers</Filter>
     </ClInclude>
-    <ClInclude Include="stb_image_write.h">
-      <Filter>Source Files</Filter>
+    <ClInclude Include="Headers\stb_image_write.h">
+      <Filter>Source Files\Headers</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
