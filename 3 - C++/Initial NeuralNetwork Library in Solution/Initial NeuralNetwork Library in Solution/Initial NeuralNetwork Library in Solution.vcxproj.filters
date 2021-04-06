@@ -26,5 +26,8 @@
     <ClInclude Include="Headers\NeuralNetwork.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="stb_image_write.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
