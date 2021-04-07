@@ -127,8 +127,8 @@ int main() {
 	int songsPerTrain = 5;
 
 	// Train Network
+	// Main Training
 	
-	/*
 	vector<vector<float>> inputSet = generateInputs(samplesPerChunk, samplesPerOverlap, frequencyResolution, chunkBorder, 1, songsPerTrain + 1);
 	vector<vector<float>> outputSet = generateOutputs(samplesPerChunk, samplesPerOverlap, frequencyResolution, chunkBorder, 1, songsPerTrain + 1);
 
@@ -139,21 +139,23 @@ int main() {
 	vector<int> biases = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,  };
 
 	NeuralNetwork network = NeuralNetwork(layers, biases, "sigmoid");
-	network.loadWeightsFromFile("outputWeights/");
+	//network.loadWeightsFromFile("outputWeights/");
 
-	vector<float> trainingErrors = network.train(inputSet, outputSet, epochs, lr, momentum);
+	//vector<float> trainingErrors = network.train(inputSet, outputSet, epochs, lr, momentum);
 
 	for (int i = songsPerTrain + 1; i < 101; i += songsPerTrain) {
 		inputSet = generateInputs(samplesPerChunk, samplesPerOverlap, frequencyResolution, chunkBorder, i, i + songsPerTrain);
 		outputSet = generateOutputs(samplesPerChunk, samplesPerOverlap, frequencyResolution, chunkBorder, i, i + songsPerTrain);
 
-		vector<float> currentTrainingErrors = network.train(inputSet, outputSet, epochs, lr, momentum);
-		trainingErrors.insert(trainingErrors.end(), currentTrainingErrors.begin(), currentTrainingErrors.end());
+		//vector<float> currentTrainingErrors = network.train(inputSet, outputSet, epochs, lr, momentum);
+		//trainingErrors.insert(trainingErrors.end(), currentTrainingErrors.begin(), currentTrainingErrors.end());
 	}
 	
-	network.saveWeightsToFile("outputWeights/");
-	*/
+	//network.saveWeightsToFile("outputWeights/");
+	
 
+	// One Song Training
+	/*
 	vector<vector<float>> inputSet = generateInputs(samplesPerChunk, samplesPerOverlap, frequencyResolution, chunkBorder, 1, 2);
 	vector<vector<float>> outputSet = generateOutputs(samplesPerChunk, samplesPerOverlap, frequencyResolution, chunkBorder, 1, 2);
 
@@ -183,7 +185,7 @@ int main() {
 
 	vector<int16_t> testTrackOutputSamples = vocalSamples("inputs/1.mp3", samplesPerChunk, samplesPerChunk, predictedTrackSpectrogram);
 	writeToWAV("testTrackOutput.wav", testTrackOutputSamples);
-
+	*/
 	system("pause");
 	return 0;
 }
