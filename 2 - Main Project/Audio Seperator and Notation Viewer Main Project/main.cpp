@@ -120,7 +120,7 @@ int main() {
 	int frequencyResolution = 128; // Each float represents (sampleRate / frequencyResolution) frequencies
 	int chunkBorder = 4; // How many chunks are added to each side of the input chunk, giving audio "context"
 	
-	int epochs = 4000;
+	int epochs = 5000;
 	float lr = 0.1;
 	float momentum = 0.25f;
 
@@ -157,14 +157,13 @@ int main() {
 
 	// One Song Training
 	
-	vector<vector<float>> inputSet = generateInputs(samplesPerChunk, samplesPerOverlap, frequencyResolution, chunkBorder, 1, 2);
-	vector<vector<float>> outputSet = generateOutputs(samplesPerChunk, samplesPerOverlap, frequencyResolution, chunkBorder, 1, 2);
+	vector<vector<float>> inputSet = generateInputs(samplesPerChunk, samplesPerOverlap, frequencyResolution, chunkBorder, 1, 6);
+	vector<vector<float>> outputSet = generateOutputs(samplesPerChunk, samplesPerOverlap, frequencyResolution, chunkBorder, 1, 6);
 
 	int inputSize = inputSet[0].size();
 	int outputSize = outputSet[0].size();
 
-	//vector<int> layers = { inputSize, outputSize * 4, outputSize * 6, outputSize * 8, outputSize * 4, outputSize * 2, outputSize };
-	vector<int> layers = { inputSize, outputSize * 2, outputSize * 4, outputSize * 6, outputSize * 4, outputSize * 2, outputSize };
+	vector<int> layers = { inputSize,  outputSize * 4, outputSize * 2, outputSize * 2, outputSize * 2, outputSize * 2, outputSize * 2, outputSize * 2, outputSize};
 	vector<int> biases = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, };
 
 	NeuralNetwork network = NeuralNetwork(layers, biases, "tanh");

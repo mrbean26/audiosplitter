@@ -333,7 +333,6 @@ vector<float> NeuralNetwork::train(vector<vector<float>> trainInputs, vector<vec
 
     vector<float> result;
     for(int epoch = 0; epoch < epochs; epoch++){
-        cout << ((float) (epoch + 1) / (float) epochs) * 100.0f << "%" << endl;
         random_shuffle(trainIndexes.begin(), trainIndexes.end());
 
         float totalError = 0.0f;
@@ -352,8 +351,10 @@ vector<float> NeuralNetwork::train(vector<vector<float>> trainInputs, vector<vec
 
             calculateDerivatives(errors);
             adjustWeights(lr, momentum);
-            cout << "Epoch: " << epoch + 1 << " / " << epochs << ", Train data item: " << t + 1 << " / " << trainDataCount << ", Total Error: " << currentError << endl;
+            //cout << "Epoch: " << epoch + 1 << " / " << epochs << ", Train data item: " << t + 1 << " / " << trainDataCount << ", Total Error: " << currentError << endl;
         }
+
+        cout << "Epoch: " << epoch + 1 << " / " << epochs << ", Total error from epoch: " << totalError << endl;
         result.push_back(totalError);
     }
 
