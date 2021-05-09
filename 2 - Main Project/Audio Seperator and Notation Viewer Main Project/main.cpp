@@ -120,11 +120,11 @@ int main() {
 	int frequencyResolution = 128; // Each float represents (sampleRate / frequencyResolution) frequencies
 	int chunkBorder = 4; // How many chunks are added to each side of the input chunk, giving audio "context"
 	
-	int epochs = 5000;
-	float lr = 0.1;
-	float momentum = 0.25f;
+	int epochs = 10000;
+	float lr = 0.15;
+	float momentum = 0.0f;
 
-	int songsPerTrain = 5;
+	int songsPerTrain = 1;
 
 	// Train Network
 	// Main Training
@@ -157,8 +157,13 @@ int main() {
 
 	// One Song Training
 	
-	vector<vector<float>> inputSet = generateInputs(samplesPerChunk, samplesPerOverlap, frequencyResolution, chunkBorder, 1, 6);
-	vector<vector<float>> outputSet = generateOutputs(samplesPerChunk, samplesPerOverlap, frequencyResolution, chunkBorder, 1, 6);
+
+	// TESTING WITH LEARNING RATE DECREASE AT THE MOMENT
+
+
+
+	vector<vector<float>> inputSet = generateInputs(samplesPerChunk, samplesPerOverlap, frequencyResolution, chunkBorder, 1, songsPerTrain + 1);
+	vector<vector<float>> outputSet = generateOutputs(samplesPerChunk, samplesPerOverlap, frequencyResolution, chunkBorder, 1, songsPerTrain + 1);
 
 	int inputSize = inputSet[0].size();
 	int outputSize = outputSet[0].size();
@@ -167,9 +172,9 @@ int main() {
 	vector<int> biases = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, };
 
 	NeuralNetwork network = NeuralNetwork(layers, biases, "tanh");
-
-	vector<float> trainingErrors = network.train(inputSet, outputSet, epochs, lr, momentum);
-	writeToImage(trainingErrors, 1000, 512);
+	network.trainRandomMethod(2000, 1000.0f, inputSet, outputSet);
+	//vector<float> trainingErrors = network.train(inputSet, outputSet, epochs, lr, momentum);
+	//writeToImage(trainingErrors, 1000, 512);
 	//network.saveWeightsToFile("outputWeights/");
 
 	// Test with first test songs

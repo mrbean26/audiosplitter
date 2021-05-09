@@ -350,7 +350,10 @@ vector<float> NeuralNetwork::train(vector<vector<float>> trainInputs, vector<vec
             totalError += currentError;
 
             calculateDerivatives(errors);
-            adjustWeights(lr, momentum);
+            
+            float tmpLearningRate = lr * (float(epochs - epoch) / float(epochs));
+
+            adjustWeights(tmpLearningRate, momentum);
             //cout << "Epoch: " << epoch + 1 << " / " << epochs << ", Train data item: " << t + 1 << " / " << trainDataCount << ", Total Error: " << currentError << endl;
         }
 
@@ -471,4 +474,60 @@ void NeuralNetwork::loadWeightsFromFile(string directory){
             }
         }
     }
+}
+
+void NeuralNetwork::randomizeWeights() {
+    for (int i = 0; i < layerCount - 1; i++) {
+        int nodeCount = layerNodes[i].size();
+        int outWeightCount = layerNodes[i + 1].size();
+
+        for (int n = 0; n < nodeCount; n++) {
+            for (int w = 0; w < outWeightCount; w++) {
+                layerNodes[i][n].outWeights[w] = randomFloat();
+            }
+        }
+
+        int biasCount = layerBiases[i].size();
+
+        for (int b = 0; b < biasCount; b++) {
+            for (int w = 0; w < outWeightCount; w++) {
+                layerBiases[i][b].outWeights[w] = randomFloat();
+            }
+        }
+    }
+}
+
+void NeuralNetwork::trainRandomMethod(int epochs, float errorThreshold, vector<vector<float>> trainInputs, vector<vector<float>> trainOutputs) {
+    float minimumFoundError = 0.0f;
+
+    int trainDataCount = trainInputs.size();
+    int outputCount = trainOutputs[0].size();
+
+    for (int epoch = 0; epoch < epochs; epoch++) {
+        randomizeWeights();
+        float accumulativeError = 0.0f;
+        
+        for (int t = 0; t < trainDataCount; t++) {
+            vector<float> predicted = predict(trainInputs[t]);
+            
+            for (int o = 0; o < outputCount; o++) {
+                accumulativeError = accumulativeError + abs(trainOutputs[t][o] - predicted[o]);
+                
+            }
+        }
+
+        cout << "Random Epoch: " << epoch + 1 << " / " << epochs << ", Error: " << accumulativeError << endl;
+
+        if (accumulativeError < errorThreshold) {
+            break;
+        }
+
+        minimumFoundError = min(minimumFoundError, accumulativeError);
+
+        if (epoch == 0) {
+            minimumFoundError = accumulativeError;
+        }
+    }
+
+    cout << "Minimum Error Found: " << minimumFoundError << endl;
 }
