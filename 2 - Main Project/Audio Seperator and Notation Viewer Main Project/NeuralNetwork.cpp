@@ -351,9 +351,9 @@ vector<float> NeuralNetwork::train(vector<vector<float>> trainInputs, vector<vec
 
             calculateDerivatives(errors);
             
-            float tmpLearningRate = lr * (float(epochs - epoch) / float(epochs));
+            //float tmpLearningRate = lr * (float(epochs - epoch) / float(epochs));
 
-            adjustWeights(tmpLearningRate, momentum);
+            adjustWeights(lr, momentum);
             //cout << "Epoch: " << epoch + 1 << " / " << epochs << ", Train data item: " << t + 1 << " / " << trainDataCount << ", Total Error: " << currentError << endl;
         }
 

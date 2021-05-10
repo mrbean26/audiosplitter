@@ -8,7 +8,7 @@ using namespace std;
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "Headers/stb_image_write.h"
 
-void writeToImage(vector<float> errors, int errorResolution, int errorRange) {
+void writeToImage(vector<float> errors, int errorResolution, int errorRange, NeuralNetwork network) {
 	// ErrorResolution must be a factor of len(errors)
 	// Normalise Errors
 	float maxError = 0.0f;
@@ -53,6 +53,22 @@ void writeToImage(vector<float> errors, int errorResolution, int errorRange) {
 	}
 
 	stbi_write_jpg("errorOutput.jpg", errorResolution, errorRange, 3, data, errorResolution * 3);
+
+	// Add Neural Network Metadata to File Footer
+	ofstream outputFile;
+	outputFile.open("errorOutput.jpg", ios_base::app);
+	outputFile << "NETWORK_CONFIG-NODELAYERS(BIAS)";
+
+	for (int i = 0; i < network.layerCount; i++) {
+		outputFile << to_string(network.layerNodes[i].size());
+		outputFile << "(" << to_string(network.layerBiases[i].size()) << ")";
+
+		if (i < network.layerCount - 1) {
+			outputFile << ",";
+		}
+	}
+
+	outputFile.close();
 }
 
 vector<vector<float>> generateInputs(int samplesPerChunk, int samplesPerOverlap, int frequencyResolution, int chunksPerInputHalf, int startFileIndex, int endIndex) {
@@ -156,12 +172,6 @@ int main() {
 	*/
 
 	// One Song Training
-	
-
-	// TESTING WITH LEARNING RATE DECREASE AT THE MOMENT
-
-
-
 	vector<vector<float>> inputSet = generateInputs(samplesPerChunk, samplesPerOverlap, frequencyResolution, chunkBorder, 1, songsPerTrain + 1);
 	vector<vector<float>> outputSet = generateOutputs(samplesPerChunk, samplesPerOverlap, frequencyResolution, chunkBorder, 1, songsPerTrain + 1);
 
@@ -172,9 +182,9 @@ int main() {
 	vector<int> biases = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, };
 
 	NeuralNetwork network = NeuralNetwork(layers, biases, "tanh");
-	network.trainRandomMethod(2000, 1000.0f, inputSet, outputSet);
-	//vector<float> trainingErrors = network.train(inputSet, outputSet, epochs, lr, momentum);
-	//writeToImage(trainingErrors, 1000, 512);
+	//network.trainRandomMethod(2000, 1000.0f, inputSet, outputSet);
+	vector<float> trainingErrors = network.train(inputSet, outputSet, epochs, lr, momentum);
+	writeToImage(trainingErrors, 1000, 512, network);
 	//network.saveWeightsToFile("outputWeights/");
 
 	// Test with first test songs
