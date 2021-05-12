@@ -175,7 +175,7 @@ int main() {
 	int inputSize = inputSet[0].size();
 	int outputSize = outputSet[0].size();
 
-	vector<int> layers = { inputSize,  outputSize * 2, outputSize, outputSize, outputSize, outputSize, outputSize, outputSize, outputSize, outputSize, outputSize, outputSize, outputSize, outputSize};
+	vector<int> layers = { inputSize,  outputSize * 2, outputSize * 2, outputSize * 3, outputSize * 3, outputSize * 4, outputSize * 4, outputSize * 4, outputSize * 4, outputSize * 4, outputSize * 4, outputSize * 4, outputSize * 2, outputSize};
 	vector<int> biases = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, };
 
 	NeuralNetwork network = NeuralNetwork(layers, biases, "tanh");
