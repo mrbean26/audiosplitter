@@ -138,7 +138,13 @@ vector<vector<float>> spectrogramOutput(const char* mp3Filename, int samplesPerC
 
 vector<int16_t> vocalSamples(const char* fullFileNameMP3, int samplesPerChunk, int samplesPerStride, vector<vector<float>> networkOutput) {
 	// Recreate full spectrogram
+	int networkSubOutputSize = networkOutput[0].size();
 	for (int i = 0; i < networkOutput.size(); i++) {
+		for (int j = 0; j < networkOutput[i].size(); j++) { // Helpful for further isolating vocals
+			double hannMultiplier = 0.5 * (1 - cos(2 * 3.141 * double(j) / double(networkSubOutputSize)));
+			networkOutput[i][j] = networkOutput[i][j] * pow(hannMultiplier, 0.75); // index of 0.75 widens window at top, including more frequencies
+		}
+
 		vector<float> currentChunk = networkOutput[i];
 		currentChunk.insert(currentChunk.end(), networkOutput[i].begin(), networkOutput[i].end());
 
