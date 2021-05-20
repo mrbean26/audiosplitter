@@ -175,14 +175,15 @@ int main() {
 	int inputSize = inputSet[0].size();
 	int outputSize = outputSet[0].size();
 
-	vector<int> layers = { inputSize, outputSize * 2, outputSize * 2, outputSize * 4, outputSize * 6, outputSize * 4, outputSize * 2, outputSize, };
+	vector<int> layers = { inputSize, inputSize, outputSize, outputSize, };
 	vector<int> biases = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
 
 	NeuralNetwork network = NeuralNetwork(layers, biases, "tanh");
 	//network.loadWeightsFromFile("outputWeights/");
-	//network.trainRandomMethod(2000, 1000.0f, inputSet, outputSet);
-	vector<float> trainingErrors = network.train(inputSet, outputSet, epochs, lr, momentum);
-	writeToImage(trainingErrors, 1000, 512, network);
+	//network.trainRandomMethod(2000, 1000.0f, inputSet, outputSet); 
+	network.trainNaturalSelectionMethod(inputSet, outputSet, epochs, 10, 100.0f);
+	//vector<float> trainingErrors = network.train(inputSet, outputSet, epochs, lr, momentum);
+	//writeToImage(trainingErrors, 1000, 512, network);
 	//network.saveWeightsToFile("outputWeights/");
 
 	// Test with first test songs

@@ -531,3 +531,75 @@ void NeuralNetwork::trainRandomMethod(int epochs, float errorThreshold, vector<v
 
     cout << "Minimum Error Found: " << minimumFoundError << endl;
 }
+
+vector<vector<Node>> NeuralNetwork::randomNodeWeights(vector<vector<Node>> initial, float variation) {
+    int layerCount = initial.size();
+
+    for (int l = 0; l < layerCount - 1; l++) {
+        int nodeCount = initial[l].size();
+        int weightCount = initial[l + 1].size();
+
+        for (int n = 0; n < nodeCount; n++) {
+            for (int w = 0; w < weightCount; w++) {
+                initial[l][n].outWeights[w] += randomFloat() * variation;
+            }
+        }
+    }
+
+    return initial;
+}
+
+vector<vector<Bias>> NeuralNetwork::randomBiasWeights(vector<vector<Bias>> initial, float variation) {
+    int layerCount = initial.size();
+
+    for (int l = 0; l < layerCount - 1; l++) {
+        int nodeCount = initial[l].size();
+        int weightCount = initial[l + 1].size();
+
+        for (int n = 0; n < nodeCount; n++) {
+            for (int w = 0; w < weightCount; w++) {
+                initial[l][n].outWeights[w] += randomFloat() * variation;
+            }
+        }
+    }
+
+    return initial;
+}
+
+void NeuralNetwork::trainNaturalSelectionMethod(vector<vector<float>> trainInputs, vector<vector<float>> trainOutputs, int epochs, int population, float initialVariation) {
+    int trainCount = trainInputs.size();
+    int trainOutputSize = trainOutputs[0].size();
+    
+    for (int epoch = 0; epoch < epochs; epoch++) {
+        float currentVariation = (float(epochs - (epoch + 1)) / float(epochs)) * initialVariation;
+        float lowestErrorThisPopulation = numeric_limits<float>().max();
+
+        vector<vector<Node>> bestNodesThisPopulation;
+        vector<vector<Bias>> bestBiasesThisPopulation;
+
+        for (int i = 0; i < population; i++) {
+            layerNodes = randomNodeWeights(layerNodes, currentVariation);
+            layerBiases = randomBiasWeights(layerBiases, currentVariation);
+
+            float totalError = 0.0f;
+            for (int t = 0; t < trainCount; t++) {
+                vector<float> predicted = predict(trainInputs[t]);
+
+                for (int o = 0; o < trainOutputSize; o++) {
+                    totalError += abs(trainOutputs[t][o] - predicted[o]);
+                }
+            }
+
+            if (totalError < lowestErrorThisPopulation) {
+                lowestErrorThisPopulation = totalError;
+                bestNodesThisPopulation = layerNodes;
+                bestBiasesThisPopulation = layerBiases;
+            }
+        }
+
+        cout << "Epoch: " << epoch << " / " << epochs << ", Total Error: " << lowestErrorThisPopulation << endl;
+
+        layerNodes = bestNodesThisPopulation;
+        layerBiases = bestBiasesThisPopulation;
+    }
+}
