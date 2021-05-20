@@ -566,10 +566,11 @@ vector<vector<Bias>> NeuralNetwork::randomBiasWeights(vector<vector<Bias>> initi
     return initial;
 }
 
-void NeuralNetwork::trainNaturalSelectionMethod(vector<vector<float>> trainInputs, vector<vector<float>> trainOutputs, int epochs, int population, float initialVariation) {
+vector<float> NeuralNetwork::trainNaturalSelectionMethod(vector<vector<float>> trainInputs, vector<vector<float>> trainOutputs, int epochs, int population, float initialVariation) {
     int trainCount = trainInputs.size();
     int trainOutputSize = trainOutputs[0].size();
     
+    vector<float> result;
     for (int epoch = 0; epoch < epochs; epoch++) {
         float currentVariation = (float(epochs - (epoch + 1)) / float(epochs)) * initialVariation;
         float lowestErrorThisPopulation = numeric_limits<float>().max();
@@ -598,8 +599,11 @@ void NeuralNetwork::trainNaturalSelectionMethod(vector<vector<float>> trainInput
         }
 
         cout << "Epoch: " << epoch << " / " << epochs << ", Total Error: " << lowestErrorThisPopulation << endl;
+        result.push_back(lowestErrorThisPopulation);
 
         layerNodes = bestNodesThisPopulation;
         layerBiases = bestBiasesThisPopulation;
     }
+
+    return result;
 }

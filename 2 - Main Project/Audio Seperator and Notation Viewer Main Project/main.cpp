@@ -181,7 +181,7 @@ int main() {
 	NeuralNetwork network = NeuralNetwork(layers, biases, "tanh");
 	//network.loadWeightsFromFile("outputWeights/");
 	//network.trainRandomMethod(2000, 1000.0f, inputSet, outputSet); 
-	network.trainNaturalSelectionMethod(inputSet, outputSet, epochs, 10, 100.0f);
+	vector<float> trainingErrorsNaturalSelection = network.trainNaturalSelectionMethod(inputSet, outputSet, epochs, 10, 100.0f);
 	//vector<float> trainingErrors = network.train(inputSet, outputSet, epochs, lr, momentum);
 	//writeToImage(trainingErrors, 1000, 512, network);
 	//network.saveWeightsToFile("outputWeights/");

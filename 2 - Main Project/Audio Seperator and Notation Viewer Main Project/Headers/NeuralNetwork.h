@@ -66,7 +66,7 @@ public:
 
     vector<vector<Node>> randomNodeWeights(vector<vector<Node>> initial, float variation);
     vector<vector<Bias>> randomBiasWeights(vector<vector<Bias>> initial, float variation);
-    void trainNaturalSelectionMethod(vector<vector<float>> trainInputs, vector<vector<float>> trainOutputs, int epochs, int population, float initialVariation);
+    vector<float> trainNaturalSelectionMethod(vector<vector<float>> trainInputs, vector<vector<float>> trainOutputs, int epochs, int population, float initialVariation);
 
     vector<float> train(vector<vector<float>> trainInputs, vector<vector<float>> trainOutputs,
         int epochs, float lr, float momentum);
