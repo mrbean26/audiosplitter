@@ -598,7 +598,7 @@ vector<float> NeuralNetwork::trainNaturalSelectionMethod(vector<vector<float>> t
             }
         }
 
-        cout << "Epoch: " << epoch << " / " << epochs << ", Total Error: " << lowestErrorThisPopulation << endl;
+        cout << "Epoch: " << epoch + 1 << " / " << epochs << ", Total Error: " << lowestErrorThisPopulation << endl;
         result.push_back(lowestErrorThisPopulation);
 
         layerNodes = bestNodesThisPopulation;

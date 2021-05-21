@@ -140,6 +140,9 @@ int main() {
 	int songsPerTrain = 3;
 
 	// Train Network
+	
+
+
 	// Main Training
 	/*
 	vector<vector<float>> inputSet = generateInputs(samplesPerChunk, samplesPerOverlap, frequencyResolution, chunkBorder, 1, songsPerTrain + 1);
@@ -168,7 +171,10 @@ int main() {
 	writeToImage(trainingErrors, 25, 512);
 	*/
 
+
+
 	// One Song Training
+	/*
 	vector<vector<float>> inputSet = generateInputs(samplesPerChunk, samplesPerOverlap, frequencyResolution, chunkBorder, 1, songsPerTrain + 1);
 	vector<vector<float>> outputSet = generateOutputs(samplesPerChunk, samplesPerOverlap, frequencyResolution, chunkBorder, 1, songsPerTrain + 1);
 
@@ -181,12 +187,46 @@ int main() {
 	NeuralNetwork network = NeuralNetwork(layers, biases, "tanh");
 	//network.loadWeightsFromFile("outputWeights/");
 	//network.trainRandomMethod(2000, 1000.0f, inputSet, outputSet); 
-	vector<float> trainingErrorsNaturalSelection = network.trainNaturalSelectionMethod(inputSet, outputSet, epochs, 10, 100.0f);
-	//vector<float> trainingErrors = network.train(inputSet, outputSet, epochs, lr, momentum);
-	//writeToImage(trainingErrors, 1000, 512, network);
-	//network.saveWeightsToFile("outputWeights/");
+	//vector<float> trainingErrorsNaturalSelection = network.trainNaturalSelectionMethod(inputSet, outputSet, epochs, 10, 100.0f);
+	vector<float> trainingErrors = network.train(inputSet, outputSet, epochs, lr, momentum);
+	writeToImage(trainingErrors, 1000, 512, network);
+	network.saveWeightsToFile("outputWeights/");
+	*/
+
+
+
+	// Automated Training (One Song)
+	vector<int> biases = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
+	vector<vector<float>> inputSet = generateInputs(samplesPerChunk, samplesPerOverlap, frequencyResolution, chunkBorder, 1, songsPerTrain + 1);
+	vector<vector<float>> outputSet = generateOutputs(samplesPerChunk, samplesPerOverlap, frequencyResolution, chunkBorder, 1, songsPerTrain + 1);
+
+	int inputSize = inputSet[0].size();
+	int outputSize = outputSet[0].size();
+
+	int maxLayers = 6;
+	int maxLayerMultiple = 6;
+
+	for (int i = 2; i < maxLayers + 2; i++) {
+		for (int j = 1; j < maxLayerMultiple + 1; j++) {
+			// Create Configuration
+			vector<int> layers = { inputSize };
+			for (int l = 0; l < i; l++) {
+				layers.push_back(outputSize * j);
+			}
+			layers.push_back(outputSize);
+
+			// Create Network and Train
+			NeuralNetwork network = NeuralNetwork(layers, biases, "tanh");
+			vector<float> errors = network.train(inputSet, outputSet, epochs, lr, momentum);
+
+			// Save
+			writeToImage(errors, 1000, 512, network);
+		}
+	}
 
 	// Test with first test songs
+
+	/*
 	vector<vector<float>> testTrackSpectrogram = generateInputs(samplesPerChunk, samplesPerChunk, frequencyResolution, chunkBorder, 1, 2); // First track only, for testing
 	vector<vector<float>> predictedTrackSpectrogram;
 
@@ -200,7 +240,8 @@ int main() {
 
 	vector<int16_t> testTrackOutputSamples = vocalSamples("inputs/1.mp3", samplesPerChunk, samplesPerChunk, predictedTrackSpectrogram);
 	writeToWAV("testTrackOutput.wav", testTrackOutputSamples);
-	
+	*/
+
 	system("pause");
 	return 0;
 }
