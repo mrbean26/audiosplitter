@@ -322,7 +322,7 @@ void NeuralNetwork::resetDerivativesAndResults(){
     }
 }
 
-vector<float> NeuralNetwork::train(vector<vector<float>> trainInputs, vector<vector<float>> trainOutputs, int epochs, float lr, float momentum){
+vector<float> NeuralNetwork::train(vector<vector<float>> trainInputs, vector<vector<float>> trainOutputs, int epochs, float lr, float momentum, bool cyclicalLearningRate, float cyclicalLearningRateMaxMultiply){
     int trainDataCount = trainInputs.size();
     int outputCount = trainOutputs[0].size();
 
@@ -334,6 +334,19 @@ vector<float> NeuralNetwork::train(vector<vector<float>> trainInputs, vector<vec
     vector<float> result;
     for(int epoch = 0; epoch < epochs; epoch++){
         random_shuffle(trainIndexes.begin(), trainIndexes.end());
+
+        float currentLearningRate = lr;
+        float currentMomentum = momentum;
+
+        if (cyclicalLearningRate) { // Peak in Middle - use function hanning window
+            double pi = 3.14159265358979323846;
+            double currentCoefficient = double(epoch + 1) / (double(epochs));
+            double cosValue = cos(2 * pi * currentCoefficient);
+            double value = 0.5 * (1 - cosValue);
+
+            currentLearningRate = value * cyclicalLearningRateMaxMultiply * lr;
+            currentMomentum = (1 - value) * cyclicalLearningRateMaxMultiply * momentum;
+        }
 
         float totalError = 0.0f;
         for(int t = 0; t < trainDataCount; t++){
@@ -350,14 +363,12 @@ vector<float> NeuralNetwork::train(vector<vector<float>> trainInputs, vector<vec
             totalError += currentError;
 
             calculateDerivatives(errors);
-            
-            //float tmpLearningRate = lr * (float(epochs - epoch) / float(epochs));
 
-            adjustWeights(lr, momentum);
+            adjustWeights(currentLearningRate, momentum);
             //cout << "Epoch: " << epoch + 1 << " / " << epochs << ", Train data item: " << t + 1 << " / " << trainDataCount << ", Total Error: " << currentError << endl;
         }
 
-        cout << "Epoch: " << epoch + 1 << " / " << epochs << ", Total error from epoch: " << totalError << endl;
+        cout << "Epoch: " << epoch + 1 << " / " << epochs << ", Total error from epoch: " << totalError << ", Layers: " << layerCount << ", LR:" << currentLearningRate << endl;
         result.push_back(totalError);
     }
 

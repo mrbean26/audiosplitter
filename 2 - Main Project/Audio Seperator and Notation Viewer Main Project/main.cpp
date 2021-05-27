@@ -134,15 +134,13 @@ int main() {
 	int chunkBorder = 4; // How many chunks are added to each side of the input chunk, giving audio "context"
 	
 	int epochs = 1000;
-	float lr = 0.15;
-	float momentum = 0.0f;
+	float lr = 1.0f;
+	float momentum = 0.25f;
 
-	int songsPerTrain = 3;
+	int songsPerTrain = 1;
 
 	// Train Network
 	
-
-
 	// Main Training
 	/*
 	vector<vector<float>> inputSet = generateInputs(samplesPerChunk, samplesPerOverlap, frequencyResolution, chunkBorder, 1, songsPerTrain + 1);
@@ -174,28 +172,29 @@ int main() {
 
 
 	// One Song Training
-	/*
+	
 	vector<vector<float>> inputSet = generateInputs(samplesPerChunk, samplesPerOverlap, frequencyResolution, chunkBorder, 1, songsPerTrain + 1);
 	vector<vector<float>> outputSet = generateOutputs(samplesPerChunk, samplesPerOverlap, frequencyResolution, chunkBorder, 1, songsPerTrain + 1);
 
 	int inputSize = inputSet[0].size();
 	int outputSize = outputSet[0].size();
 
-	vector<int> layers = { inputSize, inputSize, outputSize, outputSize, };
+	vector<int> layers = { inputSize, outputSize * 4, outputSize * 4, outputSize * 2, outputSize, outputSize, };
 	vector<int> biases = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
 
 	NeuralNetwork network = NeuralNetwork(layers, biases, "tanh");
 	//network.loadWeightsFromFile("outputWeights/");
 	//network.trainRandomMethod(2000, 1000.0f, inputSet, outputSet); 
 	//vector<float> trainingErrorsNaturalSelection = network.trainNaturalSelectionMethod(inputSet, outputSet, epochs, 10, 100.0f);
-	vector<float> trainingErrors = network.train(inputSet, outputSet, epochs, lr, momentum);
+	vector<float> trainingErrors = network.train(inputSet, outputSet, epochs, lr, momentum, true, 1.0f);
 	writeToImage(trainingErrors, 1000, 512, network);
-	network.saveWeightsToFile("outputWeights/");
-	*/
-
+	//network.saveWeightsToFile("outputWeights/");
+	
 
 
 	// Automated Training (One Song)
+
+	/*
 	vector<int> biases = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
 	vector<vector<float>> inputSet = generateInputs(samplesPerChunk, samplesPerOverlap, frequencyResolution, chunkBorder, 1, songsPerTrain + 1);
 	vector<vector<float>> outputSet = generateOutputs(samplesPerChunk, samplesPerOverlap, frequencyResolution, chunkBorder, 1, songsPerTrain + 1);
@@ -223,6 +222,7 @@ int main() {
 			writeToImage(errors, 1000, 512, network);
 		}
 	}
+	*/
 
 	// Test with first test songs
 

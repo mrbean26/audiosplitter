@@ -68,8 +68,7 @@ public:
     vector<vector<Bias>> randomBiasWeights(vector<vector<Bias>> initial, float variation);
     vector<float> trainNaturalSelectionMethod(vector<vector<float>> trainInputs, vector<vector<float>> trainOutputs, int epochs, int population, float initialVariation);
 
-    vector<float> train(vector<vector<float>> trainInputs, vector<vector<float>> trainOutputs,
-        int epochs, float lr, float momentum);
+    vector<float> train(vector<vector<float>> trainInputs, vector<vector<float>> trainOutputs, int epochs, float lr, float momentum, bool cyclicalLearningRate = false, float cyclicalLearningRateMaxMultiply = 0.0f);
     void runTests(vector<vector<float>> inputs);
 
     void saveWeightsToFile(string directory);
