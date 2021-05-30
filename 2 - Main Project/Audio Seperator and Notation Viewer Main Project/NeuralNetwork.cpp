@@ -643,3 +643,97 @@ void NeuralNetwork::decayWeights(float multiplier) {
         }
     }
 }
+
+vector<float> NeuralNetwork::trainResistantPropagation(standardTrainConfig trainConfig) {
+    int trainDataCount = trainConfig.trainInputs.size();
+    int outputCount = trainConfig.trainOutputs[0].size();
+
+    vector<int> trainIndexes;
+    for (int i = 0; i < trainDataCount; i++) {
+        trainIndexes.push_back(i);
+    }
+
+    vector<float> result;
+    for (int epoch = 0; epoch < trainConfig.epochs; epoch++) {
+        random_shuffle(trainIndexes.begin(), trainIndexes.end());
+
+        float totalError = 0.0f;
+        for (int t = 0; t < trainDataCount; t++) {
+            int currentIndex = trainIndexes[t];
+            vector<float> result = predict(trainConfig.trainInputs[currentIndex]);
+
+            vector<float> errors;
+
+            float currentError = 0.0f;
+            for (int e = 0; e < outputCount; e++) {
+                currentError += abs(trainConfig.trainOutputs[currentIndex][e] - result[e]);
+                errors.push_back(trainConfig.trainOutputs[currentIndex][e] - result[e]);
+            }
+            totalError += currentError;
+
+            calculateDerivatives(errors);
+
+            if (epoch == 0 && t == 0) {
+                adjustWeights(1.0f, 0.0f);
+            }
+            else {
+                adjustWeightsRPROP(trainConfig.rpropWeightIncreaseMultiplier, trainConfig.rpropWeightDecreaseMultiplier);
+            }
+
+            if (trainConfig.useWeightDecay) {
+                decayWeights(trainConfig.weightDecayMultiplier);
+            }
+        }
+
+        cout << "Epoch: " << epoch + 1 << " / " << trainConfig.epochs << ", Total error from epoch: " << totalError << ", Layers: " << layerCount << endl;
+        result.push_back(totalError);
+    }
+}
+
+void NeuralNetwork::adjustWeightsRPROP(float increase, float decrease) {
+    for (int i = 0; i < layerCount; i++) {
+        int nodeCount = layerNodes[i].size();
+
+        for (int n = 0; n < nodeCount; n++) {
+            int weightCount = layerNodes[i][n].outWeights.size();
+
+            for (int w = 0; w < weightCount; w++) {
+                float newDelta = layerNodes[i][n].value * layerNodes[i + 1][w].derivativeErrorValue;
+                float previousDelta = layerNodes[i][n].previousDeltas[w];
+
+                // Same Sign?
+                if (newDelta * previousDelta > 0.0f) {
+                    newDelta = newDelta * increase;
+                }
+                else {
+                    newDelta = newDelta * decrease;
+                }
+
+                layerNodes[i][n].outWeights[w] += newDelta;
+                layerNodes[i][n].previousDeltas[w] = newDelta;
+                
+            }
+        }
+
+        int biasCount = layerBiases[i].size();
+        for (int b = 0; b < biasCount; b++) {
+            int outWeightCount = layerBiases[i][b].outWeights.size();
+
+            for (int w = 0; w < outWeightCount; w++) {
+                float newDelta = layerNodes[i + 1][w].derivativeErrorValue;
+                float previousDelta = layerBiases[i][b].previousDeltas[w];
+
+                // Same Sign?
+                if (newDelta * previousDelta > 0.0f) {
+                    newDelta = newDelta * increase;
+                }
+                else {
+                    newDelta = newDelta * decrease;
+                }
+
+                layerBiases[i][b].outWeights[w] += newDelta;
+                layerBiases[i][b].previousDeltas[w] = newDelta;
+            }
+        }
+    }
+}

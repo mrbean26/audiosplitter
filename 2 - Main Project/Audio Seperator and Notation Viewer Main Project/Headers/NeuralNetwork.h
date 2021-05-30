@@ -26,6 +26,9 @@ struct standardTrainConfig {
 
     bool useWeightDecay = false;
     float weightDecayMultiplier = 0.9f;
+
+    float rpropWeightDecreaseMultiplier = 0.5f;
+    float rpropWeightIncreaseMultiplier = 1.2f;
 };
 
 namespace activations{
@@ -83,6 +86,9 @@ public:
     vector<vector<Node>> randomNodeWeights(vector<vector<Node>> initial, float variation);
     vector<vector<Bias>> randomBiasWeights(vector<vector<Bias>> initial, float variation);
     vector<float> trainNaturalSelectionMethod(vector<vector<float>> trainInputs, vector<vector<float>> trainOutputs, int epochs, int population, float initialVariation);
+
+    vector<float> trainResistantPropagation(standardTrainConfig trainConfig);
+    void adjustWeightsRPROP(float increase, float decrease);
 
     vector<float> train(standardTrainConfig trainConfig);
     void runTests(vector<vector<float>> inputs);

@@ -140,7 +140,7 @@ int main() {
 	int inputSize = inputSet[0].size();
 	int outputSize = outputSet[0].size();
 
-	vector<int> layers = { inputSize, outputSize, };
+	vector<int> layers = { inputSize, outputSize * 5, outputSize * 4, outputSize * 4, outputSize * 3, outputSize * 2, outputSize * 2, outputSize, outputSize, };
 	vector<int> biases = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
 
 	NeuralNetwork network = NeuralNetwork(layers, biases, "tanh");
@@ -149,15 +149,23 @@ int main() {
 	standardTrainConfig trainingConfig = {
 		inputSet,
 		outputSet,
+
 		1000, // Epochs
+
 		1.0f, // LR
 		0.25f, // Momentum
+
 		true, // Use Cyclical Learning Rate?
+
 		false, // Use Weight Decay ?
-		0.99f // Weight Decay Multiplier
+		0.99f, // Weight Decay Multiplier
+
+		0.5f, // RPROP Weight Decrease
+		1.2f, // RPROP Weight Increase
 	};
 
-	vector<float> trainingErrors = network.train(trainingConfig);
+	//vector<float> trainingErrors = network.train(trainingConfig);
+	vector<float> trainingErrors = network.trainResistantPropagation(trainingConfig);
 	writeToImage(trainingErrors, 1000, 512, network);
 
 	//network.saveWeightsToFile("outputWeights/");
