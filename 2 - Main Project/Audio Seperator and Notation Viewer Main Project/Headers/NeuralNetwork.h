@@ -13,6 +13,21 @@ using namespace std;
 
 string vectorToString(vector<float> used);
 
+struct standardTrainConfig {
+    vector<vector<float>> trainInputs;
+    vector<vector<float>> trainOutputs;
+
+    int epochs = 1000;
+
+    float learningRate = 1.0f;
+    float momentum = 0.25f;
+
+    bool useCyclicalLearningRateAndMomentum = false;
+
+    bool useWeightDecay = false;
+    float weightDecayMultiplier = 0.9f;
+};
+
 namespace activations{
     float sigmoid(float x);
     float tanh(float x);
@@ -58,6 +73,7 @@ public:
     vector<float> predict(vector<float> inputs);
 
     void calculateDerivatives(vector<float> outputErrors);
+    void decayWeights(float multiplier);
     void adjustWeights(float lr, float momentum);
     void resetDerivativesAndResults();
 
@@ -68,7 +84,7 @@ public:
     vector<vector<Bias>> randomBiasWeights(vector<vector<Bias>> initial, float variation);
     vector<float> trainNaturalSelectionMethod(vector<vector<float>> trainInputs, vector<vector<float>> trainOutputs, int epochs, int population, float initialVariation);
 
-    vector<float> train(vector<vector<float>> trainInputs, vector<vector<float>> trainOutputs, int epochs, float lr, float momentum, bool cyclicalLearningRate = false, float cyclicalLearningRateMaxMultiply = 0.0f);
+    vector<float> train(standardTrainConfig trainConfig);
     void runTests(vector<vector<float>> inputs);
 
     void saveWeightsToFile(string directory);

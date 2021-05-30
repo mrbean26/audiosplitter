@@ -1,0 +1,24 @@
+vector<vector<float>> inputSet = generateInputs(samplesPerChunk, samplesPerOverlap, frequencyResolution, chunkBorder, 1, songsPerTrain + 1);
+	vector<vector<float>> outputSet = generateOutputs(samplesPerChunk, samplesPerOverlap, frequencyResolution, chunkBorder, 1, songsPerTrain + 1);
+
+	int inputSize = inputSet[0].size();
+	int outputSize = outputSet[0].size();
+
+	vector<int> layers = { inputSize, outputSize, outputSize, outputSize };
+	vector<int> biases = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,  };
+
+	NeuralNetwork network = NeuralNetwork(layers, biases, "sigmoid");
+	network.loadWeightsFromFile("outputWeights/");
+
+	vector<float> trainingErrors = network.train(inputSet, outputSet, epochs, lr, momentum);
+
+	for (int i = songsPerTrain + 1; i < 101; i += songsPerTrain) {
+		inputSet = generateInputs(samplesPerChunk, samplesPerOverlap, frequencyResolution, chunkBorder, i, i + songsPerTrain);
+		outputSet = generateOutputs(samplesPerChunk, samplesPerOverlap, frequencyResolution, chunkBorder, i, i + songsPerTrain);
+
+		vector<float> currentTrainingErrors = network.train(inputSet, outputSet, epochs, lr, momentum);
+		trainingErrors.insert(trainingErrors.end(), currentTrainingErrors.begin(), currentTrainingErrors.end());
+	}
+
+	network.saveWeightsToFile("outputWeights/");
+	writeToImage(trainingErrors, 25, 512);

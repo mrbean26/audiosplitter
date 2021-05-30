@@ -1,0 +1,27 @@
+vector<int> biases = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
+	vector<vector<float>> inputSet = generateInputs(samplesPerChunk, samplesPerOverlap, frequencyResolution, chunkBorder, 1, songsPerTrain + 1);
+	vector<vector<float>> outputSet = generateOutputs(samplesPerChunk, samplesPerOverlap, frequencyResolution, chunkBorder, 1, songsPerTrain + 1);
+
+	int inputSize = inputSet[0].size();
+	int outputSize = outputSet[0].size();
+
+	int maxLayers = 6;
+	int maxLayerMultiple = 6;
+
+	for (int i = 2; i < maxLayers + 2; i++) {
+		for (int j = 1; j < maxLayerMultiple + 1; j++) {
+			// Create Configuration
+			vector<int> layers = { inputSize };
+			for (int l = 0; l < i; l++) {
+				layers.push_back(outputSize * j);
+			}
+			layers.push_back(outputSize);
+
+			// Create Network and Train
+			NeuralNetwork network = NeuralNetwork(layers, biases, "tanh");
+			vector<float> errors = network.train(inputSet, outputSet, epochs, lr, momentum);
+
+			// Save
+			writeToImage(errors, 1000, 512, network);
+		}
+	}

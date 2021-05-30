@@ -322,9 +322,9 @@ void NeuralNetwork::resetDerivativesAndResults(){
     }
 }
 
-vector<float> NeuralNetwork::train(vector<vector<float>> trainInputs, vector<vector<float>> trainOutputs, int epochs, float lr, float momentum, bool cyclicalLearningRate, float cyclicalLearningRateMaxMultiply){
-    int trainDataCount = trainInputs.size();
-    int outputCount = trainOutputs[0].size();
+vector<float> NeuralNetwork::train(standardTrainConfig trainConfig){
+    int trainDataCount = trainConfig.trainInputs.size();
+    int outputCount = trainConfig.trainOutputs[0].size();
 
     vector<int> trainIndexes;
     for(int i = 0; i < trainDataCount; i++){
@@ -332,43 +332,47 @@ vector<float> NeuralNetwork::train(vector<vector<float>> trainInputs, vector<vec
     }
 
     vector<float> result;
-    for(int epoch = 0; epoch < epochs; epoch++){
+    for(int epoch = 0; epoch < trainConfig.epochs; epoch++){
         random_shuffle(trainIndexes.begin(), trainIndexes.end());
 
-        float currentLearningRate = lr;
-        float currentMomentum = momentum;
+        float currentLearningRate = trainConfig.learningRate;
+        float currentMomentum = trainConfig.momentum;
 
-        if (cyclicalLearningRate) { // Peak in Middle - use function hanning window
+        if (trainConfig.useCyclicalLearningRateAndMomentum) { // Peak in Middle - use function hanning window
             double pi = 3.14159265358979323846;
-            double currentCoefficient = double(epoch + 1) / (double(epochs));
+            double currentCoefficient = double(epoch + 1) / (double(trainConfig.epochs));
             double cosValue = cos(2 * pi * currentCoefficient);
             double value = 0.5 * (1 - cosValue);
 
-            currentLearningRate = value * cyclicalLearningRateMaxMultiply * lr;
-            currentMomentum = (1 - value) * cyclicalLearningRateMaxMultiply * momentum;
+            currentLearningRate = value * trainConfig.learningRate;
+            currentMomentum = (1 - value) * trainConfig.momentum;
         }
 
         float totalError = 0.0f;
         for(int t = 0; t < trainDataCount; t++){
             int currentIndex = trainIndexes[t];
-            vector<float> result = predict(trainInputs[currentIndex]);
+            vector<float> result = predict(trainConfig.trainInputs[currentIndex]);
 
             vector<float> errors;
 
             float currentError = 0.0f;
             for(int e = 0; e < outputCount; e++){
-                currentError += abs(trainOutputs[currentIndex][e] - result[e]);
-                errors.push_back(trainOutputs[currentIndex][e] - result[e]);
+                currentError += abs(trainConfig.trainOutputs[currentIndex][e] - result[e]);
+                errors.push_back(trainConfig.trainOutputs[currentIndex][e] - result[e]);
             }
             totalError += currentError;
 
             calculateDerivatives(errors);
 
-            adjustWeights(currentLearningRate, momentum);
+            adjustWeights(currentLearningRate, trainConfig.momentum);
+
+            if (trainConfig.useWeightDecay) {
+                decayWeights(trainConfig.weightDecayMultiplier);
+            }
             //cout << "Epoch: " << epoch + 1 << " / " << epochs << ", Train data item: " << t + 1 << " / " << trainDataCount << ", Total Error: " << currentError << endl;
         }
 
-        cout << "Epoch: " << epoch + 1 << " / " << epochs << ", Total error from epoch: " << totalError << ", Layers: " << layerCount << ", LR:" << currentLearningRate << endl;
+        cout << "Epoch: " << epoch + 1 << " / " << trainConfig.epochs << ", Total error from epoch: " << totalError << ", Layers: " << layerCount << ", LR:" << currentLearningRate << endl;
         result.push_back(totalError);
     }
 
@@ -617,4 +621,25 @@ vector<float> NeuralNetwork::trainNaturalSelectionMethod(vector<vector<float>> t
     }
 
     return result;
+}
+
+void NeuralNetwork::decayWeights(float multiplier) {
+    for (int i = 0; i < layerCount - 1; i++) {
+        int nodeCount = layerNodes[i].size();
+        int biasCount = layerBiases[i].size();
+
+        int weightCount = layerNodes[i + 1].size();
+
+        for (int n = 0; n < nodeCount; n++) {
+            for (int w = 0; w < weightCount; w++) {
+                layerNodes[i][n].outWeights[w] *= multiplier;
+            }
+        }
+
+        for (int n = 0; n < biasCount; n++) {
+            for (int w = 0; w < weightCount; w++) {
+                layerBiases[i][n].outWeights[w] *= multiplier;
+            }
+        }
+    }
 }
