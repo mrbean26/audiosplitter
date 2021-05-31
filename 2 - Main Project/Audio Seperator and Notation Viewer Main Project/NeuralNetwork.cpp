@@ -339,10 +339,17 @@ vector<float> NeuralNetwork::train(standardTrainConfig trainConfig){
         float currentMomentum = trainConfig.momentum;
 
         if (trainConfig.useCyclicalLearningRateAndMomentum) { // Peak in Middle - use function hanning window
-            double pi = 3.14159265358979323846;
             double currentCoefficient = double(epoch + 1) / (double(trainConfig.epochs));
+
+            /*
+            * Hanning Function
+            double pi = 3.14159265358979323846;
             double cosValue = cos(2 * pi * currentCoefficient);
             double value = 0.5 * (1 - cosValue);
+            */
+            
+            //Linear Function
+            float value = 1.0f - abs(2.0f * (currentCoefficient - 0.5f));
 
             currentLearningRate = value * trainConfig.learningRate;
             currentMomentum = (1 - value) * trainConfig.momentum;
@@ -688,6 +695,8 @@ vector<float> NeuralNetwork::trainResistantPropagation(standardTrainConfig train
         cout << "Epoch: " << epoch + 1 << " / " << trainConfig.epochs << ", Total error from epoch: " << totalError << ", Layers: " << layerCount << endl;
         result.push_back(totalError);
     }
+
+    return result;
 }
 
 void NeuralNetwork::adjustWeightsRPROP(float increase, float decrease) {

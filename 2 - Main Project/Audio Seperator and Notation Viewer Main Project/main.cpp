@@ -165,11 +165,10 @@ int main() {
 	};
 
 	//vector<float> trainingErrors = network.train(trainingConfig);
-	vector<float> trainingErrors = network.trainResistantPropagation(trainingConfig);
+	vector<float> trainingErrors = network.train(trainingConfig);
 	writeToImage(trainingErrors, 1000, 512, network);
 
 	//network.saveWeightsToFile("outputWeights/");
-	
 
 	// Test with first test songs
 	vector<vector<float>> testTrackSpectrogram = generateInputs(samplesPerChunk, samplesPerChunk, frequencyResolution, chunkBorder, 1, 2); // First track only, for testing
@@ -185,7 +184,6 @@ int main() {
 
 	vector<int16_t> testTrackOutputSamples = vocalSamples("inputs/1.mp3", samplesPerChunk, samplesPerChunk, predictedTrackSpectrogram);
 	writeToWAV("testTrackOutput.wav", testTrackOutputSamples);
-	
 
 	system("pause");
 	return 0;
