@@ -29,6 +29,9 @@ struct standardTrainConfig {
 
     float rpropWeightDecreaseMultiplier = 0.5f;
     float rpropWeightIncreaseMultiplier = 1.2f;
+
+    bool useDropout = false;
+    int nodeBiasDropoutProbability = 10; // 1 in 10 (0.1)
 };
 
 namespace activations{
@@ -51,11 +54,15 @@ struct Node{
     float derivativeErrorValue = 0.0f;
     vector<float> outWeights;
     vector<float> previousDeltas;
+
+    bool active = true;
 };
 
 struct Bias{
     vector<float> outWeights;
     vector<float> previousDeltas;
+
+    bool active = true;
 };
 
 class NeuralNetwork{
@@ -74,6 +81,9 @@ public:
 
     void feedForward(vector<float> inputs);
     vector<float> predict(vector<float> inputs);
+
+    void randomlyDropNodes(int probability);
+    void reactivateNodes();
 
     void calculateDerivatives(vector<float> outputErrors);
     void decayWeights(float multiplier);

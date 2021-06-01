@@ -226,6 +226,10 @@ void NeuralNetwork::feedForward(vector<float> inputs){
         for(int n = 0; n < thisLayerCount; n++){
             int outWeightCount = layerNodes[i][n].outWeights.size();
 
+            if (!layerNodes[i][n].active) {
+                continue;
+            }
+
             for(int w = 0; w < outWeightCount; w++){
                 layerNodes[i + 1][w].value += layerNodes[i][n].value * layerNodes[i][n].outWeights[w];
             }
@@ -234,6 +238,10 @@ void NeuralNetwork::feedForward(vector<float> inputs){
         int thisBiasCount = layerBiases[i].size();
         for(int b = 0; b < thisBiasCount; b++){
             int outWeightCount = layerBiases[i][b].outWeights.size();
+
+            if (!layerBiases[i][b].active) {
+                continue;
+            }
 
             for(int w = 0; w < outWeightCount; w++){
                 layerNodes[i + 1][w].value += 1.0f * layerBiases[i][b].outWeights[w];
@@ -265,6 +273,10 @@ void NeuralNetwork::calculateDerivatives(vector<float> outputErrors){
         int currentLayerCount = layerNodes[i].size();
 
         for(int n = 0; n < currentLayerCount; n++){
+            if (!layerNodes[i][n].active) {
+                continue;
+            }
+
             int outWeightCount = layerNodes[i][n].outWeights.size();
 
             float valueMultiplier = derivative(layerNodes[i][n].value);
@@ -273,6 +285,10 @@ void NeuralNetwork::calculateDerivatives(vector<float> outputErrors){
             }
 
             for(int w = 0; w < outWeightCount; w++){
+                if (!layerNodes[i + 1][w].active) {
+                    continue;
+                }
+
                 layerNodes[i][n].derivativeErrorValue += valueMultiplier * layerNodes[i][n].outWeights[w] * layerNodes[i + 1][w].derivativeErrorValue;
             }
         }
@@ -285,6 +301,10 @@ void NeuralNetwork::adjustWeights(float lr, float momentum){
         int nodeCount = layerNodes[i].size();
 
         for(int n = 0; n < nodeCount; n++){
+            if (!layerNodes[i][n].active) {
+                continue;
+            }
+
             int weightCount = layerNodes[i][n].outWeights.size();
 
             for(int w = 0; w < weightCount; w++){
@@ -298,6 +318,10 @@ void NeuralNetwork::adjustWeights(float lr, float momentum){
 
         int biasCount = layerBiases[i].size();
         for(int b = 0; b < biasCount; b++){
+            if (!layerBiases[i][b].active) {
+                continue;
+            }
+
             int outWeightCount = layerBiases[i][b].outWeights.size();
 
             for(int w = 0; w < outWeightCount; w++){
@@ -355,6 +379,10 @@ vector<float> NeuralNetwork::train(standardTrainConfig trainConfig){
             currentMomentum = (1 - value) * trainConfig.momentum;
         }
 
+        if (trainConfig.useDropout) {
+            randomlyDropNodes(trainConfig.nodeBiasDropoutProbability);
+        }
+
         float totalError = 0.0f;
         for(int t = 0; t < trainDataCount; t++){
             int currentIndex = trainIndexes[t];
@@ -378,6 +406,8 @@ vector<float> NeuralNetwork::train(standardTrainConfig trainConfig){
             }
             //cout << "Epoch: " << epoch + 1 << " / " << epochs << ", Train data item: " << t + 1 << " / " << trainDataCount << ", Total Error: " << currentError << endl;
         }
+
+        reactivateNodes();
 
         cout << "Epoch: " << epoch + 1 << " / " << trainConfig.epochs << ", Total error from epoch: " << totalError << ", Layers: " << layerCount << ", LR:" << currentLearningRate << endl;
         result.push_back(totalError);
@@ -743,6 +773,49 @@ void NeuralNetwork::adjustWeightsRPROP(float increase, float decrease) {
                 layerBiases[i][b].outWeights[w] += newDelta;
                 layerBiases[i][b].previousDeltas[w] = newDelta;
             }
+        }
+    }
+}
+
+void NeuralNetwork::randomlyDropNodes(int probability) {
+    // Randomly Drop Nodes except for output layer
+    for (int i = 0; i < layerCount - 1; i++) {
+        int nodeCount = layerNodes[i].size();
+        int biasCount = layerBiases[i].size();
+
+        int droppedNodes = 0;
+        for (int n = 0; n < nodeCount; n++) {
+            if (rand() % probability == 1) {
+                layerNodes[i][n].active = false;
+                droppedNodes = droppedNodes + 1;
+            }
+        }
+
+        for (int b = 0; b < biasCount; b++) {
+            if (rand() % probability == 1) {
+                layerBiases[i][b].active = false;
+            }
+        }
+
+        // Check at least one node open in layer, if not then free up random node
+        if (droppedNodes == nodeCount) {
+            int index = rand() % nodeCount;
+            layerNodes[i][index].active = true;
+        }
+    }
+}
+
+void NeuralNetwork::reactivateNodes() {
+    for (int i = 0; i < layerCount - 1; i++) {
+        int nodeCount = layerNodes[i].size();
+        int biasCount = layerBiases[i].size();
+
+        for (int n = 0; n < nodeCount; n++) {
+            layerNodes[i][n].active = true;
+        }
+
+        for (int b = 0; b < biasCount; b++) {
+            layerBiases[i][b].active = true;
         }
     }
 }

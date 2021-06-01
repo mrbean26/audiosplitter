@@ -140,7 +140,7 @@ int main() {
 	int inputSize = inputSet[0].size();
 	int outputSize = outputSet[0].size();
 
-	vector<int> layers = { inputSize, outputSize * 5, outputSize * 4, outputSize * 4, outputSize * 3, outputSize * 2, outputSize * 2, outputSize, outputSize, };
+	vector<int> layers = { inputSize, outputSize * 2, outputSize * 2, outputSize * 2, outputSize * 2, outputSize, };
 	vector<int> biases = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
 
 	NeuralNetwork network = NeuralNetwork(layers, biases, "tanh");
@@ -162,6 +162,9 @@ int main() {
 
 		0.5f, // RPROP Weight Decrease
 		1.2f, // RPROP Weight Increase
+
+		false, // Use Dropout ?
+		4, // 1 in "x" Random Nodes / Biases dropped
 	};
 
 	//vector<float> trainingErrors = network.train(trainingConfig);
