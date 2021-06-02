@@ -8,24 +8,141 @@ using namespace std;
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "Headers/stb_image_write.h"
 
+vector<vector<float>> addCharacterToImage(vector<vector<float>> data, int character, int xMidpoint, int yMidpoint) {
+	vector<vector<float>> characterPixels; // 5 x 5
+
+	if (character == 0) {
+		characterPixels = { {1.0f, 1.0f, 1.0f, 1.0f, 1.0f},
+							{1.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+							{1.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+							{1.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+							{1.0f, 1.0f, 1.0f, 1.0f, 1.0f} };
+	}
+	if (character == 1) {
+		characterPixels = { {0.0f, 0.0f, 1.0f, 0.0f, 0.0f},
+							{0.0f, 0.0f, 1.0f, 0.0f, 0.0f},
+							{0.0f, 0.0f, 1.0f, 0.0f, 0.0f},
+							{0.0f, 0.0f, 1.0f, 0.0f, 0.0f},
+							{0.0f, 0.0f, 1.0f, 0.0f, 0.0f} };
+	}
+	if (character == 2) {
+		characterPixels = { {1.0f, 1.0f, 1.0f, 1.0f, 0.0f},
+							{0.0f, 0.0f, 1.0f, 0.0f, 0.0f},
+							{0.0f, 1.0f, 0.0f, 0.0f, 0.0f},
+							{1.0f, 0.0f, 0.0f, 0.0f, 0.0f},
+							{1.0f, 1.0f, 1.0f, 1.0f, 1.0f} };
+	}
+	if (character == 3) {
+		characterPixels = { {1.0f, 1.0f, 1.0f, 1.0f, 1.0f},
+							{0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+							{1.0f, 1.0f, 1.0f, 1.0f, 1.0f},
+							{0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+							{1.0f, 1.0f, 1.0f, 1.0f, 1.0f} };
+	}
+	if (character == 4) {
+		characterPixels = { {0.0f, 0.0f, 1.0f, 1.0f, 0.0f},
+							{0.0f, 1.0f, 0.0f, 1.0f, 0.0f},
+							{1.0f, 0.0f, 0.0f, 1.0f, 0.0f},
+							{1.0f, 1.0f, 1.0f, 1.0f, 1.0f},
+							{0.0f, 0.0f, 0.0f, 1.0f, 0.0f} };
+	}
+	if (character == 5) {
+		characterPixels = { {1.0f, 1.0f, 1.0f, 1.0f, 1.0f},
+							{1.0f, 0.0f, 0.0f, 0.0f, 0.0f},
+							{1.0f, 1.0f, 1.0f, 1.0f, 1.0f},
+							{0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+							{1.0f, 1.0f, 1.0f, 1.0f, 1.0f} };
+	}
+	if (character == 6) {
+		characterPixels = { {1.0f, 0.0f, 0.0f, 0.0f, 0.0f},
+							{1.0f, 0.0f, 0.0f, 0.0f, 0.0f},
+							{1.0f, 1.0f, 1.0f, 1.0f, 1.0f},
+							{1.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+							{1.0f, 1.0f, 1.0f, 1.0f, 1.0f} };
+	}
+	if (character == 7) {
+		characterPixels = { {1.0f, 1.0f, 1.0f, 1.0f, 1.0f},
+							{0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+							{0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+							{0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+							{0.0f, 0.0f, 0.0f, 0.0f, 1.0f} };
+	}
+	if (character == 8) {
+		characterPixels = { {1.0f, 1.0f, 1.0f, 1.0f, 1.0f},
+							{1.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+							{1.0f, 1.0f, 1.0f, 1.0f, 1.0f},
+							{1.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+							{1.0f, 1.0f, 1.0f, 1.0f, 1.0f} };
+	}
+	if (character == 9) {
+		characterPixels = { {1.0f, 1.0f, 1.0f, 1.0f, 1.0f},
+							{1.0f, 0.0f, 0.0f, 1.0f, 1.0f},
+							{1.0f, 1.0f, 1.0f, 1.0f, 1.0f},
+							{0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+							{0.0f, 0.0f, 0.0f, 0.0f, 1.0f} };
+	}
+
+	// Write to Image
+	for (int i = 0; i < 5; i++) {
+		for (int j = 0; j < 5; j++) {
+			data[i - 2 + xMidpoint][4 - j - 2 + yMidpoint] = characterPixels[j][i];
+		}
+	}
+
+
+	return data;
+}
+
 void writeToImage(vector<float> errors, int errorResolution, int errorRange, NeuralNetwork network) {
 	// ErrorResolution must be a factor of len(errors)
 	// Normalise Errors
 	float maxError = 0.0f;
+	float minError = numeric_limits<float>().max();
 	int errorCount = errors.size();
 
 	for (int i = 0; i < errorCount; i++) {
 		maxError = max(maxError, errors[i]);
+		minError = min(minError, errors[i]);
 	}
 
 	for (int i = 0; i < errorCount; i++) {
 		errors[i] = (errors[i] / maxError) * (errorRange - 1);
 	}
 
+
 	// Average Out Error Pixels
 	int vectorsPerPixel = errorCount / errorResolution;
 	vector<vector<float>> pixelValues;
 
+	// Add Scale Background
+	int numberCountInMaxError = to_string(int(maxError)).length();
+	int scaleXSize = 5 * numberCountInMaxError + numberCountInMaxError;
+
+	for (int i = 0; i < scaleXSize; i++) {
+		vector<float> newVector(errorRange);
+		pixelValues.push_back(newVector);
+	}
+
+	// Add Scale Text
+	string maxErrorString = to_string(int(maxError));
+	for (int i = 0; i < numberCountInMaxError; i++) {
+		int currentCharacterNumber = maxErrorString.at(i) - '0';
+
+		int xMidpoint = 5 * i + i + 3;
+		int yMidPoint = errorRange - 4;
+
+		pixelValues = addCharacterToImage(pixelValues, currentCharacterNumber, xMidpoint, yMidPoint);
+	}
+
+	string minErrorString = to_string(int(minError));
+	for (int i = 0; i < minErrorString.length(); i++) {
+		int currentCharacterNumber = minErrorString.at(i) - '0';
+
+		int xMidpoint = 5 * i + i + 3;
+		pixelValues = addCharacterToImage(pixelValues, currentCharacterNumber, xMidpoint, 3);
+	}
+
+	// Add Errors
 	for (int i = 0; i < errorCount; i += vectorsPerPixel) {
 		vector<float> current(errorRange);
 
@@ -140,7 +257,7 @@ int main() {
 	int inputSize = inputSet[0].size();
 	int outputSize = outputSet[0].size();
 
-	vector<int> layers = { inputSize, outputSize * 2, outputSize * 2, outputSize * 2, outputSize * 2, outputSize, };
+	vector<int> layers = { inputSize, outputSize, };
 	vector<int> biases = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
 
 	NeuralNetwork network = NeuralNetwork(layers, biases, "tanh");
@@ -169,6 +286,7 @@ int main() {
 
 	//vector<float> trainingErrors = network.train(trainingConfig);
 	vector<float> trainingErrors = network.train(trainingConfig);
+
 	writeToImage(trainingErrors, 1000, 512, network);
 
 	//network.saveWeightsToFile("outputWeights/");
