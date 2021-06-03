@@ -1,3 +1,6 @@
+#ifndef NEURALNETWORK_H
+#define NEURALNETWORK_H
+
 #include <iostream>
 #include <vector>
 
@@ -106,3 +109,5 @@ public:
     void saveWeightsToFile(string directory);
     void loadWeightsFromFile(string directory);
 };
+
+#endif // !NEURALNETWORK_H

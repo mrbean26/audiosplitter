@@ -148,12 +148,14 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="audio.cpp" />
+    <ClCompile Include="files.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="NeuralNetwork.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Headers\audio.h" />
     <ClInclude Include="Headers\fftw3.h" />
+    <ClInclude Include="Headers\files.h" />
     <ClInclude Include="Headers\minimp3.h" />
     <ClInclude Include="Headers\minimp3_ex.h" />
     <ClInclude Include="Headers\NeuralNetwork.h" />
