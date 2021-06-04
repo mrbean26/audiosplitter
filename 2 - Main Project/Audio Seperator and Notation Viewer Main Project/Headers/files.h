@@ -6,8 +6,19 @@
 #include <vector>
 using namespace std;
 
-vector<vector<float>> generateInputs(int samplesPerChunk, int samplesPerOverlap, int frequencyResolution, int chunksPerInputHalf, int startFileIndex, int endIndex);
-vector<vector<float>> generateOutputs(int samplesPerChunk, int samplesPerOverlap, int frequencyResolution, int chunksPerInputHalf, int startFileIndex, int endIndex);
+struct audioFileConfig {
+	int samplesPerChunk = 2048;
+	int samplesPerOverlap = 2048;
+
+	int frequencyResolution = 128;
+	int chunkBorder = 4;
+
+	int startFileIndex = 1;
+	int songCount = 1;
+};
+
+vector<vector<float>> generateInputs(audioFileConfig config);
+vector<vector<float>> generateOutputs(audioFileConfig config);
 
 vector<vector<float>> addCharacterToImage(vector<vector<float>> data, int character, int xMidpoint, int yMidpoint);
 
@@ -18,6 +29,8 @@ struct outputImageConfig {
 	int errorRange;
 
 	NeuralNetwork network;
+	audioFileConfig audioConfig;
+	standardTrainConfig trainConfig;
 
 	bool useFixedScale = true;
 	float fixedMax = 5000.0f;
@@ -27,6 +40,6 @@ struct outputImageConfig {
 vector<vector<float>> addCharacterToImage(vector<vector<float>> data, int character, int xMidpoint, int yMidpoint);
 void writeToImage(outputImageConfig config);
 
-void createOutputTestTrack(NeuralNetwork network, int samplesPerChunk, int frequencyResolution, int chunkBorder);
+void createOutputTestTrack(NeuralNetwork network, audioFileConfig config);
 
 #endif

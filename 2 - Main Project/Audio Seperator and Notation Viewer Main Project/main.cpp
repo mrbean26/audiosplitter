@@ -7,25 +7,28 @@ using namespace std;
 #include "Headers/audio.h"
 
 int main() {
-	// Initial Variables
-	int samplesPerChunk = 2048; // I think this should be a power of 2
-	int samplesPerOverlap = samplesPerChunk; // no overlap
-	int frequencyResolution = 128; // Each float represents (sampleRate / frequencyResolution) frequencies
-	int chunkBorder = 4; // How many chunks are added to each side of the input chunk, giving audio "context"
-	int songsPerTrain = 1;
+	audioFileConfig audioConfig = {
+		2048, // samples per chunk
+		2048, // samples per overlap
+
+		128, // frequency res
+		4, // chunk border
+
+		1, // start file index
+		1 // song count
+	};
 
 	// Train Network - One Song Training
-	vector<vector<float>> inputSet = generateInputs(samplesPerChunk, samplesPerOverlap, frequencyResolution, chunkBorder, 1, songsPerTrain + 1);
-	vector<vector<float>> outputSet = generateOutputs(samplesPerChunk, samplesPerOverlap, frequencyResolution, chunkBorder, 1, songsPerTrain + 1);
+	vector<vector<float>> inputSet = generateInputs(audioConfig);
+	vector<vector<float>> outputSet = generateOutputs(audioConfig);
 
-	int inputSize = inputSet[0].size();
+	int inputSize = inputSet[0].size(); 
 	int outputSize = outputSet[0].size();
 
-	vector<int> layers = { inputSize, outputSize, };
+	vector<int> layers = { inputSize, outputSize * 2, outputSize * 2, outputSize * 2, outputSize, };
 	vector<int> biases = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
 
 	NeuralNetwork network = NeuralNetwork(layers, biases, "tanh");
-	//network.loadWeightsFromFile("outputWeights/");
 	
 	standardTrainConfig trainingConfig = {
 		inputSet,
@@ -56,17 +59,18 @@ int main() {
 		512, // error range
 
 		network,
+		audioConfig,
+		trainingConfig,
 
 		false, // Use fixed scale?
 		500.0f, // max scale on fixed scale
 		0.0f, // min scale on fixed scale
 	};
+	
 	writeToImage(imageConfig);
 
-	//network.saveWeightsToFile("outputWeights/");
-
 	// Test with first test songs
-	createOutputTestTrack(network, samplesPerChunk, frequencyResolution, chunkBorder);
+	createOutputTestTrack(network, audioConfig);
 
 	system("pause");
 	return 0;

@@ -2,22 +2,24 @@
 #include "Headers/audio.h"
 
 #include <string>
+#include <fstream>
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "Headers/stb_image_write.h"
 
-vector<vector<float>> generateInputs(int samplesPerChunk, int samplesPerOverlap, int frequencyResolution, int chunksPerInputHalf, int startFileIndex, int endIndex) {
+vector<vector<float>> generateInputs(audioFileConfig config) {
+	int endIndex = config.startFileIndex + config.songCount;
 	vector<vector<float>> result;
 
-	for (int f = startFileIndex; f < endIndex; f++) {
+	for (int f = config.startFileIndex; f < endIndex; f++) {
 		string fileName = "inputs/" + to_string(f) + ".mp3";
-		vector<vector<float>> fullAudioInput = spectrogramOutput(fileName.data(), samplesPerChunk, samplesPerOverlap, frequencyResolution);
+		vector<vector<float>> fullAudioInput = spectrogramOutput(fileName.data(), config.samplesPerChunk, config.samplesPerOverlap, config.frequencyResolution);
 		int newFrequencyResolution = fullAudioInput[0].size();
 
-		for (int i = chunksPerInputHalf; i < fullAudioInput.size() - chunksPerInputHalf; i++) {
+		for (int i = config.chunkBorder; i < fullAudioInput.size() - config.chunkBorder; i++) {
 			vector<float> currentInput;
 
-			for (int c = i - chunksPerInputHalf; c < i + chunksPerInputHalf; c++) {
+			for (int c = i - config.chunkBorder; c < i + config.chunkBorder; c++) {
 				for (int f = 0; f < newFrequencyResolution; f++) {
 					float value = fullAudioInput[i][f];
 
@@ -37,15 +39,16 @@ vector<vector<float>> generateInputs(int samplesPerChunk, int samplesPerOverlap,
 	return result;
 }
 
-vector<vector<float>> generateOutputs(int samplesPerChunk, int samplesPerOverlap, int frequencyResolution, int chunksPerInputHalf, int startFileIndex, int endIndex) {
+vector<vector<float>> generateOutputs(audioFileConfig config) {
+	int endIndex = config.startFileIndex + config.songCount;
 	vector<vector<float>> result;
 
-	for (int f = startFileIndex; f < endIndex; f++) {
+	for (int f = config.startFileIndex; f < endIndex; f++) {
 		string fileName = "outputs/" + to_string(f) + ".mp3";
-		vector<vector<float>> fullAudioInput = spectrogramOutput(fileName.data(), samplesPerChunk, samplesPerOverlap, frequencyResolution);
+		vector<vector<float>> fullAudioInput = spectrogramOutput(fileName.data(), config.samplesPerChunk, config.samplesPerOverlap, config.frequencyResolution);
 		int newFrequencyResolution = fullAudioInput[0].size();
 
-		for (int i = chunksPerInputHalf; i < fullAudioInput.size() - chunksPerInputHalf; i++) {
+		for (int i = config.chunkBorder; i < fullAudioInput.size() - config.chunkBorder; i++) {
 			vector<float> currentInput;
 			for (int f = 0; f < newFrequencyResolution; f++) {
 				float value = fullAudioInput[i][f];
@@ -228,24 +231,73 @@ void writeToImage(outputImageConfig config) {
 		}
 	}
 
-	string fileName = "NETWORKNODES(BIAS),";
+	string fileName = "";
+	index = 1;
 
-	for (int i = 0; i < config.network.layerCount; i++) {
-		fileName += to_string(config.network.layerNodes[i].size());
-		fileName += "(" + to_string(config.network.layerBiases[i].size()) + ")";
+	while (true) {
+		// check if filename exists
+		string currentFilename = "config_" + to_string(index) + ".jpg";
+		ifstream file(currentFilename.c_str());
 
-		if (i < config.network.layerCount - 1) {
-			fileName += ",";
+		if (!file.good()) {
+			fileName = currentFilename;
+			break;
 		}
+		index++;
 	}
 
-	fileName += ".jpg";
-
 	stbi_write_jpg(fileName.c_str(), config.errorResolution, config.errorRange, 3, data, config.errorResolution * 3);
+
+	// Write Config Metadata
+	ofstream imageFile;
+	imageFile.open(fileName.c_str(), ios_base::app); // Append
+	imageFile << endl; // New line
+	imageFile << "METADATA" << endl;
+
+	// Network config
+	imageFile << "Nodes: ";
+	for (int i = 0; i < config.network.layerCount; i++) {
+		imageFile << to_string(config.network.layerNodes[i].size()) << ", ";
+	}
+
+	imageFile << "Biases: ";
+	for (int i = 0; i < config.network.layerCount; i++) {
+		imageFile << to_string(config.network.layerBiases[i].size()) << ", ";
+	}
+
+	imageFile << endl;
+
+	// Training Config
+	imageFile << "Epochs: " << to_string(config.trainConfig.epochs) << ", ";
+	imageFile << "LR: " << to_string(config.trainConfig.learningRate) << ", ";
+	imageFile << "M: " << to_string(config.trainConfig.momentum) << ", ";
+	imageFile << "Cycle: " << to_string(config.trainConfig.useCyclicalLearningRateAndMomentum) << ", ";
+	imageFile << "Decay: " << to_string(config.trainConfig.useWeightDecay) << ", ";
+	imageFile << "Multiplier: " << to_string(config.trainConfig.weightDecayMultiplier) << ", ";
+	imageFile << "RPROPd: " << to_string(config.trainConfig.rpropWeightDecreaseMultiplier) << ", ";
+	imageFile << "RPROPi: " << to_string(config.trainConfig.rpropWeightIncreaseMultiplier) << ", ";
+	imageFile << "Drop: " << to_string(config.trainConfig.useDropout) << ", ";
+	imageFile << "Probability: " << to_string(config.trainConfig.nodeBiasDropoutProbability);
+	imageFile << endl;
+
+	// Audio Config
+	imageFile << "Chunk: " << to_string(config.audioConfig.samplesPerChunk) << ", ";
+	imageFile << "Overlap: " << to_string(config.audioConfig.samplesPerOverlap) << ", ";
+	imageFile << "Res: " << to_string(config.audioConfig.frequencyResolution) << ", ";
+	imageFile << "Border: " << to_string(config.audioConfig.chunkBorder) << ", ";
+	imageFile << "Count: " << to_string(config.audioConfig.songCount);
+	imageFile << endl;
+
+	// Image Config
+	imageFile << "ScaleLow: " << to_string(minScale) << ", ";
+	imageFile << "ScaleHigh: " << to_string(maxScale);
 }
 
-void createOutputTestTrack(NeuralNetwork network, int samplesPerChunk, int frequencyResolution, int chunkBorder) {
-	vector<vector<float>> testTrackSpectrogram = generateInputs(samplesPerChunk, samplesPerChunk, frequencyResolution, chunkBorder, 1, 2); // First track only, for testing
+void createOutputTestTrack(NeuralNetwork network, audioFileConfig config) {
+	config.startFileIndex = 1;
+	config.songCount = 1;
+
+	vector<vector<float>> testTrackSpectrogram = generateInputs(config); // First track only, for testing
 	vector<vector<float>> predictedTrackSpectrogram;
 
 	int chunkCount = testTrackSpectrogram.size();
@@ -256,6 +308,6 @@ void createOutputTestTrack(NeuralNetwork network, int samplesPerChunk, int frequ
 		predictedTrackSpectrogram.push_back(currentChunkPrection);
 	}
 
-	vector<int16_t> testTrackOutputSamples = vocalSamples("inputs/1.mp3", samplesPerChunk, samplesPerChunk, predictedTrackSpectrogram);
+	vector<int16_t> testTrackOutputSamples = vocalSamples("inputs/1.mp3", config.samplesPerChunk, config.samplesPerChunk, predictedTrackSpectrogram);
 	writeToWAV("testTrackOutput.wav", testTrackOutputSamples);
 }
