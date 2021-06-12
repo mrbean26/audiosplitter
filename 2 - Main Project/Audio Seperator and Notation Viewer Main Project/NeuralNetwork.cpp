@@ -3,6 +3,8 @@
 #include <fstream>
 #include <sstream>
 
+#include "Headers/files.h"
+
 // activations
 namespace activations{
     float sigmoid(float x){
@@ -816,6 +818,80 @@ void NeuralNetwork::reactivateNodes() {
 
         for (int b = 0; b < biasCount; b++) {
             layerBiases[i][b].active = true;
+        }
+    }
+}
+
+void NeuralNetwork::trainSeveralConfigurations(audioFileConfig config, vector<vector<float>> inputSet, vector<vector<float>> outputSet, int epochs, int iterationsPerEach, int lowestLayerSize, float lowestLearningRate, float lowestMomentum) {
+    int inputSize = inputSet[0].size();
+    int outputSize = outputSet[0].size();
+    
+    for (int L = 1; L < iterationsPerEach + 1; L++) {
+        for (int N = 1; N < iterationsPerEach + 1; N++) {
+            for (int B = 0; B < iterationsPerEach; B++) {
+                vector<int> networkLayers = { inputSize };
+                for (int i = 0; i < L; i++) {
+                    networkLayers.push_back(N * lowestLayerSize);
+                }
+                networkLayers.push_back(outputSize);
+
+                vector<int> networkBiases;
+                for (int i = 0; i < L + 2; i++) {
+                    networkBiases.push_back(B);
+                }
+
+                NeuralNetwork newNetwork = NeuralNetwork(networkLayers, networkBiases, "sigmoid");
+
+                for (int LR = 1; LR < iterationsPerEach + 1; LR++) {
+                    for (int M = 0; M < iterationsPerEach; M++) {
+                        for (int C = 0; C < 2; C++) {
+                            float learningRate = LR * lowestLearningRate;
+                            float momentum = M * lowestMomentum;
+
+                            standardTrainConfig trainConfig = {
+                                inputSet,
+                                outputSet,
+
+                                epochs,
+
+                                learningRate,
+                                momentum,
+
+                                C, // use cyclical learning rate
+
+                                false,
+                                0.0f,
+
+                                0.0f,
+                                0.0f,
+
+                                false,
+                                0
+                            };
+
+                            vector<float> trainingErrors = newNetwork.train(trainConfig);
+
+                            // WRITE TO IMAGE HERE
+                            outputImageConfig newImageConfig = outputImageConfig{
+                                trainingErrors,
+
+                                1000,
+                                512,
+
+                                newNetwork,
+                                config,
+                                trainConfig,
+
+                                true,
+                                1000.0f,
+                                0.0f,
+                            };
+
+                            writeToImage(newImageConfig);
+                        }
+                    }
+                }
+            }
         }
     }
 }
