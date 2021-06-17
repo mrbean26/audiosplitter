@@ -108,7 +108,7 @@ public:
     vector<float> train(standardTrainConfig trainConfig);
     void runTests(vector<vector<float>> inputs);
 
-    static void trainSeveralConfigurations(audioFileConfig config, vector<vector<float>> inputSet, vector<vector<float>> outputSet, int epochs, int iterationsPerEach, int lowestLayerSize, float lowestLearningRate, float lowestMomentum);
+    static void trainSeveralConfigurations(audioFileConfig config, vector<vector<float>> inputSet, vector<vector<float>> outputSet, int epochs, int minimumLayerCount, int iterationsPerEach, int lowestLayerSize, float lowestLearningRate, float lowestMomentum);
 
     void saveWeightsToFile(string directory);
     void loadWeightsFromFile(string directory);

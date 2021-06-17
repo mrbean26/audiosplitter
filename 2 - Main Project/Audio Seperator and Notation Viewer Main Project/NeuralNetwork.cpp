@@ -822,7 +822,7 @@ void NeuralNetwork::reactivateNodes() {
     }
 }
 
-void NeuralNetwork::trainSeveralConfigurations(audioFileConfig config, vector<vector<float>> inputSet, vector<vector<float>> outputSet, int epochs, int iterationsPerEach, int lowestLayerSize, float lowestLearningRate, float lowestMomentum) {
+void NeuralNetwork::trainSeveralConfigurations(audioFileConfig config, vector<vector<float>> inputSet, vector<vector<float>> outputSet, int epochs, int minimumLayerCount, int iterationsPerEach, int lowestLayerSize, float lowestLearningRate, float lowestMomentum) {
     int inputSize = inputSet[0].size();
     int outputSize = outputSet[0].size();
     
@@ -830,13 +830,13 @@ void NeuralNetwork::trainSeveralConfigurations(audioFileConfig config, vector<ve
         for (int N = 1; N < iterationsPerEach + 1; N++) {
             for (int B = 0; B < iterationsPerEach; B++) {
                 vector<int> networkLayers = { inputSize };
-                for (int i = 0; i < L; i++) {
+                for (int i = 0; i < L + minimumLayerCount; i++) {
                     networkLayers.push_back(N * lowestLayerSize);
                 }
                 networkLayers.push_back(outputSize);
 
                 vector<int> networkBiases;
-                for (int i = 0; i < L + 2; i++) {
+                for (int i = 0; i < L + 2 + minimumLayerCount; i++) {
                     networkBiases.push_back(B);
                 }
 
