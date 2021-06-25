@@ -193,37 +193,42 @@ def matrix_addition(A, B):
 # Example Problem Functions
 import math
 
-def getError(a, b, x):
-    return a * math.cos(b * x) + b * math.sin(a * x)
+def getError(actual, a, b, x):
+    functionOutput = a * math.cos(b * x) + b * math.sin(a * x)
+
+    return desiredOutput - functionOutput
 
 def getJacobianMatrix(a, b, x):
     result = [[]]
 
-    # Add Derivatives
-    result[0].append(math.cos(b * x) + b * math.cos(a * x) * x) # A
-    result[0].append(-a * x * math.sin(x * b) + math.sin(a * x)) # B
-    result[0].append(-a * b * math.sin(b * x) + b * math.cos(a * x) * a) # X
+    # Add Derivatives (WITH RESPECT TO "ACTUAL - PREDICTED")
+    result[0].append(-b * x * math.cos(a * x) - math.cos(b * x)) # A
+    result[0].append(a * x * math.sin(b * x) - math.sin(a * x)) # B
+    result[0].append(a * b * math.sin(b * x) - a * b * math.cos(a * x)) # X
 
     return result
 
 # Algorithm
 dampValue = 0.001
 
-A = 1
-B = 1
-X = 1
+import random
+A = random.randint(1, 100)
+B = random.randint(1, 100)
+X = random.randint(1, 100)
 
-iterations = 300
+iterations = 10000
 lowestDamp = False
 
+desiredOutput = 42
+finalError = 0
+
 for i in range(iterations):
-    previousError = getError(A, B, X)
+    previousError = getError(desiredOutput, A, B, X)
 
     jacobian = getJacobianMatrix(A, B, X)
     transposedJacobian = transpose(jacobian)
 
     approximateHessian = matrix_multiply(transposedJacobian, jacobian)
-    approximateHessian = scalar_multiply(2, approximateHessian)
 
     identityMatrix = identity_matrix(len(jacobian[0]))
     identityMatrix = scalar_multiply(dampValue, identityMatrix)
@@ -246,11 +251,18 @@ for i in range(iterations):
     B = B + deltas[1][0]
     X = X + deltas[2][0]
 
-    if getError(A, B, X) > previousError:
+    if getError(desiredOutput, A, B, X) > previousError:
         dampValue = dampValue * 10
         lowestDamp = False
+
+        A = A - deltas[0][0]
+        B = B - deltas[1][0]
+        X = X - deltas[2][0]
     else:
         if lowestDamp == False:
             dampValue = dampValue * 0.1
 
-    print(previousError, A, B, X)
+    finalError = previousError
+
+print("Final Error:", finalError)
+print("Parameters:", A, B, X)
