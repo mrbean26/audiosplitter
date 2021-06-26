@@ -195,16 +195,18 @@ import math
 
 def getError(actual, a, b, x):
     functionOutput = a * math.cos(b * x) + b * math.sin(a * x)
+    
+    return (actual - functionOutput) ** 2
 
-    return desiredOutput - functionOutput
-
-def getJacobianMatrix(a, b, x):
+cos = math.cos
+sin = math.sin
+def getJacobianMatrix(desiredOutput, a, b, x):
     result = [[]]
 
-    # Add Derivatives (WITH RESPECT TO "ACTUAL - PREDICTED")
-    result[0].append(-b * x * math.cos(a * x) - math.cos(b * x)) # A
-    result[0].append(a * x * math.sin(b * x) - math.sin(a * x)) # B
-    result[0].append(a * b * math.sin(b * x) - a * b * math.cos(a * x)) # X
+    # Add Derivatives (WITH RESPECT TO "ACTUAL - PREDICTED"^2)
+    result[0].append(2 * (b * x * cos(x * a) + cos(b * x)) * (b * sin(x * a) + cos(b * x) * a - desiredOutput)) # A
+    result[0].append(2 * (-a * cos(x * b) - sin(a * x) * b + desiredOutput) * (a * x * sin(x * b) - sin(a * x))) # B
+    result[0].append(-2 * a * b * (a * cos(b * x) + b * sin(a * x) - desiredOutput) * (sin(b * x) - cos(a * x))) # X
 
     return result
 
@@ -212,20 +214,20 @@ def getJacobianMatrix(a, b, x):
 dampValue = 0.001
 
 import random
-A = random.randint(1, 100)
-B = random.randint(1, 100)
-X = random.randint(1, 100)
+A = random.uniform(-5.0, 5.0)
+B = random.uniform(-5.0, 5.0)
+X = random.uniform(-5.0, 5.0)
 
 iterations = 10000
 lowestDamp = False
 
-desiredOutput = 42
+desiredOutput = 0.96421896
 finalError = 0
 
 for i in range(iterations):
     previousError = getError(desiredOutput, A, B, X)
 
-    jacobian = getJacobianMatrix(A, B, X)
+    jacobian = getJacobianMatrix(desiredOutput, A, B, X)
     transposedJacobian = transpose(jacobian)
 
     approximateHessian = matrix_multiply(transposedJacobian, jacobian)
