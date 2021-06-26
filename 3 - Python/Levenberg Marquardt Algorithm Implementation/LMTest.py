@@ -195,7 +195,7 @@ import math
 
 def getError(actual, a, b, x):
     functionOutput = a * math.cos(b * x) + b * math.sin(a * x)
-    
+    print(functionOutput)
     return (actual - functionOutput) ** 2
 
 cos = math.cos
@@ -218,7 +218,7 @@ A = random.uniform(-5.0, 5.0)
 B = random.uniform(-5.0, 5.0)
 X = random.uniform(-5.0, 5.0)
 
-iterations = 10000
+iterations = 100
 lowestDamp = False
 
 desiredOutput = 0.96421896

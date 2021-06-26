@@ -23,7 +23,9 @@ int main() {
 	vector<vector<float>> outputSet = generateOutputs(audioConfig);
 
 	int iterationsPerEach = 2;
-	NeuralNetwork::trainSeveralConfigurations(audioConfig, inputSet, outputSet, 1000, 2, iterationsPerEach, outputSet[0].size(), 0.2f, 0.05f);
+	int minimumLayers = 4;
+
+	NeuralNetwork::trainSeveralConfigurations(audioConfig, inputSet, outputSet, 1000, minimumLayers, iterationsPerEach, outputSet[0].size(), 0.2f, 0.05f);
 
 	// Test with first test songs
 	//createOutputTestTrack(network, audioConfig);
