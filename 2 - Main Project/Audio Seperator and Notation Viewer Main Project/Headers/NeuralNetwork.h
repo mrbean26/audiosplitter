@@ -35,6 +35,10 @@ struct standardTrainConfig {
 
     bool useDropout = false;
     int nodeBiasDropoutProbability = 10; // 1 in 10 (0.1)
+
+    float dampingParameter = 0.001f;
+    float dampIncreaseMultiplierLM = 2.0f;
+    float dampDecreaseMultiplierLM = 0.5f;
 };
 
 namespace activations{
@@ -90,7 +94,7 @@ public:
     void randomlyDropNodes(int probability);
     void reactivateNodes();
 
-    void calculateDerivatives(vector<float> outputErrors);
+    void calculateDerivatives(vector<float> outputErrors, float errorMultiplier);
     void decayWeights(float multiplier);
     void adjustWeights(float lr, float momentum);
     void resetDerivativesAndResults();
@@ -107,6 +111,10 @@ public:
 
     vector<float> train(standardTrainConfig trainConfig);
     void runTests(vector<vector<float>> inputs);
+
+    vector<float> trainLevenbergMarquardt(standardTrainConfig trainConfig);
+    vector<float> calculateDeltasLM(float cost, float dampen);
+    void addDeltasLM(vector<float> deltas);
 
     static void trainSeveralConfigurations(audioFileConfig config, vector<vector<float>> inputSet, vector<vector<float>> outputSet, int epochs, int minimumLayerCount, int iterationsPerEach, int lowestLayerSize, float lowestLearningRate, float lowestMomentum);
 

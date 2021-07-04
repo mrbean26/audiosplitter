@@ -65,14 +65,14 @@ Matrix scalarMultiply(float scalar, Matrix A) {
 }
 
 Matrix transposeMatrix(Matrix A) {
-	Matrix result = A;
-
 	int rows = A.size();
 	int columns = A[0].size();
 
+	Matrix result = zerosMatrix(columns, rows);
+
 	for (int i = 0; i < rows; i++) {
 		for (int j = 0; j < columns; j++) {
-			result[i][j] = A[j][i];
+			result[j][i] = A[i][j];
 		}
 	}
 

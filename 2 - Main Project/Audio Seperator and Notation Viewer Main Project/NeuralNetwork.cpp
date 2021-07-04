@@ -4,6 +4,7 @@
 #include <sstream>
 
 #include "Headers/files.h"
+#include "Headers/matrices.h"
 
 // activations
 namespace activations{
@@ -264,11 +265,11 @@ vector<float> NeuralNetwork::predict(vector<float> inputs){
     return result;
 }
 
-void NeuralNetwork::calculateDerivatives(vector<float> outputErrors){
+void NeuralNetwork::calculateDerivatives(vector<float> outputErrors, float errorMultiplier = 1.0f){
     // with outputErrors as actual - target
     int finalLayerCount = layerNodes[layerCount - 1].size();
     for(int i = 0; i < finalLayerCount; i++){
-        layerNodes[layerCount - 1][i].derivativeErrorValue = derivative(layerNodes[layerCount - 1][i].value) * outputErrors[i];
+        layerNodes[layerCount - 1][i].derivativeErrorValue = derivative(layerNodes[layerCount - 1][i].value) * outputErrors[i] * errorMultiplier;
     }
     // work backwards
     for(int i = layerCount - 2; i > -1; i--){
@@ -891,6 +892,134 @@ void NeuralNetwork::trainSeveralConfigurations(audioFileConfig config, vector<ve
                         }
                     }
                 }
+            }
+        }
+    }
+}
+
+vector<float> NeuralNetwork::trainLevenbergMarquardt(standardTrainConfig trainConfig) {
+    int trainDataCount = trainConfig.trainInputs.size();
+    int outputCount = trainConfig.trainOutputs[0].size();
+
+    vector<int> trainIndexes;
+    for (int i = 0; i < trainDataCount; i++) {
+        trainIndexes.push_back(i);
+    }
+
+    vector<float> result;
+    for (int epoch = 0; epoch < trainConfig.epochs; epoch++) {
+        random_shuffle(trainIndexes.begin(), trainIndexes.end());
+
+        if (trainConfig.useDropout) {
+            randomlyDropNodes(trainConfig.nodeBiasDropoutProbability);
+        }
+
+        float totalError = 0.0f;
+        for (int t = 0; t < trainDataCount; t++) {
+            int currentIndex = trainIndexes[t];
+            vector<float> result = predict(trainConfig.trainInputs[currentIndex]);
+
+            vector<float> errors;
+            float currentError = 0.0f;
+            float costOutput = 0.0f;
+
+            for (int e = 0; e < outputCount; e++) {
+                totalError = totalError + abs(trainConfig.trainOutputs[currentIndex][e] - result[e]);
+                costOutput = costOutput + powf(trainConfig.trainOutputs[currentIndex][e] - result[e], 2.0f);
+                errors.push_back(trainConfig.trainOutputs[currentIndex][e] - result[e]);
+            }
+
+            calculateDerivatives(errors, 2.0f); // 2.0f due to cost function derivative of x^2
+            vector<float> weightDeltas = calculateDeltasLM(costOutput, trainConfig.dampingParameter);
+            addDeltasLM(weightDeltas);
+            
+            // Approximate new cost here
+
+            if (trainConfig.useWeightDecay) {
+                decayWeights(trainConfig.weightDecayMultiplier);
+            }
+        }
+
+        reactivateNodes();
+
+        cout << "Epoch: " << epoch + 1 << " / " << trainConfig.epochs << ", Total error from epoch: " << totalError << ", Layers: " << layerCount << endl;
+        result.push_back(totalError);
+    }
+
+    return result;
+}
+
+vector<float> NeuralNetwork::calculateDeltasLM(float cost, float dampen) {
+    // Get Jacobian in Order of layer nodes then layer biases
+    vector<vector<float>> jacobianMatrix;
+    vector<float> jacobianRow;
+
+    for (int i = 0; i < layerCount - 1; i++) {
+        int nodeCount = layerNodes[i].size();
+        int biasCount = layerBiases[i].size();
+        int weightCount = layerNodes[i + 1].size();
+
+        for (int j = 0; j < nodeCount; j++) {
+            for (int k = 0; k < weightCount; k++) {
+                float costDerivative = layerNodes[i][j].value * layerNodes[i + 1][k].derivativeErrorValue;
+                jacobianRow.push_back(costDerivative);
+            }
+        }
+
+        for (int j = 0; j < biasCount; j++) {
+            for (int k = 0; k < weightCount; k++) {
+                float costDerivative = 1.0f * layerNodes[i + 1][k].derivativeErrorValue;
+                jacobianRow.push_back(costDerivative);
+            }
+        }
+    }
+
+    jacobianMatrix.push_back(jacobianRow);
+    int length = jacobianRow.size();
+
+    // Calculate Deltas
+    Matrix transposedJacobian = transposeMatrix(jacobianMatrix);
+    Matrix lengthIdentityMatrix = identityMatrix(length);
+    lengthIdentityMatrix = scalarMultiply(dampen, lengthIdentityMatrix);
+
+    Matrix squareJacobian = matrixMultiply(transposedJacobian, jacobianMatrix);
+    squareJacobian = matrixAddition(squareJacobian, lengthIdentityMatrix);
+    Matrix approximateHessian = inverseMatrix(squareJacobian, 1);
+    approximateHessian = matrixMultiply(approximateHessian, transposedJacobian);
+
+    Matrix weightDeltas = scalarMultiply(cost, approximateHessian);
+    vector<float> weightDeltasResult;
+
+    for (int i = 0; i < length; i++) {
+        float delta = weightDeltas[0][i];
+        weightDeltasResult.push_back(delta);
+    }
+
+
+    return weightDeltasResult;
+}
+
+void NeuralNetwork::addDeltasLM(vector<float> deltas) {
+    int index = 0;
+
+    for (int i = 0; i < layerCount - 1; i++) {
+        int nodeCount = layerNodes[i].size();
+        int biasCount = layerBiases[i].size();
+        int weightCount = layerNodes[i + 1].size();
+
+        for (int j = 0; j < nodeCount; j++) {
+            for (int k = 0; k < weightCount; k++) {
+                layerNodes[i][j].outWeights[k] -= deltas[index];
+                cout << deltas[index] << endl;
+                index += 1;
+            }
+        }
+
+        for (int j = 0; j < biasCount; j++) {
+            for (int k = 0; k < weightCount; k++) {
+                layerBiases[i][j].outWeights[k] -= deltas[index];
+                cout << deltas[index] << endl;
+                index += 1;
             }
         }
     }
