@@ -31,7 +31,7 @@ public:
     // Classes
     static struct standardTrainConfig {
         // General
-        int trainType = STOCHASTIC_GRADIENT_DESCENT;
+        int trainType = GRADIENT_DESCENT;
         int epochs = 1000;
 
         vector<vector<float>> trainInputs;
@@ -47,6 +47,10 @@ public:
         float learningRate = 1.0f;
         float momentum = 0.25f;
         bool useCyclicalLearningRateAndMomentum = false;
+
+        // Stochastic Gradient Descent
+        int entireBatchEpochIntervals = 500; // Every x epochs, the entire dataset is run
+        int batchSize = 50;
 
         // Resistant Propagation
         float rpropWeightDecreaseMultiplier = 0.5f;
@@ -115,10 +119,13 @@ public:
     void randomlyDropNodes(int probability);
     void reactivateNodes();
 
-    // Stochastic Gradient Descent (changes after each train example)
+    // Gradient Descent (updates after each example)
     void adjustWeightsGradientDescent(float lr, float momentum);
+    vector<float> trainGradientDescent(standardTrainConfig trainConfig);
+
+    // Stochastic Gradient Descent (select a few random train inputs)
     vector<float> trainStochasticGradientDescent(standardTrainConfig trainConfig);
-    
+
     // Resistant Propagation
     vector<float> trainResistantPropagation(standardTrainConfig trainConfig);
     void adjustWeightsRPROP(float increase, float decrease);

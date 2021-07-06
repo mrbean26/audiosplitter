@@ -175,7 +175,7 @@ void NeuralNetwork::train(standardTrainConfig trainConfig) {
         trainStochasticGradientDescent(trainConfig);
     }
     if (trainConfig.trainType == GRADIENT_DESCENT) {
-
+        trainGradientDescent(trainConfig);
     }
     if (trainConfig.trainType == RESISTANT_PROPAGATION) {
         trainResistantPropagation(trainConfig);
@@ -403,7 +403,7 @@ void NeuralNetwork::reactivateNodes() {
     }
 }
 
-// Gradient Descent
+// Gradient Descent (updates after each example)
 void NeuralNetwork::adjustWeightsGradientDescent(float lr, float momentum) {
     for (int i = 0; i < layerCount; i++) {
         int nodeCount = layerNodes[i].size();
@@ -442,7 +442,7 @@ void NeuralNetwork::adjustWeightsGradientDescent(float lr, float momentum) {
         }
     }
 }
-vector<float> NeuralNetwork::trainStochasticGradientDescent(standardTrainConfig trainConfig) {
+vector<float> NeuralNetwork::trainGradientDescent(standardTrainConfig trainConfig) {
     int trainDataCount = trainConfig.trainInputs.size();
     int outputCount = trainConfig.trainOutputs[0].size();
 
@@ -474,7 +474,6 @@ vector<float> NeuralNetwork::trainStochasticGradientDescent(standardTrainConfig 
             currentLearningRate = value * trainConfig.learningRate;
             currentMomentum = (1 - value) * trainConfig.momentum;
         }
-
         if (trainConfig.useDropout) {
             randomlyDropNodes(trainConfig.nodeBiasDropoutProbability);
         }
@@ -485,24 +484,99 @@ vector<float> NeuralNetwork::trainStochasticGradientDescent(standardTrainConfig 
             vector<float> result = predict(trainConfig.trainInputs[currentIndex]);
 
             vector<float> errors;
-
-            float currentError = 0.0f;
             for (int e = 0; e < outputCount; e++) {
-                currentError += abs(trainConfig.trainOutputs[currentIndex][e] - result[e]);
+                totalError += abs(trainConfig.trainOutputs[currentIndex][e] - result[e]);
                 errors.push_back(trainConfig.trainOutputs[currentIndex][e] - result[e]);
             }
-            totalError += currentError;
 
             calculateDerivatives(errors);
-
             adjustWeightsGradientDescent(currentLearningRate, trainConfig.momentum);
 
             if (trainConfig.useWeightDecay) {
                 decayWeights(trainConfig.weightDecayMultiplier);
             }
-            //cout << "Epoch: " << epoch + 1 << " / " << epochs << ", Train data item: " << t + 1 << " / " << trainDataCount << ", Total Error: " << currentError << endl;
         }
 
+        reactivateNodes();
+
+        cout << "Epoch: " << epoch + 1 << " / " << trainConfig.epochs << ", Total error from epoch: " << totalError << ", Layers: " << layerCount << ", LR:" << currentLearningRate << endl;
+        result.push_back(totalError);
+    }
+
+    return result;
+}
+
+// Stochastic Gradient Descent (select a few random train inputs)
+vector<float> NeuralNetwork::trainStochasticGradientDescent(standardTrainConfig trainConfig) {
+    int trainDataCount = trainConfig.trainInputs.size();
+    int miniBatchSize = trainConfig.trainInputs.size() / trainConfig.batchSize;
+    int outputCount = trainConfig.trainOutputs[0].size();
+
+    vector<int> trainIndexes;
+    for (int i = 0; i < trainDataCount; i++) {
+        trainIndexes.push_back(i);
+    }
+
+    vector<float> result;
+    for (int epoch = 0; epoch < trainConfig.epochs; epoch++) {
+        vector<int> trainIndexes;
+        if (epoch % trainConfig.entireBatchEpochIntervals == 0) {
+            for (int i = 0; i < trainDataCount; i++) {
+                trainIndexes.push_back(i);
+            }
+        }
+        else {
+            for (int i = 0; i < trainConfig.batchSize; i++) {
+                int newIndex = (i * miniBatchSize) + (rand() % miniBatchSize);
+                trainIndexes.push_back(newIndex);
+            }
+        }
+
+        // Generate Learning Parameters
+        float currentLearningRate = trainConfig.learningRate;
+        float currentMomentum = trainConfig.momentum;
+
+        if (trainConfig.useCyclicalLearningRateAndMomentum) { // Peak in Middle - use function hanning window
+            double currentCoefficient = double(epoch + 1) / (double(trainConfig.epochs));
+
+            /*
+            * Hanning Function
+            double pi = 3.14159265358979323846;
+            double cosValue = cos(2 * pi * currentCoefficient);
+            double value = 0.5 * (1 - cosValue);
+            */
+
+            //Linear Function
+            float value = 1.0f - abs(2.0f * (currentCoefficient - 0.5f));
+
+            currentLearningRate = value * trainConfig.learningRate;
+            currentMomentum = (1 - value) * trainConfig.momentum;
+        }
+        if (trainConfig.useDropout) {
+            randomlyDropNodes(trainConfig.nodeBiasDropoutProbability);
+        }
+
+        // Adjust Parameters
+        float totalError = 0.0f;
+        for (int t = 0; t < trainIndexes.size(); t++) {
+            int currentIndex = trainIndexes[t];
+            vector<float> result = predict(trainConfig.trainInputs[currentIndex]);
+
+            vector<float> errors;
+            for (int e = 0; e < outputCount; e++) {
+                totalError += abs(trainConfig.trainOutputs[currentIndex][e] - result[e]);
+                errors.push_back(trainConfig.trainOutputs[currentIndex][e] - result[e]);
+            }
+
+            calculateDerivatives(errors);
+            adjustWeightsGradientDescent(currentLearningRate, trainConfig.momentum);
+
+            if (trainConfig.useWeightDecay) {
+                decayWeights(trainConfig.weightDecayMultiplier);
+            }
+        }
+
+        // Reset Network
         reactivateNodes();
 
         cout << "Epoch: " << epoch + 1 << " / " << trainConfig.epochs << ", Total error from epoch: " << totalError << ", Layers: " << layerCount << ", LR:" << currentLearningRate << endl;
