@@ -40,22 +40,13 @@ int main() {
 
 	NeuralNetwork newNetwork = NeuralNetwork({ 2, 2, 1 }, { 1, 1, 0 }, "sigmoid");
 
-	NeuralNetwork::standardTrainConfig tconfig = {
-		inputSet, 
-		outputSet
-	};
+	NeuralNetwork::standardTrainConfig newConfig = NeuralNetwork::standardTrainConfig();
+	newConfig.trainInputs = inputSet;
+	newConfig.trainOutputs = outputSet;
+	newConfig.trainType = STOCHASTIC_GRADIENT_DESCENT;
 
-	newNetwork.trainLevenbergMarquardt(tconfig);
+	newNetwork.train(newConfig);
 	newNetwork.runTests(inputSet);
-
-	int iterationsPerEach = 2;
-	int minimumLayers = 4;
-
-	//NeuralNetwork::trainSeveralConfigurations(audioConfig, inputSet, outputSet, 1000, minimumLayers, iterationsPerEach, outputSet[0].size(), 0.2f, 0.05f);
-
-
-	// Test with first test songs
-	//createOutputTestTrack(network, audioConfig);
 
 	system("pause");
 	return 0;

@@ -170,6 +170,27 @@ void NeuralNetwork::loadWeightsFromFile(string directory) {
 }
 
 // General Training
+void NeuralNetwork::train(standardTrainConfig trainConfig) {
+    if (trainConfig.trainType == STOCHASTIC_GRADIENT_DESCENT) {
+        trainStochasticGradientDescent(trainConfig);
+    }
+    if (trainConfig.trainType == GRADIENT_DESCENT) {
+
+    }
+    if (trainConfig.trainType == RESISTANT_PROPAGATION) {
+        trainResistantPropagation(trainConfig);
+    }
+    if (trainConfig.trainType == NATURAL_SELECTION) {
+        trainNaturalSelectionMethod(trainConfig);
+    }
+    if (trainConfig.trainType == RANDOM_METHOD) {
+        trainRandomMethod(trainConfig);
+    }
+    if (trainConfig.trainType == LEVENBERG_MARQUARDT) {
+        trainLevenbergMarquardt(trainConfig);
+    }
+}
+
 float NeuralNetwork::activate(float x) {
     if (activationType == "sigmoid") {
         return 1.0f / (1.0f + exp(-x));
@@ -339,80 +360,6 @@ void NeuralNetwork::decayWeights(float multiplier) {
     }
 }
 
-void NeuralNetwork::trainSeveralConfigurations(audioFileConfig config, vector<vector<float>> inputSet, vector<vector<float>> outputSet, int epochs, int minimumLayerCount, int iterationsPerEach, int lowestLayerSize, float lowestLearningRate, float lowestMomentum) {
-    int inputSize = inputSet[0].size();
-    int outputSize = outputSet[0].size();
-
-    for (int L = 1; L < iterationsPerEach + 1; L++) {
-        for (int N = 1; N < iterationsPerEach + 1; N++) {
-            for (int B = 0; B < iterationsPerEach; B++) {
-                vector<int> networkLayers = { inputSize };
-                for (int i = 0; i < L + minimumLayerCount; i++) {
-                    networkLayers.push_back(N * lowestLayerSize);
-                }
-                networkLayers.push_back(outputSize);
-
-                vector<int> networkBiases;
-                for (int i = 0; i < L + 2 + minimumLayerCount; i++) {
-                    networkBiases.push_back(B);
-                }
-
-                NeuralNetwork newNetwork = NeuralNetwork(networkLayers, networkBiases, "sigmoid");
-
-                for (int LR = 1; LR < iterationsPerEach + 1; LR++) {
-                    for (int M = 0; M < iterationsPerEach; M++) {
-                        for (int C = 0; C < 2; C++) {
-                            float learningRate = LR * lowestLearningRate;
-                            float momentum = M * lowestMomentum;
-
-                            standardTrainConfig trainConfig = {
-                                inputSet,
-                                outputSet,
-
-                                epochs,
-
-                                learningRate,
-                                momentum,
-
-                                C, // use cyclical learning rate
-
-                                false,
-                                0.0f,
-
-                                0.0f,
-                                0.0f,
-
-                                false,
-                                0
-                            };
-
-                            vector<float> trainingErrors = newNetwork.train(trainConfig);
-
-                            // WRITE TO IMAGE HERE
-                            outputImageConfig newImageConfig = outputImageConfig{
-                                trainingErrors,
-
-                                1000,
-                                512,
-
-                                newNetwork,
-                                config,
-                                trainConfig,
-
-                                true,
-                                1000.0f,
-                                0.0f,
-                            };
-
-                            writeToImage(newImageConfig);
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
 // Dropout
 void NeuralNetwork::randomlyDropNodes(int probability) {
     // Randomly Drop Nodes except for output layer
@@ -457,7 +404,7 @@ void NeuralNetwork::reactivateNodes() {
 }
 
 // Gradient Descent
-void NeuralNetwork::adjustWeights(float lr, float momentum) {
+void NeuralNetwork::adjustWeightsGradientDescent(float lr, float momentum) {
     for (int i = 0; i < layerCount; i++) {
         int nodeCount = layerNodes[i].size();
 
@@ -495,7 +442,7 @@ void NeuralNetwork::adjustWeights(float lr, float momentum) {
         }
     }
 }
-vector<float> NeuralNetwork::train(standardTrainConfig trainConfig) {
+vector<float> NeuralNetwork::trainStochasticGradientDescent(standardTrainConfig trainConfig) {
     int trainDataCount = trainConfig.trainInputs.size();
     int outputCount = trainConfig.trainOutputs[0].size();
 
@@ -548,7 +495,7 @@ vector<float> NeuralNetwork::train(standardTrainConfig trainConfig) {
 
             calculateDerivatives(errors);
 
-            adjustWeights(currentLearningRate, trainConfig.momentum);
+            adjustWeightsGradientDescent(currentLearningRate, trainConfig.momentum);
 
             if (trainConfig.useWeightDecay) {
                 decayWeights(trainConfig.weightDecayMultiplier);
@@ -596,7 +543,7 @@ vector<float> NeuralNetwork::trainResistantPropagation(standardTrainConfig train
             calculateDerivatives(errors);
 
             if (epoch == 0 && t == 0) {
-                adjustWeights(1.0f, 0.0f);
+                adjustWeightsGradientDescent(1.0f, 0.0f);
             }
             else {
                 adjustWeightsRPROP(trainConfig.rpropWeightIncreaseMultiplier, trainConfig.rpropWeightDecreaseMultiplier);
@@ -694,28 +641,28 @@ vector<vector<NeuralNetwork::Bias>> NeuralNetwork::randomBiasWeights(vector<vect
 
     return initial;
 }
-vector<float> NeuralNetwork::trainNaturalSelectionMethod(vector<vector<float>> trainInputs, vector<vector<float>> trainOutputs, int epochs, int population, float initialVariation) {
-    int trainCount = trainInputs.size();
-    int trainOutputSize = trainOutputs[0].size();
+vector<float> NeuralNetwork::trainNaturalSelectionMethod(standardTrainConfig trainConfig) {
+    int trainCount = trainConfig.trainInputs.size();
+    int trainOutputSize = trainConfig.trainOutputs[0].size();
 
     vector<float> result;
-    for (int epoch = 0; epoch < epochs; epoch++) {
-        float currentVariation = (float(epochs - (epoch + 1)) / float(epochs)) * initialVariation;
+    for (int epoch = 0; epoch < trainConfig.epochs; epoch++) {
+        float currentVariation = (float(trainConfig.epochs - (epoch + 1)) / float(trainConfig.epochs)) * trainConfig.initialVariation;
         float lowestErrorThisPopulation = numeric_limits<float>().max();
 
         vector<vector<Node>> bestNodesThisPopulation;
         vector<vector<Bias>> bestBiasesThisPopulation;
 
-        for (int i = 0; i < population; i++) {
+        for (int i = 0; i < trainConfig.population; i++) {
             layerNodes = randomNodeWeights(layerNodes, currentVariation);
             layerBiases = randomBiasWeights(layerBiases, currentVariation);
 
             float totalError = 0.0f;
             for (int t = 0; t < trainCount; t++) {
-                vector<float> predicted = predict(trainInputs[t]);
+                vector<float> predicted = predict(trainConfig.trainInputs[t]);
 
                 for (int o = 0; o < trainOutputSize; o++) {
-                    totalError += abs(trainOutputs[t][o] - predicted[o]);
+                    totalError += abs(trainConfig.trainOutputs[t][o] - predicted[o]);
                 }
             }
 
@@ -726,7 +673,7 @@ vector<float> NeuralNetwork::trainNaturalSelectionMethod(vector<vector<float>> t
             }
         }
 
-        cout << "Epoch: " << epoch + 1 << " / " << epochs << ", Total Error: " << lowestErrorThisPopulation << endl;
+        cout << "Epoch: " << epoch + 1 << " / " << trainConfig.epochs << ", Total Error: " << lowestErrorThisPopulation << endl;
         result.push_back(lowestErrorThisPopulation);
 
         layerNodes = bestNodesThisPopulation;
@@ -757,28 +704,28 @@ void NeuralNetwork::randomizeWeights() {
         }
     }
 }
-void NeuralNetwork::trainRandomMethod(int epochs, float errorThreshold, vector<vector<float>> trainInputs, vector<vector<float>> trainOutputs) {
+void NeuralNetwork::trainRandomMethod(standardTrainConfig trainConfig) {
     float minimumFoundError = 0.0f;
 
-    int trainDataCount = trainInputs.size();
-    int outputCount = trainOutputs[0].size();
+    int trainDataCount = trainConfig.trainInputs.size();
+    int outputCount = trainConfig.trainOutputs[0].size();
 
-    for (int epoch = 0; epoch < epochs; epoch++) {
+    for (int epoch = 0; epoch < trainConfig.epochs; epoch++) {
         randomizeWeights();
         float accumulativeError = 0.0f;
 
         for (int t = 0; t < trainDataCount; t++) {
-            vector<float> predicted = predict(trainInputs[t]);
+            vector<float> predicted = predict(trainConfig.trainInputs[t]);
 
             for (int o = 0; o < outputCount; o++) {
-                accumulativeError = accumulativeError + abs(trainOutputs[t][o] - predicted[o]);
+                accumulativeError = accumulativeError + abs(trainConfig.trainOutputs[t][o] - predicted[o]);
 
             }
         }
 
-        cout << "Random Epoch: " << epoch + 1 << " / " << epochs << ", Error: " << accumulativeError << endl;
+        cout << "Random Epoch: " << epoch + 1 << " / " << trainConfig.epochs << ", Error: " << accumulativeError << endl;
 
-        if (accumulativeError < errorThreshold) {
+        if (accumulativeError < trainConfig.errorThreshold) {
             break;
         }
 

@@ -15,36 +15,55 @@
 using namespace std;
 
 string vectorToString(vector<float> used);
-
 struct audioFileConfig;
 
+// Train Type Definitions
+#define STOCHASTIC_GRADIENT_DESCENT 0
+#define GRADIENT_DESCENT 1
+#define RESISTANT_PROPAGATION 2
+#define NATURAL_SELECTION 3
+#define RANDOM_METHOD 4
+#define LEVENBERG_MARQUARDT 5
+
+// Network
 class NeuralNetwork{
 public:
     // Classes
     static struct standardTrainConfig {
-        vector<vector<float>> trainInputs;
-        vector<vector<float>> trainOutputs;
-
+        // General
+        int trainType = STOCHASTIC_GRADIENT_DESCENT;
         int epochs = 1000;
 
-        float learningRate = 1.0f;
-        float momentum = 0.25f;
-
-        bool useCyclicalLearningRateAndMomentum = false;
+        vector<vector<float>> trainInputs;
+        vector<vector<float>> trainOutputs;
 
         bool useWeightDecay = false;
         float weightDecayMultiplier = 0.9f;
 
-        float rpropWeightDecreaseMultiplier = 0.5f;
-        float rpropWeightIncreaseMultiplier = 1.2f;
-
         bool useDropout = false;
         int nodeBiasDropoutProbability = 10; // 1 in 10 (0.1)
 
+        // Gradient Descent
+        float learningRate = 1.0f;
+        float momentum = 0.25f;
+        bool useCyclicalLearningRateAndMomentum = false;
+
+        // Resistant Propagation
+        float rpropWeightDecreaseMultiplier = 0.5f;
+        float rpropWeightIncreaseMultiplier = 1.2f;
+
+        // Levenberg Marquardt
         float dampingParameter = 0.001f;
         float dampIncreaseMultiplierLM = 2.0f;
         float dampDecreaseMultiplierLM = 0.5f;
-    };
+
+        // Natural Selection
+        int population = 10;
+        float initialVariation = 50.0f;
+
+        // Random Method
+        float errorThreshold = 500.0f;
+    } bar;
 
     static struct Node {
         float value = 0.0f;
@@ -78,6 +97,8 @@ public:
     void loadWeightsFromFile(string directory);
 
     // General Training
+    void train(standardTrainConfig trainConfig);
+
     float activate(float x);
     float derivative(float x);
 
@@ -90,15 +111,13 @@ public:
 
     void decayWeights(float multiplier);
 
-    static void trainSeveralConfigurations(audioFileConfig config, vector<vector<float>> inputSet, vector<vector<float>> outputSet, int epochs, int minimumLayerCount, int iterationsPerEach, int lowestLayerSize, float lowestLearningRate, float lowestMomentum);
-
     // Dropout
     void randomlyDropNodes(int probability);
     void reactivateNodes();
 
-    // Gradient Descent
-    void adjustWeights(float lr, float momentum);
-    vector<float> train(standardTrainConfig trainConfig);
+    // Stochastic Gradient Descent (changes after each train example)
+    void adjustWeightsGradientDescent(float lr, float momentum);
+    vector<float> trainStochasticGradientDescent(standardTrainConfig trainConfig);
     
     // Resistant Propagation
     vector<float> trainResistantPropagation(standardTrainConfig trainConfig);
@@ -107,11 +126,11 @@ public:
     // Natural Selection
     vector<vector<Node>> randomNodeWeights(vector<vector<Node>> initial, float variation);
     vector<vector<Bias>> randomBiasWeights(vector<vector<Bias>> initial, float variation);
-    vector<float> trainNaturalSelectionMethod(vector<vector<float>> trainInputs, vector<vector<float>> trainOutputs, int epochs, int population, float initialVariation);
+    vector<float> trainNaturalSelectionMethod(standardTrainConfig trainConfig);
 
     // Random Weights Method
     void randomizeWeights();
-    void trainRandomMethod(int epochs, float errorThreshold, vector<vector<float>> trainInputs, vector<vector<float>> trainOutputs);
+    void trainRandomMethod(standardTrainConfig trainConfig);
 
     // Levenberg Marquardt
     void addDeltasLM(vector<float> deltas);

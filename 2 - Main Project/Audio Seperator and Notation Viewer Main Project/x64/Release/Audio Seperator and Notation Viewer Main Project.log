@@ -1,79 +1,11 @@
 ﻿  0 File(s) copied
-  NeuralNetwork.cpp
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\Headers\NeuralNetwork.h(47): warning C4091: 'static ': ignored on left of 'NeuralNetwork::standardTrainConfig' when no variable is declared
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\Headers\NeuralNetwork.h(57): warning C4091: 'static ': ignored on left of 'NeuralNetwork::Node' when no variable is declared
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\Headers\NeuralNetwork.h(64): warning C4091: 'static ': ignored on left of 'NeuralNetwork::Bias' when no variable is declared
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\NeuralNetwork.cpp(11,31): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\NeuralNetwork.cpp(35,52): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\NeuralNetwork.cpp(40,53): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\NeuralNetwork.cpp(48,52): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\NeuralNetwork.cpp(49,53): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\NeuralNetwork.cpp(58,53): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\NeuralNetwork.cpp(74,52): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\NeuralNetwork.cpp(77,72): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\NeuralNetwork.cpp(86,53): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\NeuralNetwork.cpp(89,73): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\NeuralNetwork.cpp(112,80): warning C4267: '+=': conversion from 'size_t' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\NeuralNetwork.cpp(117,81): warning C4267: '+=': conversion from 'size_t' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\NeuralNetwork.cpp(219,47): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\NeuralNetwork.cpp(225,50): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\NeuralNetwork.cpp(234,68): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\NeuralNetwork.cpp(245,50): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\NeuralNetwork.cpp(247,69): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\NeuralNetwork.cpp(263,58): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\NeuralNetwork.cpp(271,30): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\NeuralNetwork.cpp(279,60): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\NeuralNetwork.cpp(285,53): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\NeuralNetwork.cpp(292,68): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\NeuralNetwork.cpp(312,45): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\NeuralNetwork.cpp(323,45): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\NeuralNetwork.cpp(324,46): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\NeuralNetwork.cpp(326,51): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\NeuralNetwork.cpp(343,39): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\NeuralNetwork.cpp(344,41): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\NeuralNetwork.cpp(377,33): warning C4838: conversion from 'int' to 'bool' requires a narrowing conversion
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\NeuralNetwork.cpp(420,45): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\NeuralNetwork.cpp(421,46): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\NeuralNetwork.cpp(446,45): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\NeuralNetwork.cpp(447,46): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\NeuralNetwork.cpp(462,45): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\NeuralNetwork.cpp(469,65): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\NeuralNetwork.cpp(480,46): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\NeuralNetwork.cpp(486,69): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\NeuralNetwork.cpp(499,56): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\NeuralNetwork.cpp(500,57): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\NeuralNetwork.cpp(525,25): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\NeuralNetwork.cpp(570,56): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\NeuralNetwork.cpp(571,57): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\NeuralNetwork.cpp(618,45): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\NeuralNetwork.cpp(621,65): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\NeuralNetwork.cpp(641,46): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\NeuralNetwork.cpp(643,69): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\NeuralNetwork.cpp(666,36): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\NeuralNetwork.cpp(669,42): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\NeuralNetwork.cpp(670,48): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\NeuralNetwork.cpp(682,36): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\NeuralNetwork.cpp(685,42): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\NeuralNetwork.cpp(686,48): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\NeuralNetwork.cpp(698,40): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\NeuralNetwork.cpp(699,49): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\NeuralNetwork.cpp(742,45): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\NeuralNetwork.cpp(743,54): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\NeuralNetwork.cpp(751,46): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\NeuralNetwork.cpp(763,44): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\NeuralNetwork.cpp(764,45): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\NeuralNetwork.cpp(800,45): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\NeuralNetwork.cpp(801,46): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\NeuralNetwork.cpp(802,51): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\NeuralNetwork.cpp(827,45): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\NeuralNetwork.cpp(828,46): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\NeuralNetwork.cpp(829,51): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\NeuralNetwork.cpp(847,36): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\NeuralNetwork.cpp(871,56): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\NeuralNetwork.cpp(872,57): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+  main.cpp
+D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\Headers\NeuralNetwork.h(76): warning C4091: 'static ': ignored on left of 'NeuralNetwork::Node' when no variable is declared
+D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\Headers\NeuralNetwork.h(83): warning C4091: 'static ': ignored on left of 'NeuralNetwork::Bias' when no variable is declared
   Generating code
-  264 of 945 functions (27.9%) were compiled, the rest were copied from previous compilation.
-    221 functions were new in current compilation
-    9 functions had inline decision re-evaluated but remain unchanged
+D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\audio.cpp(42): warning C4715: 'loadAudioSamples': not all control paths return a value
+  498 of 1073 functions (46.4%) were compiled, the rest were copied from previous compilation.
+    12 functions were new in current compilation
+    60 functions had inline decision re-evaluated but remain unchanged
   Finished generating code
   Audio Seperator and Notation Viewer Main Project.vcxproj -> D:\Projects\Audio Splitter App\2 - Main Project\x64\Release\Audio Seperator and Notation Viewer Main Project.exe
