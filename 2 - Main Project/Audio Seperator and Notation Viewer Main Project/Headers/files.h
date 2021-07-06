@@ -6,6 +6,13 @@
 #include <vector>
 using namespace std;
 
+// General
+string vectorToString(vector<float> used);
+void writeToFile(const char* fileName, vector<string> lines);
+vector<string> readFile(const char* fileName);
+vector<string> splitStringByCharacter(string used, char splitter);
+
+// Classes
 struct audioFileConfig {
 	int samplesPerChunk = 2048;
 	int samplesPerOverlap = 2048;
@@ -16,12 +23,6 @@ struct audioFileConfig {
 	int startFileIndex = 1;
 	int songCount = 1;
 };
-
-vector<vector<float>> generateInputs(audioFileConfig config);
-vector<vector<float>> generateOutputs(audioFileConfig config);
-
-vector<vector<float>> addCharacterToImage(vector<vector<float>> data, int character, int xMidpoint, int yMidpoint);
-
 struct outputImageConfig {
 	vector<float> errors;
 
@@ -30,16 +31,20 @@ struct outputImageConfig {
 
 	NeuralNetwork network;
 	audioFileConfig audioConfig;
-	standardTrainConfig trainConfig;
+	NeuralNetwork::standardTrainConfig trainConfig;
 
 	bool useFixedScale = true;
 	float fixedMax = 5000.0f;
 	float fixedMin = 0.0f;
 };
 
+// Audio
+vector<vector<float>> generateInputs(audioFileConfig config);
+vector<vector<float>> generateOutputs(audioFileConfig config);
+void createOutputTestTrack(NeuralNetwork network, audioFileConfig config);
+
+// Image
 vector<vector<float>> addCharacterToImage(vector<vector<float>> data, int character, int xMidpoint, int yMidpoint);
 void writeToImage(outputImageConfig config);
-
-void createOutputTestTrack(NeuralNetwork network, audioFileConfig config);
 
 #endif

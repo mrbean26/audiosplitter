@@ -40,7 +40,7 @@ int main() {
 
 	NeuralNetwork newNetwork = NeuralNetwork({ 2, 2, 1 }, { 1, 1, 0 }, "sigmoid");
 
-	standardTrainConfig tconfig = {
+	NeuralNetwork::standardTrainConfig tconfig = {
 		inputSet, 
 		outputSet
 	};

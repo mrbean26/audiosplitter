@@ -8,6 +8,7 @@
 
 #include "Headers/fftw3.h"
 
+// General
 mp3dec_file_info_t loadAudioData(const char* mp3Filename) {
 	mp3dec_t mp3Decoder;
 	mp3dec_file_info_t fileInfo;
@@ -19,7 +20,6 @@ mp3dec_file_info_t loadAudioData(const char* mp3Filename) {
 	
 	return fileInfo;
 }
-
 vector<int> loadAudioSamples(mp3d_sample_t* buffer, int sampleCount, int channels) {
 	if (channels == 1) {
 		vector<int> result(sampleCount);
@@ -41,6 +41,7 @@ vector<int> loadAudioSamples(mp3d_sample_t* buffer, int sampleCount, int channel
 	}
 }
 
+// Network
 vector<vector<float>> spectrogramOutput(const char* mp3Filename, int samplesPerChunk, int samplesPerStride, int frequencyResolution) {
 	mp3dec_file_info_t audioData = loadAudioData(mp3Filename);
 	vector<int> audioSamples = loadAudioSamples(audioData.buffer, audioData.samples, audioData.channels);
@@ -135,7 +136,6 @@ vector<vector<float>> spectrogramOutput(const char* mp3Filename, int samplesPerC
 	// Return as vector<vector<float>>
 	return result;
 }
-
 vector<int16_t> vocalSamples(const char* fullFileNameMP3, int samplesPerChunk, int samplesPerStride, vector<vector<float>> networkOutput) {
 	// Recreate full spectrogram
 	int networkSubOutputSize = networkOutput[0].size();
@@ -229,7 +229,6 @@ vector<int16_t> vocalSamples(const char* fullFileNameMP3, int samplesPerChunk, i
 
 	return resultantSamples;
 }
-
 void writeToWAV(const char* fileName, vector<int16_t> samples) {
 	int sampleCount = samples.size();
 

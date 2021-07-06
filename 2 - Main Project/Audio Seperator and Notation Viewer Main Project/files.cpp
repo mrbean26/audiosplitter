@@ -7,6 +7,66 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "Headers/stb_image_write.h"
 
+// General
+string vectorToString(vector<float> used) {
+	string result = "(";
+
+	int size = used.size();
+	for (int i = 0; i < size; i++) {
+		result += to_string(used[i]) + ", ";
+	}
+
+	result.pop_back();
+	result.pop_back();
+
+	return result + ")";
+}
+void writeToFile(const char* fileName, vector<string> lines) {
+	ofstream currentFile;
+	currentFile.open(fileName);
+
+	if (!currentFile) {
+		cout << "File could not be opened: " << fileName << endl;
+		return;
+	}
+
+	int vectorSize = lines.size();
+	for (int i = 0; i < vectorSize; i++) {
+		currentFile << lines[i] << endl;
+	}
+	currentFile.close();
+}
+vector<string> readFile(const char* fileName) {
+	vector<string> result;
+
+	ifstream newFile(fileName);
+	string currentLine;
+
+	if (!newFile) {
+		cout << "File could not be opened: " << fileName << endl;
+	}
+
+	while (getline(newFile, currentLine)) {
+		result.push_back(currentLine);
+	}
+
+	return result;
+}
+vector<string> splitStringByCharacter(string used, char splitter) {
+	vector<string> result;
+	stringstream stringStream(used);
+
+	while (stringStream.good()) {
+		string substring;
+		getline(stringStream, substring, splitter);
+		result.push_back(substring);
+	}
+
+
+	return result;
+}
+
+// Audio
 vector<vector<float>> generateInputs(audioFileConfig config) {
 	int endIndex = config.startFileIndex + config.songCount;
 	vector<vector<float>> result;
@@ -38,7 +98,6 @@ vector<vector<float>> generateInputs(audioFileConfig config) {
 
 	return result;
 }
-
 vector<vector<float>> generateOutputs(audioFileConfig config) {
 	int endIndex = config.startFileIndex + config.songCount;
 	vector<vector<float>> result;
@@ -65,7 +124,26 @@ vector<vector<float>> generateOutputs(audioFileConfig config) {
 
 	return result;
 }
+void createOutputTestTrack(NeuralNetwork network, audioFileConfig config) {
+	config.startFileIndex = 1;
+	config.songCount = 1;
 
+	vector<vector<float>> testTrackSpectrogram = generateInputs(config); // First track only, for testing
+	vector<vector<float>> predictedTrackSpectrogram;
+
+	int chunkCount = testTrackSpectrogram.size();
+	int networkLayerCount = network.layerNodes.size();
+
+	for (int i = 0; i < chunkCount; i++) {
+		vector<float> currentChunkPrection = network.predict(testTrackSpectrogram[i]);
+		predictedTrackSpectrogram.push_back(currentChunkPrection);
+	}
+
+	vector<int16_t> testTrackOutputSamples = vocalSamples("inputs/1.mp3", config.samplesPerChunk, config.samplesPerChunk, predictedTrackSpectrogram);
+	writeToWAV("testTrackOutput.wav", testTrackOutputSamples);
+}
+
+// Image
 vector<vector<float>> addCharacterToImage(vector<vector<float>> data, int character, int xMidpoint, int yMidpoint) {
 	vector<vector<float>> characterPixels; // 5 x 5
 
@@ -150,7 +228,6 @@ vector<vector<float>> addCharacterToImage(vector<vector<float>> data, int charac
 
 	return data;
 }
-
 void writeToImage(outputImageConfig config) {
 	// ErrorResolution must be a factor of len(errors)
 	int errorCount = config.errors.size();
@@ -291,23 +368,4 @@ void writeToImage(outputImageConfig config) {
 	// Image Config
 	imageFile << "ScaleLow: " << to_string(minScale) << ", ";
 	imageFile << "ScaleHigh: " << to_string(maxScale);
-}
-
-void createOutputTestTrack(NeuralNetwork network, audioFileConfig config) {
-	config.startFileIndex = 1;
-	config.songCount = 1;
-
-	vector<vector<float>> testTrackSpectrogram = generateInputs(config); // First track only, for testing
-	vector<vector<float>> predictedTrackSpectrogram;
-
-	int chunkCount = testTrackSpectrogram.size();
-	int networkLayerCount = network.layerNodes.size();
-
-	for (int i = 0; i < chunkCount; i++) {
-		vector<float> currentChunkPrection = network.predict(testTrackSpectrogram[i]);
-		predictedTrackSpectrogram.push_back(currentChunkPrection);
-	}
-
-	vector<int16_t> testTrackOutputSamples = vocalSamples("inputs/1.mp3", config.samplesPerChunk, config.samplesPerChunk, predictedTrackSpectrogram);
-	writeToWAV("testTrackOutput.wav", testTrackOutputSamples);
 }
