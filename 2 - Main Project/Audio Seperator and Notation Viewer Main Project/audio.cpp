@@ -233,13 +233,13 @@ void writeToWAV(const char* fileName, vector<int16_t> samples) {
 	int sampleCount = samples.size();
 
 	int16_t bitsPerSample = 16;
-	const int32_t sampleRate = 44100;
-	int16_t channelCount = 1;
-	int32_t subChunk2Size = sampleCount * bitsPerSample * channelCount;
-	int32_t chunkSize = subChunk2Size + 32;
-	int16_t audioFormat = 1;
-	int32_t subChunk1Size = 16;
-	int32_t byteRate = sampleRate * channelCount * (bitsPerSample / 8);
+	const int32_t sampleRate = 44100; // Samples Played Per Second
+	int16_t channelCount = 1; 
+	int32_t subChunk2Size = sampleCount * bitsPerSample * channelCount; // Size of Data (samples) chunk
+	int32_t chunkSize = subChunk2Size + 32; // Size of metadata chunk
+	int16_t audioFormat = 1; // Indicates No Compression used
+	int32_t subChunk1Size = 16; // Initial metadata chunk size
+	int32_t byteRate = sampleRate * channelCount * (bitsPerSample / 8); // Bytes Used Per Second
 	int16_t blockAlign = channelCount * (bitsPerSample / 8);
 
 	// Open File
@@ -250,6 +250,7 @@ void writeToWAV(const char* fileName, vector<int16_t> samples) {
 	outputFile.write((char*)&chunkSize, sizeof(chunkSize));
 	outputFile << "WAVE";
 
+	// Add Metadata
 	outputFile << "fmt ";
 	outputFile.write((char*)&subChunk1Size, sizeof(subChunk1Size));
 	outputFile.write((char*)&audioFormat, sizeof(audioFormat));
@@ -263,10 +264,12 @@ void writeToWAV(const char* fileName, vector<int16_t> samples) {
 	outputFile << "data";
 	outputFile.write((char*)&subChunk2Size, sizeof(subChunk2Size));
 
+	// Write Samples After Metadata
 	for (int i = 0; i < sampleCount; i++) {
 		int16_t currentSample = samples[i];
 		outputFile.write((char*)&currentSample, sizeof(currentSample));
 	}
-	// Close
+
+	// Close File
 	outputFile.close();
 }

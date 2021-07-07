@@ -72,8 +72,11 @@ vector<vector<float>> generateInputs(audioFileConfig config) {
 	vector<vector<float>> result;
 
 	for (int f = config.startFileIndex; f < endIndex; f++) {
+		// Load File Spectrogram From Integer File
 		string fileName = "inputs/" + to_string(f) + ".mp3";
 		vector<vector<float>> fullAudioInput = spectrogramOutput(fileName.data(), config.samplesPerChunk, config.samplesPerOverlap, config.frequencyResolution);
+
+		// Create Chunk Border to Give Audio 'Context'
 		int newFrequencyResolution = fullAudioInput[0].size();
 
 		for (int i = config.chunkBorder; i < fullAudioInput.size() - config.chunkBorder; i++) {
@@ -103,15 +106,19 @@ vector<vector<float>> generateOutputs(audioFileConfig config) {
 	vector<vector<float>> result;
 
 	for (int f = config.startFileIndex; f < endIndex; f++) {
+		// Load File Spectrogram From Integer File
 		string fileName = "outputs/" + to_string(f) + ".mp3";
 		vector<vector<float>> fullAudioInput = spectrogramOutput(fileName.data(), config.samplesPerChunk, config.samplesPerOverlap, config.frequencyResolution);
+		
+		// Create Chunk Border to Give Audio 'Context'
 		int newFrequencyResolution = fullAudioInput[0].size();
 
 		for (int i = config.chunkBorder; i < fullAudioInput.size() - config.chunkBorder; i++) {
 			vector<float> currentInput;
 			for (int f = 0; f < newFrequencyResolution; f++) {
 				float value = fullAudioInput[i][f];
-
+				
+				// Remove NaN values, very very rare bug in visual studio
 				if (isnan(value)) {
 					value = 0.0f;
 				}
@@ -128,17 +135,20 @@ void createOutputTestTrack(NeuralNetwork network, audioFileConfig config) {
 	config.startFileIndex = 1;
 	config.songCount = 1;
 
+	// Get Input Spectrogram (from first file only)
 	vector<vector<float>> testTrackSpectrogram = generateInputs(config); // First track only, for testing
 	vector<vector<float>> predictedTrackSpectrogram;
 
 	int chunkCount = testTrackSpectrogram.size();
 	int networkLayerCount = network.layerNodes.size();
 
+	// Get Network Predictions and Add to Output Track
 	for (int i = 0; i < chunkCount; i++) {
 		vector<float> currentChunkPrection = network.predict(testTrackSpectrogram[i]);
 		predictedTrackSpectrogram.push_back(currentChunkPrection);
 	}
 
+	// Get Samples and Write To Track
 	vector<int16_t> testTrackOutputSamples = vocalSamples("inputs/1.mp3", config.samplesPerChunk, config.samplesPerChunk, predictedTrackSpectrogram);
 	writeToWAV("testTrackOutput.wav", testTrackOutputSamples);
 }
@@ -247,7 +257,7 @@ void writeToImage(outputImageConfig config) {
 		minScale = config.fixedMin;
 	}
 
-	// Normalise Errors
+	// Normalise Errors (0 - 1 scale)
 	for (int i = 0; i < errorCount; i++) {
 		config.errors[i] = (config.errors[i] / maxScale) * (config.errorRange - 1);
 	}
@@ -258,8 +268,10 @@ void writeToImage(outputImageConfig config) {
 	
 	// Add Errors
 	for (int i = 0; i < errorCount; i += vectorsPerPixel) {
+		// Current Y Pixels (errorCount ammount)
 		vector<float> current(config.errorRange);
 
+		// Determine Where Errors Sit on the Y Axis and make Most Common Error Area Brightest
 		for (int j = 0; j < vectorsPerPixel; j++) {
 			int index = int(config.errors[i + j]);
 			index = min(index, config.errorRange - 1);
@@ -308,6 +320,7 @@ void writeToImage(outputImageConfig config) {
 		}
 	}
 
+	// Create Filename According to What Output Image Configs Already Exist
 	string fileName = "";
 	index = 1;
 

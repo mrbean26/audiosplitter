@@ -128,7 +128,7 @@ public:
 
     // Resistant Propagation
     vector<float> trainResistantPropagation(standardTrainConfig trainConfig);
-    void adjustWeightsRPROP(float increase, float decrease);
+    void adjustWeightsRPROP(float increase, float decrease, bool initialUpdate);
     
     // Natural Selection
     vector<vector<Node>> randomNodeWeights(vector<vector<Node>> initial, float variation);

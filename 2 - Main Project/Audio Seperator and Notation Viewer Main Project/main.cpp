@@ -34,9 +34,11 @@ int main() {
 	
 	NeuralNetwork::standardTrainConfig newConfig = NeuralNetwork::standardTrainConfig();
 	newConfig.trainInputs = inputSet;
-	newConfig.epochs = 10000;
+	newConfig.epochs = 100000;
+	newConfig.entireBatchEpochIntervals = 1000;
 	newConfig.trainOutputs = outputSet;
-	newConfig.batchSize = 200;
+	newConfig.batchSize = 100;
+	newConfig.useCyclicalLearningRateAndMomentum = true;
 
 	newConfig.trainType = STOCHASTIC_GRADIENT_DESCENT;
 
