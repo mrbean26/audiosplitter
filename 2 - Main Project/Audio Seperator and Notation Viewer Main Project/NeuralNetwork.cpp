@@ -850,7 +850,6 @@ void NeuralNetwork::addDeltasLM(vector<float> deltas) {
         for (int j = 0; j < nodeCount; j++) {
             for (int k = 0; k < weightCount; k++) {
                 layerNodes[i][j].outWeights[k] -= deltas[index];
-                cout << deltas[index] << endl;
                 index += 1;
             }
         }
@@ -858,15 +857,37 @@ void NeuralNetwork::addDeltasLM(vector<float> deltas) {
         for (int j = 0; j < biasCount; j++) {
             for (int k = 0; k < weightCount; k++) {
                 layerBiases[i][j].outWeights[k] -= deltas[index];
-                cout << deltas[index] << endl;
                 index += 1;
             }
         }
     }
 }
-vector<float> NeuralNetwork::calculateDeltasLM(float cost, float dampen) {
-    // Get Jacobian in Order of layer nodes then layer biases
-    vector<vector<float>> jacobianMatrix;
+vector<float> NeuralNetwork::calculateDeltasLM(vector<vector<float>> jacobianMatrix, vector<vector<float>> costMatrix, float dampen) {
+    int length = jacobianMatrix[0].size();
+
+    // Calculate Deltas
+    Matrix transposedJacobian = transposeMatrix(jacobianMatrix);
+    Matrix lengthIdentityMatrix = identityMatrix(length);
+    lengthIdentityMatrix = scalarMultiply(dampen, lengthIdentityMatrix);
+
+    Matrix squareJacobian = matrixMultiply(transposedJacobian, jacobianMatrix);
+    squareJacobian = matrixAddition(squareJacobian, lengthIdentityMatrix);
+    Matrix approximateHessian = inverseMatrix(squareJacobian, 0);
+
+
+    transposedJacobian = matrixMultiply(transposedJacobian, costMatrix);
+    transposedJacobian = scalarMultiply(2.0f, transposedJacobian);
+    Matrix weightDeltas = matrixMultiply(approximateHessian, transposedJacobian);
+
+    vector<float> weightDeltasResult;
+    for (int i = 0; i < length; i++) {
+        float delta = weightDeltas[i][0];
+        weightDeltasResult.push_back(delta);
+    }
+
+    return weightDeltasResult;
+}
+vector<float> NeuralNetwork::getJacobianRowLM() {
     vector<float> jacobianRow;
 
     for (int i = 0; i < layerCount - 1; i++) {
@@ -889,29 +910,7 @@ vector<float> NeuralNetwork::calculateDeltasLM(float cost, float dampen) {
         }
     }
 
-    jacobianMatrix.push_back(jacobianRow);
-    int length = jacobianRow.size();
-
-    // Calculate Deltas
-    Matrix transposedJacobian = transposeMatrix(jacobianMatrix);
-    Matrix lengthIdentityMatrix = identityMatrix(length);
-    lengthIdentityMatrix = scalarMultiply(dampen, lengthIdentityMatrix);
-
-    Matrix squareJacobian = matrixMultiply(transposedJacobian, jacobianMatrix);
-    squareJacobian = matrixAddition(squareJacobian, lengthIdentityMatrix);
-    Matrix approximateHessian = inverseMatrix(squareJacobian, 1);
-    approximateHessian = matrixMultiply(approximateHessian, transposedJacobian);
-
-    Matrix weightDeltas = scalarMultiply(cost, approximateHessian);
-    vector<float> weightDeltasResult;
-
-    for (int i = 0; i < length; i++) {
-        float delta = weightDeltas[0][i];
-        weightDeltasResult.push_back(delta);
-    }
-
-
-    return weightDeltasResult;
+    return jacobianRow;
 }
 vector<float> NeuralNetwork::trainLevenbergMarquardt(standardTrainConfig trainConfig) {
     int trainDataCount = trainConfig.trainInputs.size();
@@ -930,36 +929,64 @@ vector<float> NeuralNetwork::trainLevenbergMarquardt(standardTrainConfig trainCo
             randomlyDropNodes(trainConfig.nodeBiasDropoutProbability);
         }
 
-        float totalError = 0.0f;
+        vector<vector<float>> fullJacobianMatrix;
+        vector<vector<float>> currentCostOutputs;
+        float currentTotalCost = 0.0f;
+
         for (int t = 0; t < trainDataCount; t++) {
             int currentIndex = trainIndexes[t];
             vector<float> result = predict(trainConfig.trainInputs[currentIndex]);
 
-            vector<float> errors;
-            float currentError = 0.0f;
             float costOutput = 0.0f;
-
+            vector<float> errors;
+            
             for (int e = 0; e < outputCount; e++) {
-                totalError = totalError + abs(trainConfig.trainOutputs[currentIndex][e] - result[e]);
-                costOutput = costOutput + powf(trainConfig.trainOutputs[currentIndex][e] - result[e], 2.0f);
+                currentTotalCost += powf(trainConfig.trainOutputs[currentIndex][e] - result[e], 2.0f);
+                costOutput += powf(trainConfig.trainOutputs[currentIndex][e] - result[e], 2.0f);
                 errors.push_back(trainConfig.trainOutputs[currentIndex][e] - result[e]);
             }
 
-            calculateDerivatives(errors, 2.0f); // 2.0f due to cost function derivative of x^2
-            vector<float> weightDeltas = calculateDeltasLM(costOutput, trainConfig.dampingParameter);
-            addDeltasLM(weightDeltas);
+            calculateDerivatives(errors, -2.0f); // 2.0f due to cost function derivative of x^2
+            fullJacobianMatrix.push_back(getJacobianRowLM());            
+            currentCostOutputs.push_back({ costOutput });
+        }
 
-            // Approximate new cost here
+        vector<float> deltas = calculateDeltasLM(fullJacobianMatrix, currentCostOutputs, trainConfig.dampingParameter);
+        addDeltasLM(deltas);
 
-            if (trainConfig.useWeightDecay) {
-                decayWeights(trainConfig.weightDecayMultiplier);
+        // Adjust Damping Parameter by Feeding Forward (Line Approximation Can Be Used, But Not A Lot Quicker
+        float newError = 0.0f;
+        for (int t = 0; t < trainDataCount; t++) {
+            int currentIndex = trainIndexes[t];
+            vector<float> result = predict(trainConfig.trainInputs[currentIndex]);
+
+            for (int e = 0; e < outputCount; e++) {
+                newError += powf(trainConfig.trainOutputs[currentIndex][e] - result[e], 2.0f);
             }
         }
 
+        if (newError > currentTotalCost) {
+            trainConfig.dampingParameter *= trainConfig.dampIncreaseMultiplierLM;
+
+            int deltaCount = deltas.size();
+            for (int i = 0; i < deltaCount; i++) {
+                deltas[i] *= -1.0f;
+            }
+
+            addDeltasLM(deltas);
+        }
+        else {
+            trainConfig.dampingParameter *= trainConfig.dampDecreaseMultiplierLM;
+        }
+
+        // Reset Configs
+        if (trainConfig.useWeightDecay) {
+            decayWeights(trainConfig.weightDecayMultiplier);
+        }
         reactivateNodes();
 
-        cout << "Epoch: " << epoch + 1 << " / " << trainConfig.epochs << ", Total error from epoch: " << totalError << ", Layers: " << layerCount << endl;
-        result.push_back(totalError);
+        //cout << "Epoch: " << epoch + 1 << " / " << trainConfig.epochs << ", Total error from epoch: " << currentError << ", Layers: " << layerCount << endl;
+        //result.push_back(currentError);
     }
 
     return result;

@@ -57,9 +57,9 @@ public:
         float rpropWeightIncreaseMultiplier = 1.2f;
 
         // Levenberg Marquardt
-        float dampingParameter = 0.001f;
-        float dampIncreaseMultiplierLM = 2.0f;
-        float dampDecreaseMultiplierLM = 0.5f;
+        float dampingParameter = 0.01f;
+        float dampIncreaseMultiplierLM = 10.0f;
+        float dampDecreaseMultiplierLM = 0.1f;
 
         // Natural Selection
         int population = 10;
@@ -141,7 +141,8 @@ public:
 
     // Levenberg Marquardt
     void addDeltasLM(vector<float> deltas);
-    vector<float> calculateDeltasLM(float cost, float dampen);
+    vector<float> calculateDeltasLM(vector<vector<float>> jacobianMatrix, vector<vector<float>> costMatrix, float dampen);
+    vector<float> getJacobianRowLM();
     vector<float> trainLevenbergMarquardt(standardTrainConfig trainConfig); 
 };
 

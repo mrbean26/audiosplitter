@@ -13,6 +13,7 @@ using namespace std;
 
 #define Matrix vector<vector<float>>
 
+bool checkMatrixEquality(Matrix A, Matrix B, int decimalTolerance);
 Matrix identityMatrix(int size);
 Matrix transposeMatrix(Matrix A);
 

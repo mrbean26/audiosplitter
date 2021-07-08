@@ -14,13 +14,25 @@ bool checkMatrixEquality(Matrix A, Matrix B, int decimalTolerance) {
 	int rowsB = B.size();
 	int columnsB = B[0].size();
 
+	if (decimalTolerance == 0) {
+		for (int i = 0; i < rowsA; i++) {
+			for (int j = 0; j < columnsA; j++) {
+				if (roundf(A[i][j]) != roundf(B[i][j])) {
+					return false;
+				}
+			}
+		}
+
+		return true;
+	}
+
 	if (rowsA != rowsB || columnsA != columnsB) {
 		return false;
 	}
 
 	for (int i = 0; i < rowsA; i++) {
 		for (int j = 0; j < columnsA; j++) {
-			if (roundf(A[i][j]) != roundf(B[i][j])) {
+			if (roundFloat(A[i][j], decimalTolerance) != roundFloat(B[i][j], decimalTolerance)) {
 				return false;
 			}
 		}
@@ -135,16 +147,11 @@ Matrix inverseMatrix(Matrix A, int decimalTolerance) {
 	Matrix I = identityMatrix(n);
 	Matrix IM = I;
 
-	vector<int> indices;
-	for (int i = 0; i < n; i++) {
-		indices.push_back(i);
-	}
-
 	for (int fd = 0; fd < n; fd++) {
 		float fdScalar = 1.0f / AM[fd][fd];
 		for (int j = 0; j < n; j++) {
-			AM[fd][j] = AM[fd][j] * fdScalar;
-			IM[fd][j] = IM[fd][j] * fdScalar;
+			AM[fd][j] *= fdScalar;
+			IM[fd][j] *= fdScalar;
 		}
 
 		for (int i = 0; i < n; i++) {
@@ -159,7 +166,7 @@ Matrix inverseMatrix(Matrix A, int decimalTolerance) {
 			}
 		}
 	}
-
+	
 	Matrix remultipliedCheck = matrixMultiply(A, IM);
 	if (checkMatrixEquality(I, remultipliedCheck, decimalTolerance)) {
 		return IM;

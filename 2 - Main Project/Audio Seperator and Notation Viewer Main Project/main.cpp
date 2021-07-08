@@ -24,26 +24,38 @@ int main() {
 	vector<vector<float>> inputSet = generateInputs(audioConfig);
 	vector<vector<float>> outputSet = generateOutputs(audioConfig);
 
-	int inputSize = inputSet[0].size();
-	int outputSize = outputSet[0].size();
+	inputSet = {
+		{0.0f, 0.0f},
+		{1.0f, 0.0f},
+		{0.0f, 1.0f},
+		{1.0f, 1.0f}
+	};
 
-	vector<int> layers = { inputSize, outputSize * 4, outputSize * 3, outputSize * 2, outputSize };
-	vector<int> biases = { 1, 1, 1, 1, 1, 1, 1, 1 };
+	outputSet = {
+		{0.0f},
+		{1.0f},
+		{1.0f},
+		{0.0f}
+	};
+
+	vector<int> layers = { 2, 2, 1 };
+	vector<int> biases = { 1, 1, 1 };
 
 	NeuralNetwork newNetwork = NeuralNetwork(layers, biases, "sigmoid");
 	
 	NeuralNetwork::standardTrainConfig newConfig = NeuralNetwork::standardTrainConfig();
 	newConfig.trainInputs = inputSet;
-	newConfig.epochs = 100000;
+	newConfig.epochs = 100;
 	newConfig.entireBatchEpochIntervals = 1000;
 	newConfig.trainOutputs = outputSet;
 	newConfig.batchSize = 100;
 	newConfig.useCyclicalLearningRateAndMomentum = true;
 
-	newConfig.trainType = STOCHASTIC_GRADIENT_DESCENT;
+	newConfig.trainType = LEVENBERG_MARQUARDT;
 
 	newNetwork.train(newConfig);
-	
+	newNetwork.runTests(inputSet);
+
 	system("pause");
 	return 0;
 }
