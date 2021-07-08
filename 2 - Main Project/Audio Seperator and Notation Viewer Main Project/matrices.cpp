@@ -173,6 +173,6 @@ Matrix inverseMatrix(Matrix A, int decimalTolerance) {
 	}
 	else {
 		cout << "Matrix inverse out of tolerance" << endl;
-		return A;
+		return {  };
 	}
 }

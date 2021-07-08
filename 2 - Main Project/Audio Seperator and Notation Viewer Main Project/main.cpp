@@ -32,20 +32,20 @@ int main() {
 	};
 
 	outputSet = {
-		{0.0f},
-		{1.0f},
-		{1.0f},
-		{0.0f}
+		{0.0f, 0.0f},
+		{1.0f, 1.0f},
+		{1.0f, 1.0f},
+		{0.0f, 0.0f}
 	};
 
-	vector<int> layers = { 2, 2, 1 };
-	vector<int> biases = { 1, 1, 1 };
+	vector<int> layers = { 2, 3, 3, 2 };
+	vector<int> biases = { 1, 1, 1, 1, 1, 1 };
 
 	NeuralNetwork newNetwork = NeuralNetwork(layers, biases, "sigmoid");
 	
 	NeuralNetwork::standardTrainConfig newConfig = NeuralNetwork::standardTrainConfig();
 	newConfig.trainInputs = inputSet;
-	newConfig.epochs = 100;
+	newConfig.epochs = 1000;
 	newConfig.entireBatchEpochIntervals = 1000;
 	newConfig.trainOutputs = outputSet;
 	newConfig.batchSize = 100;

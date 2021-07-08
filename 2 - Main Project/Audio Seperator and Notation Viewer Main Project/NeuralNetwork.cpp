@@ -840,13 +840,16 @@ void NeuralNetwork::trainRandomMethod(standardTrainConfig trainConfig) {
 
 // Levenberg Marquardt
 void NeuralNetwork::addDeltasLM(vector<float> deltas) {
+    // Deltas Are Ordered By Nodes Then Biases Then Layers
     int index = 0;
 
     for (int i = 0; i < layerCount - 1; i++) {
+        // Prequisite Integers To Help Efficiency
         int nodeCount = layerNodes[i].size();
         int biasCount = layerBiases[i].size();
         int weightCount = layerNodes[i + 1].size();
 
+        // Update Parameters For Nodes
         for (int j = 0; j < nodeCount; j++) {
             for (int k = 0; k < weightCount; k++) {
                 layerNodes[i][j].outWeights[k] -= deltas[index];
@@ -854,6 +857,7 @@ void NeuralNetwork::addDeltasLM(vector<float> deltas) {
             }
         }
 
+        // Update Parameters For Biases
         for (int j = 0; j < biasCount; j++) {
             for (int k = 0; k < weightCount; k++) {
                 layerBiases[i][j].outWeights[k] -= deltas[index];
@@ -865,7 +869,8 @@ void NeuralNetwork::addDeltasLM(vector<float> deltas) {
 vector<float> NeuralNetwork::calculateDeltasLM(vector<vector<float>> jacobianMatrix, vector<vector<float>> costMatrix, float dampen) {
     int length = jacobianMatrix[0].size();
 
-    // Calculate Deltas
+    // Calculate Deltas From Levenberg Marquardt Formula
+    // Calculate Approximate Hessian
     Matrix transposedJacobian = transposeMatrix(jacobianMatrix);
     Matrix lengthIdentityMatrix = identityMatrix(length);
     lengthIdentityMatrix = scalarMultiply(dampen, lengthIdentityMatrix);
@@ -874,11 +879,17 @@ vector<float> NeuralNetwork::calculateDeltasLM(vector<vector<float>> jacobianMat
     squareJacobian = matrixAddition(squareJacobian, lengthIdentityMatrix);
     Matrix approximateHessian = inverseMatrix(squareJacobian, 0);
 
+    // In the case that the matrix cannot be inverted
+    if (approximateHessian.size() == 0) {
+        return {};
+    }
 
+    // Calculate Deltas Using Hessian
     transposedJacobian = matrixMultiply(transposedJacobian, costMatrix);
     transposedJacobian = scalarMultiply(2.0f, transposedJacobian);
     Matrix weightDeltas = matrixMultiply(approximateHessian, transposedJacobian);
 
+    // Return Deltas In One Vector
     vector<float> weightDeltasResult;
     for (int i = 0; i < length; i++) {
         float delta = weightDeltas[i][0];
@@ -890,11 +901,14 @@ vector<float> NeuralNetwork::calculateDeltasLM(vector<vector<float>> jacobianMat
 vector<float> NeuralNetwork::getJacobianRowLM() {
     vector<float> jacobianRow;
 
+    // Order Derivative of Squared Cost With Respect To Each Weight
     for (int i = 0; i < layerCount - 1; i++) {
+        // Prequisite Integers To Help Efficiency
         int nodeCount = layerNodes[i].size();
         int biasCount = layerBiases[i].size();
         int weightCount = layerNodes[i + 1].size();
 
+        // Derivatives For Nodes
         for (int j = 0; j < nodeCount; j++) {
             for (int k = 0; k < weightCount; k++) {
                 float costDerivative = layerNodes[i][j].value * layerNodes[i + 1][k].derivativeErrorValue;
@@ -902,6 +916,7 @@ vector<float> NeuralNetwork::getJacobianRowLM() {
             }
         }
 
+        // Derivatives For Biases
         for (int j = 0; j < biasCount; j++) {
             for (int k = 0; k < weightCount; k++) {
                 float costDerivative = 1.0f * layerNodes[i + 1][k].derivativeErrorValue;
@@ -913,26 +928,33 @@ vector<float> NeuralNetwork::getJacobianRowLM() {
     return jacobianRow;
 }
 vector<float> NeuralNetwork::trainLevenbergMarquardt(standardTrainConfig trainConfig) {
+    // Useful Integers for Saving Efficiency
     int trainDataCount = trainConfig.trainInputs.size();
     int outputCount = trainConfig.trainOutputs[0].size();
 
+    // Useful for Randomizing Dataset
     vector<int> trainIndexes;
     for (int i = 0; i < trainDataCount; i++) {
         trainIndexes.push_back(i);
     }
 
+    // Find Optimal Parameters
     vector<float> result;
     for (int epoch = 0; epoch < trainConfig.epochs; epoch++) {
+        // Shuffle Dataset
         random_shuffle(trainIndexes.begin(), trainIndexes.end());
-
         if (trainConfig.useDropout) {
             randomlyDropNodes(trainConfig.nodeBiasDropoutProbability);
         }
 
+        // Matrices Used For Calculating Deltas
         vector<vector<float>> fullJacobianMatrix;
         vector<vector<float>> currentCostOutputs;
-        float currentTotalCost = 0.0f;
 
+        float currentTotalCost = 0.0f;
+        float totalError = 0.0f;
+
+        // Find Squared Errors
         for (int t = 0; t < trainDataCount; t++) {
             int currentIndex = trainIndexes[t];
             vector<float> result = predict(trainConfig.trainInputs[currentIndex]);
@@ -941,20 +963,31 @@ vector<float> NeuralNetwork::trainLevenbergMarquardt(standardTrainConfig trainCo
             vector<float> errors;
             
             for (int e = 0; e < outputCount; e++) {
-                currentTotalCost += powf(trainConfig.trainOutputs[currentIndex][e] - result[e], 2.0f);
-                costOutput += powf(trainConfig.trainOutputs[currentIndex][e] - result[e], 2.0f);
-                errors.push_back(trainConfig.trainOutputs[currentIndex][e] - result[e]);
+                float error = trainConfig.trainOutputs[currentIndex][e] - result[e];
+
+                totalError += abs(error);
+                currentTotalCost += powf(error, 2.0f);
+                costOutput += powf(error, 2.0f);
+                errors.push_back(error);
             }
 
-            calculateDerivatives(errors, -2.0f); // 2.0f due to cost function derivative of x^2
+            // 2.0f due to cost function derivative of x^2
+            calculateDerivatives(errors, -2.0f); 
             fullJacobianMatrix.push_back(getJacobianRowLM());            
             currentCostOutputs.push_back({ costOutput });
         }
 
         vector<float> deltas = calculateDeltasLM(fullJacobianMatrix, currentCostOutputs, trainConfig.dampingParameter);
+
+        // In the case that the hessian could not be inverted
+        if (deltas.size() == 0) {
+            trainConfig.dampingParameter *= trainConfig.dampIncreaseMultiplierLM;
+            continue;
+        }
+
         addDeltasLM(deltas);
 
-        // Adjust Damping Parameter by Feeding Forward (Line Approximation Can Be Used, But Not A Lot Quicker
+        // Find New Cost
         float newError = 0.0f;
         for (int t = 0; t < trainDataCount; t++) {
             int currentIndex = trainIndexes[t];
@@ -965,6 +998,7 @@ vector<float> NeuralNetwork::trainLevenbergMarquardt(standardTrainConfig trainCo
             }
         }
 
+        // Update Damping Parameter Accordinly
         if (newError > currentTotalCost) {
             trainConfig.dampingParameter *= trainConfig.dampIncreaseMultiplierLM;
 
@@ -985,8 +1019,8 @@ vector<float> NeuralNetwork::trainLevenbergMarquardt(standardTrainConfig trainCo
         }
         reactivateNodes();
 
-        //cout << "Epoch: " << epoch + 1 << " / " << trainConfig.epochs << ", Total error from epoch: " << currentError << ", Layers: " << layerCount << endl;
-        //result.push_back(currentError);
+        cout << "Epoch: " << epoch + 1 << " / " << trainConfig.epochs << ", Total error from epoch: " << totalError << ", Layers: " << layerCount << endl;
+        result.push_back(totalError);
     }
 
     return result;
