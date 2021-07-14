@@ -149,8 +149,12 @@ def invert_matrix(A, tol=None):
         for j in range(n): # Use j to indicate column looping.
             AM[fd][j] *= fdScaler
             IM[fd][j] *= fdScaler
+
         # SECOND: operate on all rows except fd row as follows:
-        for i in indices[0:fd] + indices[fd+1:]:
+
+        for i in range(n):
+            if i == fd:
+                continue
             # *** skip row with fd in it.
             crScaler = AM[i][fd] # cr stands for "current row".
             for j in range(n):
@@ -195,7 +199,7 @@ import math
 
 def getError(actual, a, b, x):
     functionOutput = a * math.cos(b * x) + b * math.sin(a * x)
-    print(functionOutput)
+    
     return (actual - functionOutput) ** 2
 
 cos = math.cos
@@ -218,10 +222,10 @@ A = random.uniform(-5.0, 5.0)
 B = random.uniform(-5.0, 5.0)
 X = random.uniform(-5.0, 5.0)
 
-iterations = 100
+iterations = 10000
 lowestDamp = False
 
-desiredOutput = 0.96421896
+desiredOutput = 0.16421896
 finalError = 0
 
 for i in range(iterations):

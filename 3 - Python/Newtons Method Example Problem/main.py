@@ -1,24 +1,27 @@
 from random import uniform
 from math import cos, sin
 
-x = 6
+x = 2
 y = 2
-z = -1200
+z = 3
 
 def getCost():
-    return x ** 4 + y ** 3 - 1 + 3 * z
+    return x ** 2 + 2 * y + z ** 3
 
-epochs = 1000
+epochs = 10
 for i in range(epochs):
     currentCost = getCost()
+    print(currentCost)
+    if 2 * x != 0:
+        x = x - (currentCost / (2 * x))
 
-    x = x - (currentCost / (pow(4 * x, 3)))
-    y = y - (currentCost / (pow(3 * y, 2)))
-    z = z - (currentCost / (3))
+    y = y - (currentCost / (2))
 
-    if i % 100 == 0:
-        print(currentCost)
+    if pow(3 * z, 2) != 0:
+        z = z - (currentCost / (pow(3 * z, 2)))
 
 print("X:", x)
 print("Y:", y)
 print("Z:", z)
+
+print("Final Cost:", currentCost)

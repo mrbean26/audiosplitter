@@ -5,6 +5,7 @@ fileNames = glob.glob("*.jpg")
 
 bestNetworkFilename = ""
 bestNetworkScore = 0
+bestNetworkError = 0
 
 # CONSTANT TO CHANGE
 deltaXIndex = 30
@@ -64,5 +65,7 @@ for fileName in fileNames:
     if currentScore > bestNetworkScore:
         bestNetworkScore = currentScore
         bestNetworkFilename = fileName
+        bestNetworkError = finalError
 
 print("Best Network:", bestNetworkFilename)
+print("Corresponding Final Error:", bestNetworkError)

@@ -142,7 +142,6 @@ def invert_matrix(A, tol=None):
     IM = copy_matrix(I)
 
     # Section 3: Perform row operations
-    indices = list(range(n)) # to allow flexible row referencing ***
     for fd in range(n): # fd stands for focus diagonal
         fdScaler = 1.0 / AM[fd][fd]
         # FIRST: scale fd row with fd inverse.
@@ -297,7 +296,7 @@ dampValue = 0.01
 dampIncreaseMultiplier = 10
 dampDecreaseMultiplier = 0.1
 
-epochs = 100
+epochs = 10000
 
 trainInputs = [[0, 0], [1, 0], [0, 1], [1, 1]]
 trainOutputs = [0, 1, 1, 0]

@@ -539,16 +539,22 @@ vector<float> NeuralNetwork::trainStochasticGradientDescent(standardTrainConfig 
     for (int epoch = 0; epoch < trainConfig.epochs; epoch++) {
         // Create Random Sectional Indexes for Stochastic Training Unless Epoch is Divisible by Full Dataset Test Parameter
         vector<int> trainIndexes;
-        if (epoch % trainConfig.entireBatchEpochIntervals == 0) {
+        int currentBatchSize = 0;
+
+        if ((epoch + 1) % trainConfig.entireBatchEpochIntervals == 0) {
             for (int i = 0; i < trainDataCount; i++) {
                 trainIndexes.push_back(i);
             }
+
+            currentBatchSize = trainDataCount;
         }
         else {
             for (int i = 0; i < trainConfig.batchSize; i++) {
                 int newIndex = (i * miniBatchSize) + (rand() % miniBatchSize);
                 trainIndexes.push_back(newIndex);
             }
+
+            currentBatchSize = trainConfig.batchSize;
         }
 
         // Generate Learning Parameters
@@ -594,7 +600,8 @@ vector<float> NeuralNetwork::trainStochasticGradientDescent(standardTrainConfig 
         // Reset Network
         reactivateNodes();
 
-        cout << "Epoch: " << epoch + 1 << " / " << trainConfig.epochs << ", Total error from epoch: " << totalError << ", Layers: " << layerCount << ", LR:" << currentLearningRate << endl;
+        float approximateTotalDatasetError = totalError * (float(trainDataCount) / float(currentBatchSize));
+        cout << "Epoch: " << epoch + 1 << " / " << trainConfig.epochs << ", Approximate total error from epoch: " << approximateTotalDatasetError << ", Layers: " << layerCount << ", LR:" << currentLearningRate << endl;
         result.push_back(totalError);
     }
 
