@@ -101,7 +101,7 @@ public:
     void loadWeightsFromFile(string directory);
 
     // General Training
-    void train(standardTrainConfig trainConfig);
+    vector<float> train(standardTrainConfig trainConfig);
 
     float activate(float x);
     float derivative(float x);
@@ -137,7 +137,7 @@ public:
 
     // Random Weights Method
     void randomizeWeights();
-    void trainRandomMethod(standardTrainConfig trainConfig);
+    vector<float> trainRandomMethod(standardTrainConfig trainConfig);
 
     // Levenberg Marquardt
     void addDeltasLM(vector<float> deltas);

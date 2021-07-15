@@ -177,25 +177,29 @@ void NeuralNetwork::loadWeightsFromFile(string directory) {
 }
 
 // General Training
-void NeuralNetwork::train(standardTrainConfig trainConfig) {
+vector<float> NeuralNetwork::train(standardTrainConfig trainConfig) {
+    vector<float> result;
+
     if (trainConfig.trainType == STOCHASTIC_GRADIENT_DESCENT) {
-        trainStochasticGradientDescent(trainConfig);
+        result = trainStochasticGradientDescent(trainConfig);
     }
     if (trainConfig.trainType == GRADIENT_DESCENT) {
-        trainGradientDescent(trainConfig);
+        result = trainGradientDescent(trainConfig);
     }
     if (trainConfig.trainType == RESISTANT_PROPAGATION) {
-        trainResistantPropagation(trainConfig);
+        result = trainResistantPropagation(trainConfig);
     }
     if (trainConfig.trainType == NATURAL_SELECTION) {
-        trainNaturalSelectionMethod(trainConfig);
+        result = trainNaturalSelectionMethod(trainConfig);
     }
     if (trainConfig.trainType == RANDOM_METHOD) {
-        trainRandomMethod(trainConfig);
+        result = trainRandomMethod(trainConfig);
     }
     if (trainConfig.trainType == LEVENBERG_MARQUARDT) {
-        trainLevenbergMarquardt(trainConfig);
+        result = trainLevenbergMarquardt(trainConfig);
     }
+
+    return result;
 }
 
 float NeuralNetwork::activate(float x) {
@@ -602,7 +606,8 @@ vector<float> NeuralNetwork::trainStochasticGradientDescent(standardTrainConfig 
 
         float approximateTotalDatasetError = totalError * (float(trainDataCount) / float(currentBatchSize));
         cout << "Epoch: " << epoch + 1 << " / " << trainConfig.epochs << ", Approximate total error from epoch: " << approximateTotalDatasetError << ", Layers: " << layerCount << ", LR:" << currentLearningRate << endl;
-        result.push_back(totalError);
+
+        result.push_back(approximateTotalDatasetError);
     }
 
     return result;
@@ -812,7 +817,9 @@ void NeuralNetwork::randomizeWeights() {
         }
     }
 }
-void NeuralNetwork::trainRandomMethod(standardTrainConfig trainConfig) {
+vector<float> NeuralNetwork::trainRandomMethod(standardTrainConfig trainConfig) {
+    vector<float> result;
+
     // Useful Integers Calculated Before Iteration
     float minimumFoundError = numeric_limits<float>().max();
     int trainDataCount = trainConfig.trainInputs.size();
@@ -833,6 +840,7 @@ void NeuralNetwork::trainRandomMethod(standardTrainConfig trainConfig) {
         }
 
         cout << "Random Epoch: " << epoch + 1 << " / " << trainConfig.epochs << ", Error: " << accumulativeError << endl;
+        result.push_back(accumulativeError);
 
         // If Network if 'Good Enough' Then Keep It
         if (accumulativeError < trainConfig.errorThreshold) {
@@ -843,6 +851,8 @@ void NeuralNetwork::trainRandomMethod(standardTrainConfig trainConfig) {
     }
 
     cout << "Minimum Error Found: " << minimumFoundError << endl;
+
+    return result;
 }
 
 // Levenberg Marquardt

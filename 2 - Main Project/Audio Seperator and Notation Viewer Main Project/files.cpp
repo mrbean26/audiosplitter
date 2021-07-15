@@ -358,6 +358,28 @@ void writeToImage(outputImageConfig config) {
 	imageFile << endl;
 
 	// Training Config
+	string trainType = "";
+	if (config.trainConfig.trainType == STOCHASTIC_GRADIENT_DESCENT) {
+		trainType = "STOCHASTIC_GRADIENT_DESCENT";
+	}
+	if (config.trainConfig.trainType == GRADIENT_DESCENT) {
+		trainType = "GRADIENT_DESCENT";
+	}
+	if (config.trainConfig.trainType == RESISTANT_PROPAGATION) {
+		trainType = "RESISTANT_PROPAGATION";
+	}
+	if (config.trainConfig.trainType == NATURAL_SELECTION) {
+		trainType = "NATURAL_SELECTION";
+	}
+	if (config.trainConfig.trainType == RANDOM_METHOD) {
+		trainType = "RANDOM_METHOD";
+	}
+	if (config.trainConfig.trainType == LEVENBERG_MARQUARDT) {
+		trainType = "LEVENBERG_MARQUARDT";
+	}
+
+
+	imageFile << "Train Method: " << trainType << ", ";
 	imageFile << "Epochs: " << to_string(config.trainConfig.epochs) << ", ";
 	imageFile << "LR: " << to_string(config.trainConfig.learningRate) << ", ";
 	imageFile << "M: " << to_string(config.trainConfig.momentum) << ", ";

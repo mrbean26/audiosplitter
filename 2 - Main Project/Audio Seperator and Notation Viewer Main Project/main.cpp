@@ -27,7 +27,7 @@ int main() {
 	int inputSize = inputSet[0].size();
 	int outputSize = outputSet[0].size();
 
-	vector<int> layers = { 512, 128, 128, 128, 64 };
+	vector<int> layers = { 512, 64 };
 	vector<int> biases = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
 
 	NeuralNetwork newNetwork = NeuralNetwork(layers, biases, "tanh");
@@ -36,18 +36,35 @@ int main() {
 	newConfig.trainInputs = inputSet;
 	newConfig.trainOutputs = outputSet;
 
-	newConfig.epochs = 10000;
+	newConfig.epochs = 1000;
 	newConfig.learningRate = 1.0f;
 	newConfig.momentum = 0.25f;
 	newConfig.useCyclicalLearningRateAndMomentum = true;
 
 	newConfig.entireBatchEpochIntervals = 1000;
-	newConfig.batchSize = 10;
+	newConfig.batchSize = 300;
 
 	newConfig.trainType = STOCHASTIC_GRADIENT_DESCENT;
 
-	newNetwork.train(newConfig);
-	//newNetwork.runTests(inputSet);
+	vector<float> errors = newNetwork.train(newConfig);
+	createOutputTestTrack(newNetwork, audioConfig);
+
+	outputImageConfig imageConfig = outputImageConfig{
+		errors,
+
+		1000,
+		512,
+
+		newNetwork,
+		audioConfig,
+		newConfig,
+
+		true,
+		1000.0f,
+		0.0f,
+	};
+
+	writeToImage(imageConfig);
 
 	system("pause");
 	return 0;
