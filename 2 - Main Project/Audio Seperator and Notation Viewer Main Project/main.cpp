@@ -37,9 +37,8 @@ int main() {
 	newConfig.trainOutputs = outputSet;
 
 	newConfig.epochs = 1000;
-	newConfig.learningRate = 1.0f;
-	newConfig.momentum = 0.25f;
-	newConfig.useCyclicalLearningRateAndMomentum = true;
+	newConfig.learningRate = 0.001f;
+	newConfig.learningRateType = ADAM_LEARNING_RATE;
 
 	newConfig.entireBatchEpochIntervals = 1000;
 	newConfig.batchSize = 300;

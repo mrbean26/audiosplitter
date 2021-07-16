@@ -48,11 +48,17 @@ void NeuralNetwork::initialiseWeights() {
         int currentNodeCount = layerNodes[i].size();
         int nextNodeCount = layerNodes[i + 1].size();
 
+        // For "ADAM" Learning
+        vector<float> emptyVector(nextNodeCount);
+
         for (int n = 0; n < currentNodeCount; n++) {
             for (int n1 = 0; n1 < nextNodeCount; n1++) {
                 layerNodes[i][n].outWeights.push_back(randomFloat());
                 layerNodes[i][n].previousDeltas.push_back(0.0f);
             }
+
+            layerNodes[i][n].previousExponentials = emptyVector;
+            layerNodes[i][n].previousSquaredExponentials = emptyVector;
         }
 
         int currentBiasCount = layerBiases[i].size();
@@ -61,6 +67,9 @@ void NeuralNetwork::initialiseWeights() {
                 layerBiases[i][b].outWeights.push_back(randomFloat());
                 layerBiases[i][b].previousDeltas.push_back(0.0f);
             }
+
+            layerBiases[i][b].previousExponentials = emptyVector;
+            layerBiases[i][b].previousSquaredExponentials = emptyVector;
         }
     }
 }
@@ -465,6 +474,70 @@ void NeuralNetwork::adjustWeightsGradientDescent(float lr, float momentum) {
         }
     }
 }
+void NeuralNetwork::adjustWeightsADAM(standardTrainConfig trainConfig) {
+    for (int i = 0; i < layerCount; i++) {
+        int nodeCount = layerNodes[i].size();
+
+        // Adjust Weights That Come From Nodes
+        for (int n = 0; n < nodeCount; n++) {
+            if (!layerNodes[i][n].active) {
+                continue;
+            }
+
+            int weightCount = layerNodes[i][n].outWeights.size();
+            for (int w = 0; w < weightCount; w++) {
+                // Calculate Gradient of Error With Respect To Node
+                float gradient = layerNodes[i][n].value * layerNodes[i + 1][w].derivativeErrorValue;
+
+                // ADAM Parameters#
+                float newExponential = trainConfig.betaOne * layerNodes[i][n].previousExponentials[w] + (1 - trainConfig.betaOne) * gradient;
+                float newSquaredExponential = trainConfig.betaTwo * layerNodes[i][n].previousSquaredExponentials[w] + (1 - trainConfig.betaTwo) * powf(gradient, 2.0f);
+                
+                float currentExponential = newExponential / (1 - trainConfig.betaOne);
+                float currentSquaredExponential = newSquaredExponential / (1 - trainConfig.betaTwo);
+                
+                float learningRate = trainConfig.learningRate * (currentExponential / sqrtf(currentSquaredExponential) + trainConfig.epsillon);
+                
+                float delta = learningRate * gradient;
+                layerNodes[i][n].outWeights[w] -= delta;
+
+                // Update ADAM Parameters
+                layerNodes[i][n].previousExponentials[w] = newExponential;
+                layerNodes[i][n].previousSquaredExponentials[w] = newSquaredExponential;
+            }
+        }
+
+        // Adjust Weights That Come From Biases
+        int biasCount = layerBiases[i].size();
+        for (int b = 0; b < biasCount; b++) {
+            if (!layerBiases[i][b].active) {
+                continue;
+            }
+
+            int outWeightCount = layerBiases[i][b].outWeights.size();
+            for (int w = 0; w < outWeightCount; w++) {
+                // Calculate Gradient of Error With Respect To Node
+                float gradient = 1.0f * layerNodes[i + 1][w].derivativeErrorValue;
+
+                // ADAM Parameters
+                float newExponential = trainConfig.betaOne * layerBiases[i][b].previousExponentials[w] + (1 - trainConfig.betaOne) * gradient;
+                float newSquaredExponential = trainConfig.betaTwo * layerBiases[i][b].previousSquaredExponentials[w] + (1 - trainConfig.betaTwo) * powf(gradient, 2.0f);
+
+                float currentExponential = newExponential / (1 - trainConfig.betaOne);
+                float currentSquaredExponential = newSquaredExponential / (1 - trainConfig.betaTwo);
+
+                float learningRate = trainConfig.learningRate * (currentExponential / sqrtf(currentSquaredExponential) + trainConfig.epsillon);
+
+                float delta = learningRate * gradient;
+                layerBiases[i][b].outWeights[w] -= delta;
+
+                // Update ADAM Parameters
+                layerBiases[i][b].previousExponentials[w] = newExponential;
+                layerBiases[i][b].previousSquaredExponentials[w] = newSquaredExponential;
+            }
+        }
+    }
+}
 vector<float> NeuralNetwork::trainGradientDescent(standardTrainConfig trainConfig) {
     int trainDataCount = trainConfig.trainInputs.size();
     int outputCount = trainConfig.trainOutputs[0].size();
@@ -479,10 +552,11 @@ vector<float> NeuralNetwork::trainGradientDescent(standardTrainConfig trainConfi
         // Randomly Shuffle Dataset Indexes to Prevent Overfitting
         random_shuffle(trainIndexes.begin(), trainIndexes.end());
 
+        // Calculate Current Learning Rate
         float currentLearningRate = trainConfig.learningRate;
         float currentMomentum = trainConfig.momentum;
 
-        if (trainConfig.useCyclicalLearningRateAndMomentum) { 
+        if (trainConfig.learningRateType == CYCLICAL_LEARNING_RATE) {
             // Peak in Middle - Use Linear Function
             double currentCoefficient = double(epoch + 1) / (double(trainConfig.epochs));
             float value = 1.0f - abs(2.0f * (currentCoefficient - 0.5f));
@@ -509,7 +583,14 @@ vector<float> NeuralNetwork::trainGradientDescent(standardTrainConfig trainConfi
             }
 
             calculateDerivatives(errors);
-            adjustWeightsGradientDescent(currentLearningRate, trainConfig.momentum);
+
+            // Update Parameters
+            if (trainConfig.learningRateType == ADAM_LEARNING_RATE) {
+                adjustWeightsADAM(trainConfig);
+            }
+            else {
+                adjustWeightsGradientDescent(currentLearningRate, trainConfig.momentum);
+            }
 
             // Lower Some Weights To Prevent Overfitting
             if (trainConfig.useWeightDecay) {
@@ -545,6 +626,7 @@ vector<float> NeuralNetwork::trainStochasticGradientDescent(standardTrainConfig 
         vector<int> trainIndexes;
         int currentBatchSize = 0;
 
+        // Create Mini Dataset
         if ((epoch + 1) % trainConfig.entireBatchEpochIntervals == 0) {
             for (int i = 0; i < trainDataCount; i++) {
                 trainIndexes.push_back(i);
@@ -561,17 +643,21 @@ vector<float> NeuralNetwork::trainStochasticGradientDescent(standardTrainConfig 
             currentBatchSize = trainConfig.batchSize;
         }
 
-        // Generate Learning Parameters
+        // Calculate Current Learning Rate
         float currentLearningRate = trainConfig.learningRate;
         float currentMomentum = trainConfig.momentum;
 
-        if (trainConfig.useCyclicalLearningRateAndMomentum) { 
+        if (trainConfig.learningRateType == CYCLICAL_LEARNING_RATE) { 
             // Calculate Multiplier For Learning Parameters such That The Multiplier Peaks at Half Epochs
             double currentCoefficient = double(epoch + 1) / (double(trainConfig.epochs));
             float value = 1.0f - abs(2.0f * (currentCoefficient - 0.5f));
 
             currentLearningRate = value * trainConfig.learningRate;
             currentMomentum = (1 - value) * trainConfig.momentum;
+        }
+
+        if (trainConfig.learningRateType == ADAM_LEARNING_RATE) {
+
         }
 
         // Randomly Disable Some Nodes to Prevent Overfitting
@@ -593,7 +679,14 @@ vector<float> NeuralNetwork::trainStochasticGradientDescent(standardTrainConfig 
             }
 
             calculateDerivatives(errors);
-            adjustWeightsGradientDescent(currentLearningRate, trainConfig.momentum);
+
+            // Update Parameters
+            if (trainConfig.learningRateType == ADAM_LEARNING_RATE) {
+                adjustWeightsADAM(trainConfig);
+            }
+            else {
+                adjustWeightsGradientDescent(currentLearningRate, trainConfig.momentum);
+            }
 
             // Lower Some Weights To Prevent Overfitting
             if (trainConfig.useWeightDecay) {

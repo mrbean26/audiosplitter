@@ -383,7 +383,19 @@ void writeToImage(outputImageConfig config) {
 	imageFile << "Epochs: " << to_string(config.trainConfig.epochs) << ", ";
 	imageFile << "LR: " << to_string(config.trainConfig.learningRate) << ", ";
 	imageFile << "M: " << to_string(config.trainConfig.momentum) << ", ";
-	imageFile << "Cycle: " << to_string(config.trainConfig.useCyclicalLearningRateAndMomentum) << ", ";
+
+	string learningRateType = "";
+	if (config.trainConfig.learningRateType == FIXED_LEARNING_RATE) {
+		learningRateType = "FIXED_LR";
+	}
+	if (config.trainConfig.learningRateType == CYCLICAL_LEARNING_RATE) {
+		learningRateType = "CYCLICAL_LR";
+	}
+	if (config.trainConfig.learningRateType == ADAM_LEARNING_RATE) {
+		learningRateType = "ADAM_LR";
+	}
+	imageFile << "Cycle: " << learningRateType << ", ";
+
 	imageFile << "Decay: " << to_string(config.trainConfig.useWeightDecay) << ", ";
 	imageFile << "Multiplier: " << to_string(config.trainConfig.weightDecayMultiplier) << ", ";
 	imageFile << "RPROPd: " << to_string(config.trainConfig.rpropWeightDecreaseMultiplier) << ", ";

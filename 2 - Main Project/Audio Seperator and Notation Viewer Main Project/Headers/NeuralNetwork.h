@@ -25,6 +25,11 @@ struct audioFileConfig;
 #define RANDOM_METHOD 4
 #define LEVENBERG_MARQUARDT 5
 
+// Learning Rate Calculation Definition
+#define FIXED_LEARNING_RATE 0
+#define CYCLICAL_LEARNING_RATE 1
+#define ADAM_LEARNING_RATE 2
+
 // Network
 class NeuralNetwork{
 public:
@@ -44,9 +49,10 @@ public:
         int nodeBiasDropoutProbability = 10; // 1 in 10 (0.1)
 
         // Gradient Descent
+        int learningRateType = FIXED_LEARNING_RATE;
+
         float learningRate = 1.0f;
         float momentum = 0.25f;
-        bool useCyclicalLearningRateAndMomentum = false;
 
         // Stochastic Gradient Descent
         int entireBatchEpochIntervals = 500; // Every x epochs, the entire dataset is run
@@ -67,23 +73,43 @@ public:
 
         // Random Method
         float errorThreshold = 500.0f;
+
+        // "ADAM" Learning Method
+        float betaOne = 0.9f;
+        float betaTwo = 0.999f;
+        float epsillon = 0.00000001f;
     } bar;
 
     static struct Node {
+        // Runtime
         float value = 0.0f;
-
         float derivativeErrorValue = 0.0f;
         vector<float> outWeights;
+
+        // Momentum
         vector<float> previousDeltas;
 
+        // Dropout
         bool active = true;
+
+        // ADAM Learning Rates
+        vector<float> previousExponentials;
+        vector<float> previousSquaredExponentials;
     };
 
     static struct Bias {
+        // Runtime
         vector<float> outWeights;
+
+        // Momentum
         vector<float> previousDeltas;
 
+        // Dropout
         bool active = true;
+
+        // ADAM Learning Rates
+        vector<float> previousExponentials;
+        vector<float> previousSquaredExponentials;
     };
 
     // Config
@@ -121,6 +147,7 @@ public:
 
     // Gradient Descent (updates after each example)
     void adjustWeightsGradientDescent(float lr, float momentum);
+    void adjustWeightsADAM(standardTrainConfig trainConfig);
     vector<float> trainGradientDescent(standardTrainConfig trainConfig);
 
     // Stochastic Gradient Descent (select a few random train inputs)
