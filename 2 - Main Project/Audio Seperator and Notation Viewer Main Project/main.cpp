@@ -17,7 +17,7 @@ int main() {
 		4, // chunk border
 
 		1, // start file index
-		1 // song count
+		3 // song count
 	};
 
 	// Train Network - One Song Training
@@ -27,21 +27,22 @@ int main() {
 	int inputSize = inputSet[0].size();
 	int outputSize = outputSet[0].size();
 
-	vector<int> layers = { 512, 64 };
+	vector<int> layers = { 512, 256, 224, 192, 160, 128, 64 };
 	vector<int> biases = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
 
-	NeuralNetwork newNetwork = NeuralNetwork(layers, biases, "tanh");
+	NeuralNetwork newNetwork = NeuralNetwork(layers, biases, "sigmoid");
 	
 	NeuralNetwork::standardTrainConfig newConfig = NeuralNetwork::standardTrainConfig();
 	newConfig.trainInputs = inputSet;
 	newConfig.trainOutputs = outputSet;
 
-	newConfig.epochs = 1000;
-	newConfig.learningRate = 0.001f;
+	newConfig.epochs = 175000;
+	newConfig.learningRate = 0.5f;
+	newConfig.momentum = 0.025f;
 	newConfig.learningRateType = ADAM_LEARNING_RATE;
 
 	newConfig.entireBatchEpochIntervals = 1000;
-	newConfig.batchSize = 300;
+	newConfig.batchSize = 100;
 
 	newConfig.trainType = STOCHASTIC_GRADIENT_DESCENT;
 

@@ -496,9 +496,9 @@ void NeuralNetwork::adjustWeightsADAM(standardTrainConfig trainConfig) {
                 float currentExponential = newExponential / (1 - trainConfig.betaOne);
                 float currentSquaredExponential = newSquaredExponential / (1 - trainConfig.betaTwo);
                 
-                float learningRate = trainConfig.learningRate * (currentExponential / sqrtf(currentSquaredExponential) + trainConfig.epsillon);
-                
+                float learningRate = trainConfig.learningRate * (currentExponential / (sqrtf(currentSquaredExponential) + trainConfig.epsillon));
                 float delta = learningRate * gradient;
+                
                 layerNodes[i][n].outWeights[w] -= delta;
 
                 // Update ADAM Parameters
@@ -526,9 +526,9 @@ void NeuralNetwork::adjustWeightsADAM(standardTrainConfig trainConfig) {
                 float currentExponential = newExponential / (1 - trainConfig.betaOne);
                 float currentSquaredExponential = newSquaredExponential / (1 - trainConfig.betaTwo);
 
-                float learningRate = trainConfig.learningRate * (currentExponential / sqrtf(currentSquaredExponential) + trainConfig.epsillon);
-
+                float learningRate = trainConfig.learningRate * (currentExponential / (sqrtf(currentSquaredExponential) + trainConfig.epsillon));
                 float delta = learningRate * gradient;
+
                 layerBiases[i][b].outWeights[w] -= delta;
 
                 // Update ADAM Parameters

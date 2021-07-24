@@ -76,25 +76,9 @@ D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Vie
 D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\NeuralNetwork.cpp(1042,56): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
 D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\NeuralNetwork.cpp(1043,57): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
 D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\NeuralNetwork.cpp(1115,43): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-  files.cpp
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\Headers\NeuralNetwork.h(98): warning C4091: 'static ': ignored on left of 'NeuralNetwork::Node' when no variable is declared
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\Headers\NeuralNetwork.h(113): warning C4091: 'static ': ignored on left of 'NeuralNetwork::Bias' when no variable is declared
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\files.cpp(14,24): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\files.cpp(33,31): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\files.cpp(80,56): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\files.cpp(114,56): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\files.cpp(142,46): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\files.cpp(143,51): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\files.cpp(243,39): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\files.cpp(292,63): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-  main.cpp
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\Headers\NeuralNetwork.h(98): warning C4091: 'static ': ignored on left of 'NeuralNetwork::Node' when no variable is declared
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\Headers\NeuralNetwork.h(113): warning C4091: 'static ': ignored on left of 'NeuralNetwork::Bias' when no variable is declared
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\main.cpp(27,36): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\main.cpp(28,38): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
   Generating code
-  3 of 1197 functions ( 0.3%) were compiled, the rest were copied from previous compilation.
+  3 of 1258 functions ( 0.2%) were compiled, the rest were copied from previous compilation.
     0 functions were new in current compilation
-    5 functions had inline decision re-evaluated but remain unchanged
+    13 functions had inline decision re-evaluated but remain unchanged
   Finished generating code
   Audio Seperator and Notation Viewer Main Project.vcxproj -> D:\Projects\Audio Splitter App\2 - Main Project\x64\Release\Audio Seperator and Notation Viewer Main Project.exe
