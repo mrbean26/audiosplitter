@@ -89,6 +89,7 @@ vector<vector<float>> spectrogramOutput(vector<int> audioSamples, int samplesPer
 	for (int chunkNum = 0; chunkNum < chunkCount; chunkNum++) {
 		for (int i = 0; i < newSamplesPerChunk; i++) {
 			spectrogramChunks[chunkNum][i] = spectrogramChunks[chunkNum][i] / maxValue;
+			spectrogramChunks[chunkNum][i] = powf(spectrogramChunks[chunkNum][i], 1 / 3.0f);
 		}
 
 		vector<float> currentVector(spectrogramChunks[chunkNum].begin(), spectrogramChunks[chunkNum].begin() + newSamplesPerChunk / 2);

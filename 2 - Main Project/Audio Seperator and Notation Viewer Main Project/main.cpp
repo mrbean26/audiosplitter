@@ -17,7 +17,7 @@ int main() {
 		4, // chunk border
 
 		1, // start file index
-		3 // song count
+		1 // song count
 	};
 
 	// Train Network - One Song Training
@@ -27,7 +27,7 @@ int main() {
 	int inputSize = inputSet[0].size();
 	int outputSize = outputSet[0].size();
 
-	vector<int> layers = { 512, 256, 224, 192, 160, 128, 64 };
+	vector<int> layers = { inputSize, 224, 192, 160, 128, outputSize };
 	vector<int> biases = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
 
 	NeuralNetwork newNetwork = NeuralNetwork(layers, biases, "sigmoid");
@@ -36,10 +36,10 @@ int main() {
 	newConfig.trainInputs = inputSet;
 	newConfig.trainOutputs = outputSet;
 
-	newConfig.epochs = 175000;
-	newConfig.learningRate = 0.5f;
-	newConfig.momentum = 0.025f;
-	newConfig.learningRateType = ADAM_LEARNING_RATE;
+	newConfig.epochs = 50000;
+	newConfig.learningRate = 1.0f;
+	newConfig.momentum = 0.25f;
+	newConfig.learningRateType = CYCLICAL_LEARNING_RATE;
 
 	newConfig.entireBatchEpochIntervals = 1000;
 	newConfig.batchSize = 100;
@@ -64,7 +64,8 @@ int main() {
 		0.0f,
 	};
 
-	writeToImage(imageConfig);
+	//writeToImage(imageConfig);
+	
 
 	system("pause");
 	return 0;
