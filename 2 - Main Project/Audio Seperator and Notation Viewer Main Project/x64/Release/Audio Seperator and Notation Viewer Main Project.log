@@ -21,23 +21,23 @@ D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Vie
 D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\audio.cpp(64,45): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
 D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\audio.cpp(82,43): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
 D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\audio.cpp(125,54): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\audio.cpp(141,52): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\audio.cpp(145,46): warning C4244: '=': conversion from 'double' to '_Ty', possible loss of data
+D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\audio.cpp(130,71): warning C4244: 'argument': conversion from '_Ty' to 'float', possible loss of data
           with
           [
-              _Ty=float
+              _Ty=double
           ]
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\audio.cpp(156,101): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\audio.cpp(167,45): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\audio.cpp(186,39): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\audio.cpp(187,51): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\audio.cpp(215,26): warning C4244: 'initializing': conversion from 'double' to 'int16_t', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\audio.cpp(227,45): warning C4244: '=': conversion from 'double' to '_Ty', possible loss of data
+D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\audio.cpp(142,52): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\audio.cpp(166,101): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\audio.cpp(177,45): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\audio.cpp(196,39): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\audio.cpp(197,51): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\audio.cpp(225,26): warning C4244: 'initializing': conversion from 'double' to 'int16_t', possible loss of data
+D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\audio.cpp(237,45): warning C4244: '=': conversion from 'double' to '_Ty', possible loss of data
           with
           [
               _Ty=int16_t
           ]
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\audio.cpp(233,34): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\audio.cpp(243,34): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
 C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30037\include\xmemory(714,47): warning C4244: 'initializing': conversion from 'double' to '_Objty', possible loss of data
           with
           [
@@ -94,28 +94,23 @@ C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.2
           [
               _Iter=double *
           ]
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\audio.cpp(132): message : see reference to function template instantiation 'std::vector<float,std::allocator<float>>::vector<std::_Vector_iterator<std::_Vector_val<std::_Simple_types<_Ty>>>,0>(_Iter,_Iter,const _Alloc &)' being compiled
+D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\audio.cpp(133): message : see reference to function template instantiation 'std::vector<float,std::allocator<float>>::vector<std::_Vector_iterator<std::_Vector_val<std::_Simple_types<_Ty>>>,0>(_Iter,_Iter,const _Alloc &)' being compiled
           with
           [
               _Ty=double,
               _Iter=std::_Vector_iterator<std::_Vector_val<std::_Simple_types<double>>>,
               _Alloc=std::allocator<float>
           ]
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\audio.cpp(132): message : see reference to function template instantiation 'std::vector<float,std::allocator<float>>::vector<std::_Vector_iterator<std::_Vector_val<std::_Simple_types<_Ty>>>,0>(_Iter,_Iter,const _Alloc &)' being compiled
+D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\audio.cpp(133): message : see reference to function template instantiation 'std::vector<float,std::allocator<float>>::vector<std::_Vector_iterator<std::_Vector_val<std::_Simple_types<_Ty>>>,0>(_Iter,_Iter,const _Alloc &)' being compiled
           with
           [
               _Ty=double,
               _Iter=std::_Vector_iterator<std::_Vector_val<std::_Simple_types<double>>>,
               _Alloc=std::allocator<float>
           ]
-  main.cpp
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\Headers\NeuralNetwork.h(98): warning C4091: 'static ': ignored on left of 'NeuralNetwork::Node' when no variable is declared
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\Headers\NeuralNetwork.h(113): warning C4091: 'static ': ignored on left of 'NeuralNetwork::Bias' when no variable is declared
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\main.cpp(27,36): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\main.cpp(28,38): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
   Generating code
-  3 of 1198 functions ( 0.3%) were compiled, the rest were copied from previous compilation.
-    0 functions were new in current compilation
-    4 functions had inline decision re-evaluated but remain unchanged
+  26 of 1215 functions ( 2.1%) were compiled, the rest were copied from previous compilation.
+    17 functions were new in current compilation
+    62 functions had inline decision re-evaluated but remain unchanged
   Finished generating code
   Audio Seperator and Notation Viewer Main Project.vcxproj -> D:\Projects\Audio Splitter App\2 - Main Project\x64\Release\Audio Seperator and Notation Viewer Main Project.exe

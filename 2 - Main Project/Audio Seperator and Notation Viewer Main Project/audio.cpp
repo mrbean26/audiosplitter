@@ -42,7 +42,7 @@ vector<int> loadAudioSamples(mp3d_sample_t* buffer, int sampleCount, int channel
 }
 
 // Network
-vector<vector<float>> spectrogramOutput(const char* mp3Filename, int samplesPerChunk, int samplesPerStride, int frequencyResolution) {
+vector<vector<float>> spectrogramOutput(const char* mp3Filename, int samplesPerChunk, int samplesPerStride, int frequencyResolution, float emphasis) {
 	mp3dec_file_info_t audioData = loadAudioData(mp3Filename);
 	vector<int> audioSamples = loadAudioSamples(audioData.buffer, audioData.samples, audioData.channels);
 	delete[] audioData.buffer; 
@@ -125,8 +125,9 @@ vector<vector<float>> spectrogramOutput(const char* mp3Filename, int samplesPerC
 	int newSamplesPerChunk = spectrogramChunks[0].size();
 
 	for (int chunkNum = 0; chunkNum < chunkCount; chunkNum++) {
-		for (int i = 0; i < newSamplesPerChunk; i++) {
+		for (int i = 0; i < newSamplesPerChunk / 2; i++) {
 			spectrogramChunks[chunkNum][i] = spectrogramChunks[chunkNum][i] / maxValue;
+			spectrogramChunks[chunkNum][i] = powf(spectrogramChunks[chunkNum][i], 1.0f / emphasis);
 		}
 
 		vector<float> currentVector(spectrogramChunks[chunkNum].begin(), spectrogramChunks[chunkNum].begin() + newSamplesPerChunk / 2);
@@ -136,13 +137,21 @@ vector<vector<float>> spectrogramOutput(const char* mp3Filename, int samplesPerC
 	// Return as vector<vector<float>>
 	return result;
 }
-vector<int16_t> vocalSamples(const char* fullFileNameMP3, int samplesPerChunk, int samplesPerStride, vector<vector<float>> networkOutput) {
+vector<int16_t> vocalSamples(const char* fullFileNameMP3, int samplesPerChunk, int samplesPerStride, vector<vector<float>> networkOutput, float emphasis) {
 	// Recreate full spectrogram
 	int networkSubOutputSize = networkOutput[0].size();
 	for (int i = 0; i < networkOutput.size(); i++) {
+		/*
+
 		for (int j = 0; j < networkOutput[i].size(); j++) { // Helpful for further isolating vocals
 			double hannMultiplier = 0.5 * (1 - cos(2 * 3.141 * double(j) / double(networkSubOutputSize)));
 			networkOutput[i][j] = networkOutput[i][j] * pow(hannMultiplier, 0.75); // index of 0.75 widens window at top, including more frequencies
+		}
+
+		*/
+
+		for (int j = 0; j < networkOutput[i].size(); j++) {
+			networkOutput[i][j] = powf(networkOutput[i][j], emphasis);
 		}
 
 		vector<float> currentChunk = networkOutput[i];

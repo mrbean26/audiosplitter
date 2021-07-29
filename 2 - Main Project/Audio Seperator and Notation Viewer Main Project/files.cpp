@@ -74,7 +74,7 @@ vector<vector<float>> generateInputs(audioFileConfig config) {
 	for (int f = config.startFileIndex; f < endIndex; f++) {
 		// Load File Spectrogram From Integer File
 		string fileName = "inputs/" + to_string(f) + ".mp3";
-		vector<vector<float>> fullAudioInput = spectrogramOutput(fileName.data(), config.samplesPerChunk, config.samplesPerOverlap, config.frequencyResolution);
+		vector<vector<float>> fullAudioInput = spectrogramOutput(fileName.data(), config.samplesPerChunk, config.samplesPerOverlap, config.frequencyResolution, config.spectrogramEmphasis);
 
 		// Create Chunk Border to Give Audio 'Context'
 		int newFrequencyResolution = fullAudioInput[0].size();
@@ -108,7 +108,7 @@ vector<vector<float>> generateOutputs(audioFileConfig config) {
 	for (int f = config.startFileIndex; f < endIndex; f++) {
 		// Load File Spectrogram From Integer File
 		string fileName = "outputs/" + to_string(f) + ".mp3";
-		vector<vector<float>> fullAudioInput = spectrogramOutput(fileName.data(), config.samplesPerChunk, config.samplesPerOverlap, config.frequencyResolution);
+		vector<vector<float>> fullAudioInput = spectrogramOutput(fileName.data(), config.samplesPerChunk, config.samplesPerOverlap, config.frequencyResolution, config.spectrogramEmphasis);
 		
 		// Create Chunk Border to Give Audio 'Context'
 		int newFrequencyResolution = fullAudioInput[0].size();
@@ -149,7 +149,7 @@ void createOutputTestTrack(NeuralNetwork network, audioFileConfig config) {
 	}
 
 	// Get Samples and Write To Track
-	vector<int16_t> testTrackOutputSamples = vocalSamples("inputs/1.mp3", config.samplesPerChunk, config.samplesPerChunk, predictedTrackSpectrogram);
+	vector<int16_t> testTrackOutputSamples = vocalSamples("inputs/1.mp3", config.samplesPerChunk, config.samplesPerChunk, predictedTrackSpectrogram, config.spectrogramEmphasis);
 	writeToWAV("testTrackOutput.wav", testTrackOutputSamples);
 }
 

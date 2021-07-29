@@ -5,8 +5,8 @@
 #include <iostream>
 using namespace std;
 
-vector<vector<float>> spectrogramOutput(const char* mp3Filename, int samplesPerChunk, int samplesPerStride, int frequencyResolution);
-vector<int16_t> vocalSamples(const char* fullFileNameMP3, int samplesPerChunk, int samplesPerStride, vector<vector<float>> networkOutput);
+vector<vector<float>> spectrogramOutput(const char* mp3Filename, int samplesPerChunk, int samplesPerStride, int frequencyResolution, float emphasis);
+vector<int16_t> vocalSamples(const char* fullFileNameMP3, int samplesPerChunk, int samplesPerStride, vector<vector<float>> networkOutput, float emphasis);
 void writeToWAV(const char* fileName, vector<int16_t> samples);
 
 #endif // !AUDIO_H

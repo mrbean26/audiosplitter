@@ -17,7 +17,9 @@ int main() {
 		4, // chunk border
 
 		1, // start file index
-		1 // song count
+		1, // song count
+
+		2.0f // spectrogram emphasis, no emphasis = 1.0f
 	};
 
 	// Train Network - One Song Training
@@ -36,7 +38,7 @@ int main() {
 	newConfig.trainInputs = inputSet;
 	newConfig.trainOutputs = outputSet;
 
-	newConfig.epochs = 50000;
+	newConfig.epochs = 1000;
 	newConfig.learningRate = 1.0f;
 	newConfig.momentum = 0.25f;
 	newConfig.learningRateType = CYCLICAL_LEARNING_RATE;
