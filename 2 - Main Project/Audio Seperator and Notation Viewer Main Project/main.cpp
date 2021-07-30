@@ -19,7 +19,10 @@ int main() {
 		1, // start file index
 		1, // song count
 
-		2.0f // spectrogram emphasis, no emphasis = 1.0f
+		2.0f, // spectrogram emphasis, no emphasis = 1.0f
+
+		false, // use binary mask for output
+		0.025f // binary mask threshold
 	};
 
 	// Train Network - One Song Training
@@ -29,7 +32,7 @@ int main() {
 	int inputSize = inputSet[0].size();
 	int outputSize = outputSet[0].size();
 
-	vector<int> layers = { inputSize, 224, 192, 160, 128, outputSize };
+	vector<int> layers = { inputSize, 384, 320, 256, 192, 128, outputSize };
 	vector<int> biases = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
 
 	NeuralNetwork newNetwork = NeuralNetwork(layers, biases, "sigmoid");
@@ -38,12 +41,12 @@ int main() {
 	newConfig.trainInputs = inputSet;
 	newConfig.trainOutputs = outputSet;
 
-	newConfig.epochs = 1000;
+	newConfig.epochs = 50000;
 	newConfig.learningRate = 1.0f;
 	newConfig.momentum = 0.25f;
 	newConfig.learningRateType = CYCLICAL_LEARNING_RATE;
 
-	newConfig.entireBatchEpochIntervals = 1000;
+	newConfig.entireBatchEpochIntervals = 10000;
 	newConfig.batchSize = 100;
 
 	newConfig.trainType = STOCHASTIC_GRADIENT_DESCENT;
@@ -66,7 +69,7 @@ int main() {
 		0.0f,
 	};
 
-	//writeToImage(imageConfig);
+	writeToImage(imageConfig);
 	
 
 	system("pause");

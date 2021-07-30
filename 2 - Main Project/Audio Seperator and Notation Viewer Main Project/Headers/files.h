@@ -24,6 +24,9 @@ struct audioFileConfig {
 	int songCount = 1;
 
 	float spectrogramEmphasis = 2.0f; // "No emphasis" = 1.0f
+
+	bool useOutputBinaryMask = false;
+	float binaryMaskThreshold = 0.025f;
 };
 struct outputImageConfig {
 	vector<float> errors;

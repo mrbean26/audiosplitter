@@ -123,6 +123,16 @@ vector<vector<float>> generateOutputs(audioFileConfig config) {
 					value = 0.0f;
 				}
 
+				// Add Optional Binary Mask
+				if (config.useOutputBinaryMask) {
+					if (value > config.binaryMaskThreshold) {
+						value = 1.0f;
+					}
+					else {
+						value = 0.0f;
+					}
+				}
+
 				currentInput.push_back(value);
 			}
 			result.push_back(currentInput);
