@@ -116,11 +116,11 @@ public:
     vector<vector<Node>> layerNodes;
     vector<vector<Bias>> layerBiases;
 
-    string activationType = "sigmoid";
+    vector<string> activations;
     int layerCount = 0;
 
     // Initialising
-    NeuralNetwork(vector<int> layers, vector<int> biases, string activation);
+    NeuralNetwork(vector<int> layers, vector<int> biases, vector<string> activationLayers);
     void initialiseWeights();
 
     void saveWeightsToFile(string directory);
@@ -129,8 +129,8 @@ public:
     // General Training
     vector<float> train(standardTrainConfig trainConfig);
 
-    float activate(float x);
-    float derivative(float x);
+    float activate(float x, int layer);
+    float derivative(float x, int layer);
 
     void feedForward(vector<float> inputs);
     vector<float> predict(vector<float> inputs);

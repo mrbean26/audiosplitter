@@ -109,7 +109,7 @@ vector<vector<float>> generateOutputs(audioFileConfig config) {
 		// Load File Spectrogram From Integer File
 		string fileName = "outputs/" + to_string(f) + ".mp3";
 		vector<vector<float>> fullAudioInput = spectrogramOutput(fileName.data(), config.samplesPerChunk, config.samplesPerOverlap, config.frequencyResolution, config.spectrogramEmphasis);
-		
+
 		// Create Chunk Border to Give Audio 'Context'
 		int newFrequencyResolution = fullAudioInput[0].size();
 

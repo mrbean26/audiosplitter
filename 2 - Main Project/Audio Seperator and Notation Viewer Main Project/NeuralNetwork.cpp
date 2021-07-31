@@ -7,7 +7,7 @@
 #include "Headers/matrices.h"
 
 // Initialisation Functions
-NeuralNetwork::NeuralNetwork(vector<int> layers, vector<int> biases, string activation) {
+NeuralNetwork::NeuralNetwork(vector<int> layers, vector<int> biases, vector<string> activationLayers) {
     layerCount = layers.size();
     for (int i = 0; i < layerCount; i++) {
         vector<Node> newLayer;
@@ -23,6 +23,8 @@ NeuralNetwork::NeuralNetwork(vector<int> layers, vector<int> biases, string acti
         layerBiases.push_back(newBiasLayer);
     }
     initialiseWeights();
+
+    activations = activationLayers;
 }
 float randomFloat() {
     int number = rand() % 200;
@@ -211,20 +213,20 @@ vector<float> NeuralNetwork::train(standardTrainConfig trainConfig) {
     return result;
 }
 
-float NeuralNetwork::activate(float x) {
-    if (activationType == "sigmoid") {
+float NeuralNetwork::activate(float x, int layer) {
+    if (activations[layer] == "sigmoid") {
         return 1.0f / (1.0f + exp(-x));
     }
-    if (activationType == "tanh") {
+    if (activations[layer] == "tanh") {
         return (exp(x) - exp(-x)) / (exp(x) + exp(-x));
     }
-    if (activationType == "relu") {
+    if (activations[layer] == "relu") {
         if (x > 0.0f) {
             return x;
         }
         return 0.0f;
     }
-    if (activationType == "leaky_relu") {
+    if (activations[layer] == "leaky_relu") {
         if (x > 0.01f * x) {
             return x;
         }
@@ -232,20 +234,20 @@ float NeuralNetwork::activate(float x) {
     }
     return 1.0f / (1.0f + exp(-x));
 }
-float NeuralNetwork::derivative(float x) {
-    if (activationType == "sigmoid") {
+float NeuralNetwork::derivative(float x, int layer) {
+    if (activations[layer] == "sigmoid") {
         return x * (1 - x);
     }
-    if (activationType == "tanh") {
+    if (activations[layer] == "tanh") {
         return 1 - (x * x);
     }
-    if (activationType == "relu") {
+    if (activations[layer] == "relu") {
         if (x > 0.0f) {
             return 1.0f;
         }
         return 0.0f;
     }
-    if (activationType == "leaky_relu") {
+    if (activations[layer] == "leaky_relu") {
         if (x > 0.0f) {
             return 1.0f;
         }
@@ -271,7 +273,7 @@ void NeuralNetwork::feedForward(vector<float> inputs) {
         // After Weighted Sum, Pass node value through activation function
         if (i > 0) {
             for (int n = 0; n < thisLayerCount; n++) {
-                layerNodes[i][n].value = activate(layerNodes[i][n].value);
+                layerNodes[i][n].value = activate(layerNodes[i][n].value, i);
             }
         }
 
@@ -326,7 +328,7 @@ void NeuralNetwork::calculateDerivatives(vector<float> outputErrors, float error
     int finalLayerCount = layerNodes[layerCount - 1].size();
 
     for (int i = 0; i < finalLayerCount; i++) {
-        layerNodes[layerCount - 1][i].derivativeErrorValue = derivative(layerNodes[layerCount - 1][i].value) * outputErrors[i] * errorMultiplier;
+        layerNodes[layerCount - 1][i].derivativeErrorValue = derivative(layerNodes[layerCount - 1][i].value, layerCount - 1) * outputErrors[i] * errorMultiplier;
     }
     // Backpropagate by Calculating Partial Derivatives of Each Node with Respect to The Error
     for (int i = layerCount - 2; i > -1; i--) {
@@ -338,7 +340,7 @@ void NeuralNetwork::calculateDerivatives(vector<float> outputErrors, float error
             }
 
             int outWeightCount = layerNodes[i][n].outWeights.size();
-            float valueMultiplier = derivative(layerNodes[i][n].value);
+            float valueMultiplier = derivative(layerNodes[i][n].value, i);
 
             if (i == 0) {
                 valueMultiplier = layerNodes[i][n].value; // This value is used for input layer due to this layer not being activated
