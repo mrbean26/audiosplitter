@@ -17,11 +17,11 @@ int main() {
 		4, // chunk border
 
 		1, // start file index
-		1, // song count
+		2, // song count
 
 		2.0f, // spectrogram emphasis, no emphasis = 1.0f
 
-		false , // use binary mask for output
+		true , // use binary mask for output
 		0.025f // binary mask threshold
 	};
 
@@ -32,9 +32,9 @@ int main() {
 	int inputSize = inputSet[0].size();
 	int outputSize = outputSet[0].size();
 
-	vector<int> layers = { inputSize, 384, 320, 256, 192, 128, outputSize };
+	vector<int> layers = { inputSize, 448, 384, 320, 256, 192, 128, outputSize };
 	vector<int> biases = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
-	vector<string> activations = { "sigmoid", "sigmoid" , "sigmoid" , "sigmoid" , "sigmoid" , "sigmoid" , "sigmoid" , "sigmoid" , "sigmoid" , "sigmoid" , "sigmoid" , "sigmoid" , "sigmoid" , "sigmoid" };
+	vector<string> activations = { "sigmoid", "sigmoid" , "sigmoid" , "sigmoid" , "sigmoid" , "sigmoid" , "sigmoid" , "sigmoid" };
 
 	NeuralNetwork newNetwork = NeuralNetwork(layers, biases, activations);
 	
@@ -42,7 +42,7 @@ int main() {
 	newConfig.trainInputs = inputSet;
 	newConfig.trainOutputs = outputSet;
 
-	newConfig.epochs = 25000;
+	newConfig.epochs = 50000;
 	newConfig.learningRate = 1.0f;
 	newConfig.momentum = 0.25f;
 	newConfig.learningRateType = CYCLICAL_LEARNING_RATE;

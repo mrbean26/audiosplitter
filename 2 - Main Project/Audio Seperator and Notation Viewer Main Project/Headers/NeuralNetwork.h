@@ -17,6 +17,8 @@ using namespace std;
 string vectorToString(vector<float> used);
 struct audioFileConfig;
 
+#define SIGMOIDAL_STEP_FUNCTION_MULTIPLIER 100000
+
 // Train Type Definitions
 #define STOCHASTIC_GRADIENT_DESCENT 0
 #define GRADIENT_DESCENT 1

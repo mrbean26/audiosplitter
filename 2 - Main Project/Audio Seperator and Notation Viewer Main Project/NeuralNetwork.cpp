@@ -213,6 +213,7 @@ vector<float> NeuralNetwork::train(standardTrainConfig trainConfig) {
     return result;
 }
 
+// Feed Forward - STEP FUNCTION NOT GOOD, HAS EXTREME GRADIENTS
 float NeuralNetwork::activate(float x, int layer) {
     if (activations[layer] == "sigmoid") {
         return 1.0f / (1.0f + exp(-x));
@@ -231,6 +232,9 @@ float NeuralNetwork::activate(float x, int layer) {
             return x;
         }
         return x * 0.01f;
+    }
+    if (activations[layer] == "step") {
+        return 1.0f / (1.0f + exp(-SIGMOIDAL_STEP_FUNCTION_MULTIPLIER * x));
     }
     return 1.0f / (1.0f + exp(-x));
 }
@@ -252,6 +256,9 @@ float NeuralNetwork::derivative(float x, int layer) {
             return 1.0f;
         }
         return 0.01f;
+    }
+    if (activations[layer] == "step") {
+        return x * x * SIGMOIDAL_STEP_FUNCTION_MULTIPLIER * ((1.0f / x) - 1.0f);
     }
     return x * (1 - x);
 }
