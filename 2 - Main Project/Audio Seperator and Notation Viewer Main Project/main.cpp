@@ -21,7 +21,7 @@ int main() {
 
 		2.0f, // spectrogram emphasis, no emphasis = 1.0f
 
-		true , // use binary mask for output
+		false, // use binary mask for output
 		0.025f // binary mask threshold
 	};
 
@@ -34,7 +34,7 @@ int main() {
 
 	vector<int> layers = { inputSize, 448, 384, 320, 256, 192, 128, outputSize };
 	vector<int> biases = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
-	vector<string> activations = { "sigmoid", "sigmoid" , "sigmoid" , "sigmoid" , "sigmoid" , "sigmoid" , "sigmoid" , "sigmoid" };
+	vector<int> activations = { SIGMOID, SIGMOID, SIGMOID, SIGMOID, SIGMOID, SIGMOID, SIGMOID, SIGMOID};
 
 	NeuralNetwork newNetwork = NeuralNetwork(layers, biases, activations);
 	

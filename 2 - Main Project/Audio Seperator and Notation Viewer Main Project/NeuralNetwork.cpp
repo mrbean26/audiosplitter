@@ -7,7 +7,7 @@
 #include "Headers/matrices.h"
 
 // Initialisation Functions
-NeuralNetwork::NeuralNetwork(vector<int> layers, vector<int> biases, vector<string> activationLayers) {
+NeuralNetwork::NeuralNetwork(vector<int> layers, vector<int> biases, vector<int> activationLayers) {
     layerCount = layers.size();
     for (int i = 0; i < layerCount; i++) {
         vector<Node> newLayer;
@@ -215,49 +215,49 @@ vector<float> NeuralNetwork::train(standardTrainConfig trainConfig) {
 
 // Feed Forward - STEP FUNCTION NOT GOOD, HAS EXTREME GRADIENTS
 float NeuralNetwork::activate(float x, int layer) {
-    if (activations[layer] == "sigmoid") {
+    if (activations[layer] == SIGMOID) {
         return 1.0f / (1.0f + exp(-x));
     }
-    if (activations[layer] == "tanh") {
+    if (activations[layer] == TANH) {
         return (exp(x) - exp(-x)) / (exp(x) + exp(-x));
     }
-    if (activations[layer] == "relu") {
+    if (activations[layer] == RELU) {
         if (x > 0.0f) {
             return x;
         }
         return 0.0f;
     }
-    if (activations[layer] == "leaky_relu") {
+    if (activations[layer] == LEAKY_RELU) {
         if (x > 0.01f * x) {
             return x;
         }
         return x * 0.01f;
     }
-    if (activations[layer] == "step") {
+    if (activations[layer] == STEP) {
         return 1.0f / (1.0f + exp(-SIGMOIDAL_STEP_FUNCTION_MULTIPLIER * x));
     }
     return 1.0f / (1.0f + exp(-x));
 }
 float NeuralNetwork::derivative(float x, int layer) {
-    if (activations[layer] == "sigmoid") {
+    if (activations[layer] == SIGMOID) {
         return x * (1 - x);
     }
-    if (activations[layer] == "tanh") {
+    if (activations[layer] == TANH) {
         return 1 - (x * x);
     }
-    if (activations[layer] == "relu") {
+    if (activations[layer] == RELU) {
         if (x > 0.0f) {
             return 1.0f;
         }
         return 0.0f;
     }
-    if (activations[layer] == "leaky_relu") {
+    if (activations[layer] == LEAKY_RELU) {
         if (x > 0.0f) {
             return 1.0f;
         }
         return 0.01f;
     }
-    if (activations[layer] == "step") {
+    if (activations[layer] == STEP) {
         return x * x * SIGMOIDAL_STEP_FUNCTION_MULTIPLIER * ((1.0f / x) - 1.0f);
     }
     return x * (1 - x);

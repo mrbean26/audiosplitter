@@ -17,7 +17,14 @@ using namespace std;
 string vectorToString(vector<float> used);
 struct audioFileConfig;
 
-#define SIGMOIDAL_STEP_FUNCTION_MULTIPLIER 100000
+#define SIGMOIDAL_STEP_FUNCTION_MULTIPLIER 5
+
+// Activations
+#define SIGMOID 0
+#define TANH 1
+#define RELU 2
+#define LEAKY_RELU 3
+#define STEP 4
 
 // Train Type Definitions
 #define STOCHASTIC_GRADIENT_DESCENT 0
@@ -118,11 +125,11 @@ public:
     vector<vector<Node>> layerNodes;
     vector<vector<Bias>> layerBiases;
 
-    vector<string> activations;
+    vector<int> activations;
     int layerCount = 0;
 
     // Initialising
-    NeuralNetwork(vector<int> layers, vector<int> biases, vector<string> activationLayers);
+    NeuralNetwork(vector<int> layers, vector<int> biases, vector<int> activationLayers);
     void initialiseWeights();
 
     void saveWeightsToFile(string directory);
