@@ -19,10 +19,10 @@ int main() {
 		1, // start file index
 		2, // song count
 
-		2.0f, // spectrogram emphasis, no emphasis = 1.0f
+		3.0f, // spectrogram emphasis, no emphasis = 1.0f
 
 		false, // use binary mask for output
-		0.025f // binary mask threshold
+		0.025f, // binary mask threshold
 	};
 
 	// Train Network - One Song Training
@@ -42,13 +42,13 @@ int main() {
 	newConfig.trainInputs = inputSet;
 	newConfig.trainOutputs = outputSet;
 
-	newConfig.epochs = 50000;
-	newConfig.learningRate = 1.0f;
-	newConfig.momentum = 0.25f;
+	newConfig.epochs = 10000;
+	newConfig.learningRate = 0.75f;
+	newConfig.momentum = 0.125f;
 	newConfig.learningRateType = CYCLICAL_LEARNING_RATE;
 
 	newConfig.entireBatchEpochIntervals = 10000;
-	newConfig.batchSize = 100;
+	newConfig.batchSize = 400;
 
 	newConfig.trainType = STOCHASTIC_GRADIENT_DESCENT;
 
