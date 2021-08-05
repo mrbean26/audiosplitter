@@ -2,7 +2,7 @@
 #include "Headers/fftw3.h"
 
 int main() {
-	int frequencyResolution = 2048;
+	int frequencyResolution = 128;
 	int samplesPerChunk = 2048;
 
 	int valuesPerBand = samplesPerChunk / frequencyResolution;

@@ -203,9 +203,11 @@ vector<int16_t> vocalSamples(const char* fullFileNameMP3, int samplesPerChunk, i
 			for (int j = 0; j < valuesPerBand; j++) {
 				float combinedValue = sqrt(fftOutput[i + j][0] * fftOutput[i + j][0] + fftOutput[i + j][1] * fftOutput[i + j][1]);
 				float multiplier = specmax / combinedValue;
-
-				fftOutput[i + j][0] = networkOutput[chunkNum][i / valuesPerBand] * fftOutput[i + j][0] * multiplier;
-				fftOutput[i + j][1] = networkOutput[chunkNum][i / valuesPerBand] * fftOutput[i + j][1] * multiplier;
+				multiplier = pow(multiplier, 0.5);
+				//multiplier = log(networkOutput[chunkNum][i / valuesPerBand]);
+				
+				fftOutput[i + j][0] = (networkOutput[chunkNum][i / valuesPerBand]) * fftOutput[i + j][0] * multiplier;
+				fftOutput[i + j][1] = (networkOutput[chunkNum][i / valuesPerBand]) * fftOutput[i + j][1] * multiplier;
 			}
 		}
 
