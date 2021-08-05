@@ -38,7 +38,7 @@ vector<int> loadAudioSamples(mp3d_sample_t* buffer, int sampleCount, int channel
 	}
 }
 
-vector<vector<float>> spectrogramOutput(const char* mp3Filename, int samplesPerChunk, int samplesPerStride, int frequencyResolution) {
+pair<vector<vector<float>>, float> spectrogramOutput(const char* mp3Filename, int samplesPerChunk, int samplesPerStride, int frequencyResolution) {
 	mp3dec_file_info_t audioData = loadAudioData(mp3Filename);
 	vector<int> audioSamples = loadAudioSamples(audioData.buffer, audioData.samples, audioData.channels);
 
@@ -123,6 +123,15 @@ vector<vector<float>> spectrogramOutput(const char* mp3Filename, int samplesPerC
 	for (int chunkNum = 0; chunkNum < chunkCount; chunkNum++) {
 		for (int i = 0; i < newSamplesPerChunk; i++) {
 			spectrogramChunks[chunkNum][i] = spectrogramChunks[chunkNum][i] / maxValue;
+			
+			/* BINARY MASK
+			if (spectrogramChunks[chunkNum][i] > 0.025f) {
+				spectrogramChunks[chunkNum][i] = 1.0f;
+			}
+			else {
+				spectrogramChunks[chunkNum][i] = 0.0f;
+			}
+			*/
 		}
 
 		vector<float> currentVector(spectrogramChunks[chunkNum].begin(), spectrogramChunks[chunkNum].begin() + newSamplesPerChunk / 2);
@@ -130,10 +139,10 @@ vector<vector<float>> spectrogramOutput(const char* mp3Filename, int samplesPerC
 	}
 
 	// Return as vector<vector<float>>
-	return result;
+	return make_pair(result, maxValue);
 }
 
-vector<int16_t> vocalSamples(const char* fullFileNameMP3, int samplesPerChunk, int samplesPerStride, vector<vector<float>> networkOutput) {
+vector<int16_t> vocalSamples(const char* fullFileNameMP3, int samplesPerChunk, int samplesPerStride, vector<vector<float>> networkOutput, float specmax) {
 	// Recreate full spectrogram
 	for (int i = 0; i < networkOutput.size(); i++) {
 		vector<float> currentChunk = networkOutput[i];
@@ -192,8 +201,11 @@ vector<int16_t> vocalSamples(const char* fullFileNameMP3, int samplesPerChunk, i
 
 		for (int i = 0; i < samplesPerChunk; i += valuesPerBand) {
 			for (int j = 0; j < valuesPerBand; j++) {
-				fftOutput[i + j][0] = networkOutput[chunkNum][i / valuesPerBand] * fftOutput[i + j][0];
-				fftOutput[i + j][1] = networkOutput[chunkNum][i / valuesPerBand] * fftOutput[i + j][1];
+				float combinedValue = sqrt(fftOutput[i + j][0] * fftOutput[i + j][0] + fftOutput[i + j][1] * fftOutput[i + j][1]);
+				float multiplier = specmax / combinedValue;
+
+				fftOutput[i + j][0] = networkOutput[chunkNum][i / valuesPerBand] * fftOutput[i + j][0] * multiplier;
+				fftOutput[i + j][1] = networkOutput[chunkNum][i / valuesPerBand] * fftOutput[i + j][1] * multiplier;
 			}
 		}
 
