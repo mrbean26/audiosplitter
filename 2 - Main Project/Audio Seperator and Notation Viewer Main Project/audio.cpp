@@ -42,7 +42,7 @@ vector<int> loadAudioSamples(mp3d_sample_t* buffer, int sampleCount, int channel
 }
 
 // Network
-vector<vector<float>> spectrogramOutput(const char* mp3Filename, audioFileConfig audioConfig) {
+pair<vector<vector<float>>, float> spectrogramOutput(const char* mp3Filename, audioFileConfig audioConfig) {
 	mp3dec_file_info_t audioData = loadAudioData(mp3Filename);
 	vector<int> audioSamples = loadAudioSamples(audioData.buffer, audioData.samples, audioData.channels);
 	delete[] audioData.buffer; 
@@ -135,9 +135,13 @@ vector<vector<float>> spectrogramOutput(const char* mp3Filename, audioFileConfig
 	}
 
 	// Return as vector<vector<float>>
-	return result;
+	return make_pair(result, maxValue);
 }
 vector<int16_t> vocalSamples(const char* fullFileNameMP3, vector<vector<float>> networkOutput, audioFileConfig audioConfig) {
+	// Get Max Value From Original Track (Inefficient, change before release)
+	pair<vector<vector<float>>, float> fullTrackSpectrogram = spectrogramOutput(fullFileNameMP3, audioConfig);
+	float maxValueSpectrogramFullTrack = fullTrackSpectrogram.second;
+	
 	// Recreate full spectrogram
 	int networkSubOutputSize = networkOutput[0].size();
 	for (int i = 0; i < networkOutput.size(); i++) {
@@ -210,8 +214,11 @@ vector<int16_t> vocalSamples(const char* fullFileNameMP3, vector<vector<float>> 
 
 		for (int i = 0; i < audioConfig.samplesPerChunk; i += valuesPerBand) {
 			for (int j = 0; j < valuesPerBand; j++) {
-				fftOutput[i + j][0] = networkOutput[chunkNum][i / valuesPerBand] * fftOutput[i + j][0];
-				fftOutput[i + j][1] = networkOutput[chunkNum][i / valuesPerBand] * fftOutput[i + j][1];
+				float valueMagnitude = sqrt(fftOutput[i + j][0] * fftOutput[i + j][0] + fftOutput[i + j][1] * fftOutput[i + j][1]);
+				float multiplier = sqrtf(maxValueSpectrogramFullTrack / valueMagnitude);
+				
+				fftOutput[i + j][0] = networkOutput[chunkNum][i / valuesPerBand] * fftOutput[i + j][0] * multiplier;
+				fftOutput[i + j][1] = networkOutput[chunkNum][i / valuesPerBand] * fftOutput[i + j][1] * multiplier;
 			}
 		}
 

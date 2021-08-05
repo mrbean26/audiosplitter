@@ -74,7 +74,8 @@ vector<vector<float>> generateInputs(audioFileConfig config) {
 	for (int f = config.startFileIndex; f < endIndex; f++) {
 		// Load File Spectrogram From Integer File
 		string fileName = "inputs/" + to_string(f) + ".mp3";
-		vector<vector<float>> fullAudioInput = spectrogramOutput(fileName.data(), config);
+		pair<vector<vector<float>>, float> spectrogram = spectrogramOutput(fileName.data(), config);
+		vector<vector<float>> fullAudioInput = spectrogram.first;
 
 		// Create Chunk Border to Give Audio 'Context'
 		int newFrequencyResolution = fullAudioInput[0].size();
@@ -108,7 +109,8 @@ vector<vector<float>> generateOutputs(audioFileConfig config) {
 	for (int f = config.startFileIndex; f < endIndex; f++) {
 		// Load File Spectrogram From Integer File
 		string fileName = "outputs/" + to_string(f) + ".mp3";
-		vector<vector<float>> fullAudioInput = spectrogramOutput(fileName.data(), config);
+		pair<vector<vector<float>>, float> spectrogram = spectrogramOutput(fileName.data(), config);
+		vector<vector<float>> fullAudioInput = spectrogram.first;
 
 		// Create Chunk Border to Give Audio 'Context'
 		int newFrequencyResolution = fullAudioInput[0].size();

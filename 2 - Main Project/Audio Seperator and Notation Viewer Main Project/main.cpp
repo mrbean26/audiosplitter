@@ -19,7 +19,7 @@ int main() {
 		1, // start file index
 		2, // song count
 
-		3.0f, // spectrogram emphasis, no emphasis = 1.0f
+		2.5f, // spectrogram emphasis, no emphasis = 1.0f
 
 		false, // use binary mask for output
 		0.025f, // binary mask threshold
@@ -42,12 +42,12 @@ int main() {
 	newConfig.trainInputs = inputSet;
 	newConfig.trainOutputs = outputSet;
 
-	newConfig.epochs = 10000;
+	newConfig.epochs = 25000;
 	newConfig.learningRate = 0.75f;
 	newConfig.momentum = 0.125f;
 	newConfig.learningRateType = CYCLICAL_LEARNING_RATE;
 
-	newConfig.entireBatchEpochIntervals = 10000;
+	newConfig.entireBatchEpochIntervals = 1000;
 	newConfig.batchSize = 400;
 
 	newConfig.trainType = STOCHASTIC_GRADIENT_DESCENT;
