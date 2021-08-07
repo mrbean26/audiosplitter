@@ -149,6 +149,7 @@
   <ItemGroup>
     <ClCompile Include="audio.cpp" />
     <ClCompile Include="files.cpp" />
+    <ClCompile Include="KNearestNeighbors.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="matrices.cpp" />
     <ClCompile Include="NeuralNetwork.cpp" />
@@ -157,6 +158,7 @@
     <ClInclude Include="Headers\audio.h" />
     <ClInclude Include="Headers\fftw3.h" />
     <ClInclude Include="Headers\files.h" />
+    <ClInclude Include="Headers\KNearestNeighbors.h" />
     <ClInclude Include="Headers\matrices.h" />
     <ClInclude Include="Headers\minimp3.h" />
     <ClInclude Include="Headers\minimp3_ex.h" />

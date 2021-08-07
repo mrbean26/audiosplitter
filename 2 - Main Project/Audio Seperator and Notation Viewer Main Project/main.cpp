@@ -8,6 +8,21 @@ using namespace std;
 
 #include "Headers/matrices.h"
 
+
+
+
+
+
+
+
+
+
+
+#include "Headers/KNearestNeighbors.h"
+
+
+
+
 int main() {
 	audioFileConfig audioConfig = {
 		2048, // samples per chunk
@@ -17,7 +32,7 @@ int main() {
 		4, // chunk border
 
 		1, // start file index
-		2, // song count
+		1, // song count
 
 		2.5f, // spectrogram emphasis, no emphasis = 1.0f
 
@@ -28,6 +43,24 @@ int main() {
 	// Train Network - One Song Training
 	vector<vector<float>> inputSet = generateInputs(audioConfig);
 	vector<vector<float>> outputSet = generateOutputs(audioConfig);
+
+
+	// Tmp KNN Test
+
+	pair<vector<vector<float>>, vector<vector<float>>> dataset = make_pair(inputSet, outputSet);
+	int kParameter = 1;
+	int outputType = 0;
+	float error = 0.0f;
+
+	for (int i = 0; i < 4; i++) {
+		vector<float> prediction = kNearestNeighbors(dataset, kParameter, outputType, inputSet[i]);
+
+		for (int j = 0; j < prediction.size(); j++) {
+			error += abs(prediction[j] - outputSet[i][j]);
+		}
+	}
+
+	cout << error << endl;	
 
 	int inputSize = inputSet[0].size();
 	int outputSize = outputSet[0].size();
