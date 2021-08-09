@@ -152,6 +152,7 @@
     <ClCompile Include="KNearestNeighbors.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="matrices.cpp" />
+    <ClCompile Include="NaiveBayes.cpp" />
     <ClCompile Include="NeuralNetwork.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -162,6 +163,7 @@
     <ClInclude Include="Headers\matrices.h" />
     <ClInclude Include="Headers\minimp3.h" />
     <ClInclude Include="Headers\minimp3_ex.h" />
+    <ClInclude Include="Headers\NaiveBayes.h" />
     <ClInclude Include="Headers\NeuralNetwork.h" />
     <ClInclude Include="Headers\stb_image_write.h" />
   </ItemGroup>

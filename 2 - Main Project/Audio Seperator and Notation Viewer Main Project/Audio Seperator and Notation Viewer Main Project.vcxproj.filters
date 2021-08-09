@@ -36,6 +36,9 @@
     <ClCompile Include="KNearestNeighbors.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="NaiveBayes.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Headers\audio.h">
@@ -63,6 +66,9 @@
       <Filter>Source Files\Headers</Filter>
     </ClInclude>
     <ClInclude Include="Headers\KNearestNeighbors.h">
+      <Filter>Source Files\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Headers\NaiveBayes.h">
       <Filter>Source Files\Headers</Filter>
     </ClInclude>
   </ItemGroup>

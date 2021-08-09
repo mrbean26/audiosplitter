@@ -13,13 +13,31 @@ using namespace std;
 
 
 
+#include "Headers/NaiveBayes.h"
 
+int currentBayesIndex = 0;
+bool a(DATASET_ENTRY entry) {
+	int size = entry.second.size();
+	int count = 0;
 
+	for (int i = 0; i < size; i++) {
+		if (entry.second[i] > 0.5f) {
+			count += 1;
+		}
+	}
 
+	if (float(count) > float(size) / 2.0f) {
+		return true;
+	}
+	return false;
+}
 
-
-#include "Headers/KNearestNeighbors.h"
-
+bool b(DATASET_ENTRY entry) {
+	if (entry.second[currentBayesIndex] > 0.5) {
+		return true;
+	}
+	return false;
+}
 
 
 
@@ -32,7 +50,7 @@ int main() {
 		4, // chunk border
 
 		1, // start file index
-		1, // song count
+		4, // song count
 
 		2.5f, // spectrogram emphasis, no emphasis = 1.0f
 
@@ -45,22 +63,59 @@ int main() {
 	vector<vector<float>> outputSet = generateOutputs(audioConfig);
 
 
-	// Tmp KNN Test
 
-	pair<vector<vector<float>>, vector<vector<float>>> dataset = make_pair(inputSet, outputSet);
-	int kParameter = 1;
-	int outputType = 0;
-	float error = 0.0f;
 
-	for (int i = 0; i < 4; i++) {
-		vector<float> prediction = kNearestNeighbors(dataset, kParameter, outputType, inputSet[i]);
+	// Test naive bayes
+	vector<bayesProbability> probabilities;
 
-		for (int j = 0; j < prediction.size(); j++) {
-			error += abs(prediction[j] - outputSet[i][j]);
+	for (int i = 0; i < outputSet[0].size(); i++) {
+		currentBayesIndex = i;
+
+		bayesProbability current = getProbabilities(make_pair(inputSet, outputSet), a, b);
+		probabilities.push_back(current);
+	}
+	// predict
+	float totalError = 0.0f;
+	float lowestB = 0.0f;
+
+	for (int i = 0; i < outputSet.size(); i++) {
+		vector<float> currentFreqIncludingContext = inputSet[i]; // --- this includes context
+
+		int contextParameter = (audioConfig.frequencyResolution / 2) * audioConfig.chunkBorder;
+		vector<float> currentFreq(currentFreqIncludingContext.begin() + contextParameter, currentFreqIncludingContext.begin() + contextParameter + (audioConfig.frequencyResolution / 2));
+
+
+		float predictionVocal = 1.0f;
+		for (int j = 0; j < currentFreq.size(); j++) {
+			
+			if (currentFreq[j] > 0.5f) {
+				predictionVocal *= naiveBayes(probabilities[j]);
+			}
+			lowestB = min(lowestB, lowestB);
+		}
+
+		vector<float> predictedChunk;
+
+		if (predictionVocal > 0.9f) {
+			predictedChunk = currentFreq;
+			
+
+		}
+		else {
+			vector<float> newvector(currentFreq.size());
+			predictedChunk = newvector;
+		}
+
+		vector<float> actualChunk = outputSet[i];
+
+		for (int j = 0; j < currentFreq.size(); j++) {
+			totalError += abs(predictedChunk[j] - actualChunk[j]);
 		}
 	}
 
-	cout << error << endl;	
+	cout << totalError << endl;
+
+
 
 	int inputSize = inputSet[0].size();
 	int outputSize = outputSet[0].size();
