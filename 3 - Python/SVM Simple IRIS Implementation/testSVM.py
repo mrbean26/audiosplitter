@@ -2,7 +2,7 @@
 from random import uniform
 
 bias = uniform(-10.0, 10.0)
-vector = [uniform(-10.0, 10.0), uniform(-10.0, 10.0), uniform(-10.0, 10.0), uniform(-10.0, 10.0), uniform(-10.0, 10.0)]
+vector = [uniform(-10.0, 10.0), uniform(-10.0, 10.0), uniform(-10.0, 10.0), uniform(-10.0, 10.0)]
 
 # Load Part of IRIS Dataset
 inputs = []
@@ -13,11 +13,13 @@ irisLines = irisFile.readlines()
 
 for i in range(100):
     index = i
-    data = irisLines[index].split(",")
+    data = irisLines[index].strip().split(",")
 
-    inputs.append([float(data[0]), float(data[1]), float(data[2]), float(data[3]), float(data[4])])
+    inputs.append([float(data[1]), float(data[2]), float(data[3]), float(data[4])])
 
-    if(data[5] == "Iris-setosa\n"):
+
+
+    if(data[5] == "Iris-setosa"):
         outputs.append(1)
     else:
         outputs.append(-1)
@@ -51,7 +53,7 @@ def subtractVector(a, b):
 
 # Find Support Vector
 epochs = 1000
-LR = 0.001
+LR = 0.0005
 
 for i in range(epochs):
     for j in range(len(inputs)):
@@ -82,3 +84,4 @@ for i in range(len(inputs)):
         counts[1] += 1
 
 print(counts)
+print(inputs[53])
