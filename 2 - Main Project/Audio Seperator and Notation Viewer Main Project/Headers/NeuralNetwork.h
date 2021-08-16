@@ -25,6 +25,7 @@ struct audioFileConfig;
 #define RELU 2
 #define LEAKY_RELU 3
 #define STEP 4
+#define SOFTMAX 5
 
 // Train Type Definitions
 #define STOCHASTIC_GRADIENT_DESCENT 0

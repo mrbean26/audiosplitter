@@ -214,6 +214,7 @@ vector<float> NeuralNetwork::train(standardTrainConfig trainConfig) {
 }
 
 // Feed Forward - STEP FUNCTION NOT GOOD, HAS EXTREME GRADIENTS
+float layerSoftmaxTotal = 0.0f;
 float NeuralNetwork::activate(float x, int layer) {
     if (activations[layer] == SIGMOID) {
         return 1.0f / (1.0f + exp(-x));
@@ -235,6 +236,9 @@ float NeuralNetwork::activate(float x, int layer) {
     }
     if (activations[layer] == STEP) {
         return 1.0f / (1.0f + exp(-SIGMOIDAL_STEP_FUNCTION_MULTIPLIER * x));
+    }
+    if (activations[layer] == SOFTMAX) {
+        return expf(x) / layerSoftmaxTotal;
     }
     return 1.0f / (1.0f + exp(-x));
 }
@@ -260,6 +264,9 @@ float NeuralNetwork::derivative(float x, int layer) {
     if (activations[layer] == STEP) {
         return x * x * SIGMOIDAL_STEP_FUNCTION_MULTIPLIER * ((1.0f / x) - 1.0f);
     }
+    if (activations[layer] == SOFTMAX) {
+        return x * (1.0f - x);
+    }
     return x * (1 - x);
 }
 
@@ -279,6 +286,14 @@ void NeuralNetwork::feedForward(vector<float> inputs) {
 
         // After Weighted Sum, Pass node value through activation function
         if (i > 0) {
+            if (activations[i] == SOFTMAX) {
+                layerSoftmaxTotal = 0.0f;
+
+                for (int n = 0; n < thisLayerCount; n++) {
+                    layerSoftmaxTotal = layerSoftmaxTotal + expf(layerNodes[i][n].value);
+                }
+            }
+
             for (int n = 0; n < thisLayerCount; n++) {
                 layerNodes[i][n].value = activate(layerNodes[i][n].value, i);
             }

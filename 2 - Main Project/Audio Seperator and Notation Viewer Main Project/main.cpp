@@ -17,7 +17,7 @@ int main() {
 		4, // chunk border
 
 		1, // start file index
-		4, // song count
+		25, // song count
 
 		2.5f, // spectrogram emphasis, no emphasis = 1.0f
 
