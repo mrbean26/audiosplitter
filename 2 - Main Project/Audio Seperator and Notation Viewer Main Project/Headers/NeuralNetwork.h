@@ -31,9 +31,8 @@ struct audioFileConfig;
 #define STOCHASTIC_GRADIENT_DESCENT 0
 #define GRADIENT_DESCENT 1
 #define RESISTANT_PROPAGATION 2
-#define NATURAL_SELECTION 3
-#define RANDOM_METHOD 4
-#define LEVENBERG_MARQUARDT 5
+#define RANDOM_METHOD 3
+#define LEVENBERG_MARQUARDT 4
 
 // Learning Rate Calculation Definition
 #define FIXED_LEARNING_RATE 0
@@ -79,7 +78,10 @@ public:
 
         // Natural Selection
         int population = 10;
-        float initialVariation = 50.0f;
+        int parentCount = 2;
+        
+        float lowestInitialisedWeight = -10.0f;
+        float highestInitialisedWeight = 10.0f;
 
         // Random Method
         float errorThreshold = 500.0f;
@@ -168,9 +170,12 @@ public:
     void adjustWeightsRPROP(float increase, float decrease, bool initialUpdate);
     
     // Natural Selection
-    vector<vector<Node>> randomNodeWeights(vector<vector<Node>> initial, float variation);
-    vector<vector<Bias>> randomBiasWeights(vector<vector<Bias>> initial, float variation);
-    vector<float> trainNaturalSelectionMethod(standardTrainConfig trainConfig);
+    static vector<NeuralNetwork> initialisePopulation(vector<int> layers, vector<int> biases, vector<int> activations, int count, float lowestWeight, float highestWeight);
+    static vector<float> measurePopulationFitness(vector<NeuralNetwork> population, vector<vector<float>> inputSet, vector<vector<float>> outputSet);
+    static NeuralNetwork reproduceParents(vector<NeuralNetwork> parents);
+    static vector<NeuralNetwork> reproducePopulation(vector<NeuralNetwork> parentPopulation, vector<float> fitnessScores, int parentCount);
+    static NeuralNetwork mutateNetwork(NeuralNetwork input);
+    static NeuralNetwork trainNaturalSelectionMethod(standardTrainConfig trainConfig, vector<int> layers, vector<int> biases, vector<int> activations);
 
     // Random Weights Method
     void randomizeWeights();

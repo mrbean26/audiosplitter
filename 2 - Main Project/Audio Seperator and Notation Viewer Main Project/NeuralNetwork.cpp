@@ -2,6 +2,7 @@
 
 #include <fstream>
 #include <sstream>
+#include <random>
 
 #include "Headers/files.h"
 #include "Headers/matrices.h"
@@ -26,11 +27,20 @@ NeuralNetwork::NeuralNetwork(vector<int> layers, vector<int> biases, vector<int>
 
     activations = activationLayers;
 }
+
+float randomMinimum = -1.0f;
+float randomMaximum = 1.0f;
 float randomFloat() {
-    int number = rand() % 200;
-    float result = (float)number / 100.0f - 1.0f;
+    float result = randomMinimum + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (randomMaximum - randomMinimum)));
     return result;
 }
+
+default_random_engine generator;
+normal_distribution<float> distribution(0.0f, 0.03f);
+float normalDistribution() {
+    return distribution(generator);
+}
+
 void NeuralNetwork::initialiseWeights() {
     // clear weights
     for (int i = 0; i < layerCount; i++) {
@@ -199,9 +209,6 @@ vector<float> NeuralNetwork::train(standardTrainConfig trainConfig) {
     }
     if (trainConfig.trainType == RESISTANT_PROPAGATION) {
         result = trainResistantPropagation(trainConfig);
-    }
-    if (trainConfig.trainType == NATURAL_SELECTION) {
-        result = trainNaturalSelectionMethod(trainConfig);
     }
     if (trainConfig.trainType == RANDOM_METHOD) {
         result = trainRandomMethod(trainConfig);
@@ -831,86 +838,187 @@ void NeuralNetwork::adjustWeightsRPROP(float increase, float decrease, bool init
 }
 
 // Natural Selection
-vector<vector<NeuralNetwork::Node>> NeuralNetwork::randomNodeWeights(vector<vector<Node>> initial, float variation) {
-    int layerCount = initial.size();
+vector<NeuralNetwork> NeuralNetwork::initialisePopulation(vector<int> layers, vector<int> biases, vector<int> activations, int count, float lowestWeight, float highestWeight) {
+    randomMinimum = lowestWeight;
+    randomMaximum = highestWeight;
 
-    for (int l = 0; l < layerCount - 1; l++) {
-        int nodeCount = initial[l].size();
-        int weightCount = initial[l + 1].size();
+    vector<NeuralNetwork> result;
+    for (int i = 0; i < count; i++) {
+        NeuralNetwork newNetwork = NeuralNetwork(layers, biases, activations);
+        result.push_back(newNetwork);
+    }
+    
+    randomMinimum = -1.0f;
+    randomMaximum = 1.0f;
 
-        for (int n = 0; n < nodeCount; n++) {
-            for (int w = 0; w < weightCount; w++) {
-                initial[l][n].outWeights[w] += randomFloat() * variation;
+    return result;
+}
+vector<float> NeuralNetwork::measurePopulationFitness(vector<NeuralNetwork> population, vector<vector<float>> inputSet, vector<vector<float>> outputSet) {
+    int populationSize = population.size();
+    int datasetSize = inputSet.size();
+    int outputCount = outputSet[0].size();
+
+    vector<float> result;    
+    for (int i = 0; i < populationSize; i++) {
+        float currentFitness = 0.0f;
+
+        for (int j = 0; j < datasetSize; j++) {
+            vector<float> predicted = population[i].predict(inputSet[j]);
+
+            for (int k = 0; k < outputCount; k++) {
+                currentFitness = currentFitness - powf(outputSet[j][k] - predicted[k], 2.0f); // A Higher Fitness is better, meaning further negative is worse
             }
         }
+
+        //currentFitness = currentFitness * (1.0f / float(datasetSize)); // Make "MEAN" squared error
+
+        result.push_back(currentFitness);
     }
-
-    return initial;
+   
+    return result;
 }
-vector<vector<NeuralNetwork::Bias>> NeuralNetwork::randomBiasWeights(vector<vector<Bias>> initial, float variation) {
-    int layerCount = initial.size();
+NeuralNetwork NeuralNetwork::reproduceParents(vector<NeuralNetwork> parents) {
+    NeuralNetwork result = parents[0];
+    int parentCount = parents.size();
 
-    for (int l = 0; l < layerCount - 1; l++) {
-        int nodeCount = initial[l].size();
-        int weightCount = initial[l + 1].size();
+    // Add up all weights
+    for (int i = 1; i < parentCount; i++) {
+        int layerCount = result.layerNodes.size();
 
-        for (int n = 0; n < nodeCount; n++) {
-            for (int w = 0; w < weightCount; w++) {
-                initial[l][n].outWeights[w] += randomFloat() * variation;
-            }
-        }
-    }
+        for (int l = 0; l < layerCount - 1; l++) {
+            int nodeCount = result.layerNodes[l].size();
+            int biasCount = result.layerBiases[l].size();
+            int weightCount = result.layerNodes[l + 1].size();
 
-    return initial;
-}
-vector<float> NeuralNetwork::trainNaturalSelectionMethod(standardTrainConfig trainConfig) {
-    // Useful Integers Calculated Before Iteration
-    int trainCount = trainConfig.trainInputs.size();
-    int trainOutputSize = trainConfig.trainOutputs[0].size();
-
-    // Find Optimal Parameters
-    vector<float> result;
-    for (int epoch = 0; epoch < trainConfig.epochs; epoch++) {
-        // Calculate Variation Accordingly With Epochs, Decreasing with Time
-        float currentVariation = (float(trainConfig.epochs - (epoch + 1)) / float(trainConfig.epochs)) * trainConfig.initialVariation;
-        float lowestErrorThisPopulation = numeric_limits<float>().max();
-
-        // Used To Store Best Config
-        vector<vector<Node>> bestNodesThisPopulation;
-        vector<vector<Bias>> bestBiasesThisPopulation;
-
-        // Initialise Several Random Configurations To Find Best In Population
-        for (int i = 0; i < trainConfig.population; i++) {
-            // Get Random Config
-            layerNodes = randomNodeWeights(layerNodes, currentVariation);
-            layerBiases = randomBiasWeights(layerBiases, currentVariation);
-
-            // Score Network Config for Comparison Against Others
-            float totalError = 0.0f;
-            for (int t = 0; t < trainCount; t++) {
-                vector<float> predicted = predict(trainConfig.trainInputs[t]);
-
-                for (int o = 0; o < trainOutputSize; o++) {
-                    totalError += abs(trainConfig.trainOutputs[t][o] - predicted[o]);
+            for (int n = 0; n < nodeCount; n++) {
+                for (int w = 0; w < weightCount; w++) {
+                    result.layerNodes[l][n].outWeights[w] = result.layerNodes[l][n].outWeights[w] + parents[i].layerNodes[l][n].outWeights[w];
                 }
             }
-
-            // Compare and Update Current Configuration
-            if (totalError < lowestErrorThisPopulation) {
-                lowestErrorThisPopulation = totalError;
-                bestNodesThisPopulation = layerNodes;
-                bestBiasesThisPopulation = layerBiases;
+            for (int b = 0; b < biasCount; b++) {
+                for (int w = 0; w < weightCount; w++) {
+                    result.layerBiases[l][b].outWeights[w] = result.layerBiases[l][b].outWeights[w] + parents[i].layerBiases[l][b].outWeights[w];
+                }
             }
         }
+    }
 
-        cout << "Epoch: " << epoch + 1 << " / " << trainConfig.epochs << ", Total Error: " << lowestErrorThisPopulation << endl;
-        result.push_back(lowestErrorThisPopulation);
+    // Take mean (non weighted) of accumulative weights
+    int layerCount = result.layerNodes.size();
 
-        layerNodes = bestNodesThisPopulation;
-        layerBiases = bestBiasesThisPopulation;
+    for (int l = 0; l < layerCount - 1; l++) {
+        int nodeCount = result.layerNodes[l].size();
+        int biasCount = result.layerBiases[l].size();
+        int weightCount = result.layerNodes[l + 1].size();
+
+        for (int n = 0; n < nodeCount; n++) {
+            for (int w = 0; w < weightCount; w++) {
+                result.layerNodes[l][n].outWeights[w] = result.layerNodes[l][n].outWeights[w] / parentCount;
+            }
+        }
+        for (int b = 0; b < biasCount; b++) {
+            for (int w = 0; w < weightCount; w++) {
+                result.layerBiases[l][b].outWeights[w] = result.layerBiases[l][b].outWeights[w] / parentCount;
+            }
+        }
     }
 
     return result;
+}
+vector<NeuralNetwork> NeuralNetwork::reproducePopulation(vector<NeuralNetwork> parentPopulation, vector<float> fitnessScores, int parentCount) {
+    // Apply softmax to fitness scores
+    int populationSize = parentPopulation.size();
+    float total = 0.0f;
+    
+    for (int i = 0; i < populationSize; i++) {
+        total = total + expf(fitnessScores[i]);
+    }
+    for (int i = 0; i < populationSize; i++) {
+        fitnessScores[i] = expf(fitnessScores[i]) / total;
+    }
+ 
+    // Create Population
+    vector<NeuralNetwork> result;
+    for (int i = 0; i < populationSize; i++) {
+        // Find parents according to softmax fitness probabilities
+        vector<NeuralNetwork> parents;
+
+        for (int j = 0; j < parentCount; j++) {
+            float randomProbability = double(rand()) / RAND_MAX; // creates probability in range 0 -> 1
+            NeuralNetwork chosenParent = parentPopulation[0];
+
+            float accumulativeTotal = 0.0f;
+            for (int k = 0; k < populationSize; k++) {
+                if (randomProbability < accumulativeTotal + fitnessScores[k]) {
+                    chosenParent = parentPopulation[k];
+                    break;
+                }
+                accumulativeTotal = accumulativeTotal + fitnessScores[j];
+            }
+
+            parents.push_back(chosenParent);
+        }
+
+        // Reproduce with parents
+        NeuralNetwork child = reproduceParents(parents);
+        child = mutateNetwork(child);
+        result.push_back(child);
+    }
+
+    return result;
+}
+NeuralNetwork NeuralNetwork::mutateNetwork(NeuralNetwork input) {
+    int layerCount = input.layerCount;
+
+    for (int l = 0; l < layerCount - 1; l++) {
+        int nodeCount = input.layerNodes[l].size();
+        int biasCount = input.layerBiases[l].size();
+        int weightCount = input.layerNodes[l + 1].size();
+
+        for (int n = 0; n < nodeCount; n++) {
+            for (int w = 0; w < weightCount; w++) {
+                input.layerNodes[l][n].outWeights[w] += normalDistribution();
+            }
+        }
+        for (int b = 0; b < biasCount; b++) {
+            for (int w = 0; w < weightCount; w++) {
+                input.layerBiases[l][b].outWeights[w] += normalDistribution();
+            }
+        }
+    }
+
+    return input;
+}
+NeuralNetwork NeuralNetwork::trainNaturalSelectionMethod(standardTrainConfig trainConfig, vector<int> layers, vector<int> biases, vector<int> activations) {
+    vector<NeuralNetwork> population = initialisePopulation(layers, biases, activations, trainConfig.population, trainConfig.lowestInitialisedWeight, trainConfig.highestInitialisedWeight);
+    cout << "Initialised population.. " << endl;
+
+    NeuralNetwork bestNetwork = population[0];
+    float bestFitness = -1.0f;
+
+    for (int i = 0; i < trainConfig.epochs; i++) {
+        vector<float> currentFitnessScores = measurePopulationFitness(population, trainConfig.trainInputs, trainConfig.trainOutputs);
+
+        float lowestFitness = currentFitnessScores[0];
+        int lowestFitnessIndex = 0;
+
+        for (int j = 1; j < trainConfig.population; j++) {
+            if (currentFitnessScores[j] > lowestFitness) {
+                lowestFitness = currentFitnessScores[j];
+                lowestFitnessIndex = j;
+            }
+        }
+
+        if (lowestFitness > bestFitness || bestFitness == -1.0f) {
+            bestFitness = lowestFitness;
+            bestNetwork = population[lowestFitnessIndex];
+        }
+
+        cout << "Epoch: " << i + 1 << " / " << trainConfig.epochs << ", Mean Squared Error : " << -lowestFitness << endl;
+        population = reproducePopulation(population, currentFitnessScores, trainConfig.parentCount);
+    }
+
+    return bestNetwork;
 }
 
 // Random Weights Method

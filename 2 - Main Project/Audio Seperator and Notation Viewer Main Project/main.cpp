@@ -8,6 +8,7 @@ using namespace std;
 
 #include "Headers/matrices.h"
 
+
 int main() {
 	audioFileConfig audioConfig = {
 		2048, // samples per chunk
@@ -17,7 +18,7 @@ int main() {
 		4, // chunk border
 
 		1, // start file index
-		25, // song count
+		1, // song count
 
 		2.5f, // spectrogram emphasis, no emphasis = 1.0f
 
@@ -28,14 +29,35 @@ int main() {
 	// Train Network - One Song Training
 	vector<vector<float>> inputSet = generateInputs(audioConfig);
 	vector<vector<float>> outputSet = generateOutputs(audioConfig);
-
+	
 	int inputSize = inputSet[0].size();
 	int outputSize = outputSet[0].size();
 
-	vector<int> layers = { inputSize, 448, 384, 320, 256, 192, 128, outputSize };
-	vector<int> biases = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
-	vector<int> activations = { SIGMOID, SIGMOID, SIGMOID, SIGMOID, SIGMOID, SIGMOID, SIGMOID, SIGMOID};
+	vector<int> layers = { inputSize, 128, 128, 128, 128, outputSize };
+	vector<int> biases = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
+	vector<int> activations = { SIGMOID, SIGMOID, SIGMOID, SIGMOID, SIGMOID, SIGMOID, SIGMOID, SIGMOID };
+	// natural selection
 
+
+	NeuralNetwork::standardTrainConfig newConfig = NeuralNetwork::standardTrainConfig();
+	newConfig.trainInputs = inputSet;
+	newConfig.trainOutputs = outputSet;
+
+	newConfig.epochs = 125;
+
+	newConfig.population = 300;
+	newConfig.parentCount = 3;
+
+	newConfig.lowestInitialisedWeight = -10.0f;
+	newConfig.highestInitialisedWeight = 10.0f;
+
+
+	NeuralNetwork bestNetwork = NeuralNetwork::trainNaturalSelectionMethod(newConfig, layers, biases, activations);
+
+	/*
+	 
+	BACKPROPAGATION ALGORITHM 
+	
 	NeuralNetwork newNetwork = NeuralNetwork(layers, biases, activations);
 	
 	NeuralNetwork::standardTrainConfig newConfig = NeuralNetwork::standardTrainConfig();
@@ -71,7 +93,7 @@ int main() {
 	};
 
 	writeToImage(imageConfig);
-	
+	*/
 
 	system("pause");
 	return 0;

@@ -380,9 +380,6 @@ void writeToImage(outputImageConfig config) {
 	if (config.trainConfig.trainType == RESISTANT_PROPAGATION) {
 		trainType = "RESISTANT_PROPAGATION";
 	}
-	if (config.trainConfig.trainType == NATURAL_SELECTION) {
-		trainType = "NATURAL_SELECTION";
-	}
 	if (config.trainConfig.trainType == RANDOM_METHOD) {
 		trainType = "RANDOM_METHOD";
 	}
