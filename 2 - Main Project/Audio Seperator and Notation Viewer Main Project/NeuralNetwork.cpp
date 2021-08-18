@@ -956,18 +956,85 @@ NeuralNetwork NeuralNetwork::reproduceParents(vector<NeuralNetwork> parents) {
 
     return result;
 }
+vector<NeuralNetwork> NeuralNetwork::sortNetworks(vector<NeuralNetwork> networks, vector<float> fitnessScores) {
+    // Bubble sort algorithm due to fitness scores
+    int size = networks.size();
+
+    for (int i = 0; i < size - 1; i++) {
+        for (int j = 0; j < size - i - 1; j++) {
+            if (fitnessScores[j] > fitnessScores[j + 1]) {
+                float oldValue = fitnessScores[j];
+                NeuralNetwork oldNetwork = networks[j];
+
+                fitnessScores[j] = fitnessScores[j + 1];
+                networks[j] = networks[j + 1];
+
+                fitnessScores[j + 1] = oldValue;
+                networks[j + 1] = oldNetwork;
+            }
+        }
+    }
+
+    // Reverse so that largest network is first
+    reverse(networks.begin(), networks.end());
+    return networks;
+}
+NeuralNetwork NeuralNetwork::chooseParent(vector<NeuralNetwork> population, vector<float> fitnessScores, standardTrainConfig trainConfig) {
+    if (trainConfig.parentSelectionMethod == TOP_PARENTS) {
+        // Take random from top 10% of population
+        int maxIndex = ceilf(float(population.size()) / 10.0f);
+        int randomIndex = rand() % maxIndex;
+
+        return population[randomIndex];
+    }
+    if (trainConfig.parentSelectionMethod == EXPONENTIAL_PARENTS) {
+        // Use exponential distribution to choose index of sorted list
+        int populationSize = population.size();
+        
+        float distributionParameter = fmaxf(1.0f, sqrtf(populationSize));
+        exponential_distribution<float> distribution(distributionParameter);
+        
+        float distributionOutput = fminf(distribution(generator) * populationSize, populationSize - 1);
+        int exponentialIndex = floorf(distributionOutput);
+        
+        return population[exponentialIndex];
+    }
+    if (trainConfig.parentSelectionMethod == PROBABILITY_PARENTS) {
+        // Apply softmax to fitness scores
+        int populationSize = population.size();
+        float total = 0.0f;
+
+        for (int i = 0; i < populationSize; i++) {
+            total = total + expf(fitnessScores[i]);
+        }
+        for (int i = 0; i < populationSize; i++) {
+            fitnessScores[i] = expf(fitnessScores[i]) / total;
+        }
+
+        // Find parent according to softmax fitness probabilities
+        float randomProbability = double(rand()) / RAND_MAX; // creates probability in range 0 -> 1
+        NeuralNetwork chosenParent = population[0];
+
+        float accumulativeTotal = 0.0f;
+        for (int k = 0; k < populationSize; k++) {
+            if (randomProbability < accumulativeTotal + fitnessScores[k]) {
+                chosenParent = population[k];
+                break;
+            }
+            accumulativeTotal = accumulativeTotal + fitnessScores[k];
+        }
+
+        return chosenParent;
+    }
+}
+
 vector<NeuralNetwork> NeuralNetwork::reproducePopulation(vector<NeuralNetwork> parentPopulation, vector<float> fitnessScores, standardTrainConfig trainConfig) {
-    // Apply softmax to fitness scores
     int populationSize = parentPopulation.size();
-    float total = 0.0f;
     
-    for (int i = 0; i < populationSize; i++) {
-        total = total + expf(fitnessScores[i]);
+    if (trainConfig.parentSelectionMethod == TOP_PARENTS || trainConfig.parentSelectionMethod == EXPONENTIAL_PARENTS) {
+        parentPopulation = sortNetworks(parentPopulation, fitnessScores);
     }
-    for (int i = 0; i < populationSize; i++) {
-        fitnessScores[i] = expf(fitnessScores[i]) / total;
-    }
- 
+
     // Create Population
     vector<NeuralNetwork> result;
     for (int i = 0; i < populationSize; i++) {
@@ -975,18 +1042,7 @@ vector<NeuralNetwork> NeuralNetwork::reproducePopulation(vector<NeuralNetwork> p
         vector<NeuralNetwork> parents;
 
         for (int j = 0; j < trainConfig.parentCount; j++) {
-            float randomProbability = double(rand()) / RAND_MAX; // creates probability in range 0 -> 1
-            NeuralNetwork chosenParent = parentPopulation[0];
-
-            float accumulativeTotal = 0.0f;
-            for (int k = 0; k < populationSize; k++) {
-                if (randomProbability < accumulativeTotal + fitnessScores[k]) {
-                    chosenParent = parentPopulation[k];
-                    break;
-                }
-                accumulativeTotal = accumulativeTotal + fitnessScores[j];
-            }
-
+            NeuralNetwork chosenParent = chooseParent(parentPopulation, fitnessScores, trainConfig);
             parents.push_back(chosenParent);
         }
 

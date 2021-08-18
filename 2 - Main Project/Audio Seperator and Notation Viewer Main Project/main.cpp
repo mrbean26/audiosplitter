@@ -8,8 +8,8 @@ using namespace std;
 
 #include "Headers/matrices.h"
 
-
 int main() {
+	srand(time(NULL));
 	audioFileConfig audioConfig = {
 		2048, // samples per chunk
 		2048, // samples per overlap
@@ -36,8 +36,8 @@ int main() {
 	vector<int> layers = { inputSize, 128, 128, 128, 128, outputSize };
 	vector<int> biases = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
 	vector<int> activations = { SIGMOID, SIGMOID, SIGMOID, SIGMOID, SIGMOID, SIGMOID, SIGMOID, SIGMOID };
+	
 	// natural selection
-
 
 	NeuralNetwork::standardTrainConfig newConfig = NeuralNetwork::standardTrainConfig();
 	newConfig.trainInputs = inputSet;
@@ -53,10 +53,12 @@ int main() {
 
 	newConfig.useChildMutation = true;
 	newConfig.useFitnessThreading = true;
-	newConfig.fitnessFunctionType = ABSOLUTE_ERROR;
 
-	newConfig.useStochasticDataset = false;
-	newConfig.stochasticDatasetSize = 10;
+	newConfig.fitnessFunctionType = ABSOLUTE_ERROR;
+	newConfig.parentSelectionMethod = EXPONENTIAL_PARENTS;
+
+	newConfig.useStochasticDataset = true;
+	newConfig.stochasticDatasetSize = 100;
 
 
 	NeuralNetwork bestNetwork = NeuralNetwork::trainNaturalSelectionMethod(newConfig, layers, biases, activations);

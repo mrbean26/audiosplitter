@@ -45,6 +45,11 @@ struct audioFileConfig;
 #define ROOT_SQUARED_ERROR 2
 #define MEAN_SQUARED_ERROR 3
 
+// Parent Selection Methods
+#define TOP_PARENTS 0 
+#define EXPONENTIAL_PARENTS 1
+#define PROBABILITY_PARENTS 2
+
 // Network
 class NeuralNetwork{
 public:
@@ -90,11 +95,11 @@ public:
         float highestInitialisedWeight = 10.0f;
 
         int fitnessFunctionType = ABSOLUTE_ERROR;
+        int parentSelectionMethod = TOP_PARENTS;
         bool useChildMutation = true;
 
         bool useStochasticDataset = false;
         int stochasticDatasetSize = 200;
-
         bool useFitnessThreading = true;
 
         // Random Method
@@ -188,6 +193,9 @@ public:
     static vector<float> measurePopulationFitness(vector<NeuralNetwork> population, standardTrainConfig trainConfig);
 
     static NeuralNetwork reproduceParents(vector<NeuralNetwork> parents);
+    static vector<NeuralNetwork> sortNetworks(vector<NeuralNetwork> networks, vector<float> fitnessScores);
+    static NeuralNetwork chooseParent(vector<NeuralNetwork> population, vector<float> fitnessScores, standardTrainConfig trainConfig);
+    
     static vector<NeuralNetwork> reproducePopulation(vector<NeuralNetwork> parentPopulation, vector<float> fitnessScores, standardTrainConfig trainConfig);
     static NeuralNetwork mutateNetwork(NeuralNetwork input);
 
