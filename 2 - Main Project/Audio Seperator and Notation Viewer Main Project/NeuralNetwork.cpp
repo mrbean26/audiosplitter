@@ -2,7 +2,11 @@
 
 #include <fstream>
 #include <sstream>
+
 #include <random>
+
+#include <thread>
+#include <future>
 
 #include "Headers/files.h"
 #include "Headers/matrices.h"
@@ -645,12 +649,6 @@ vector<float> NeuralNetwork::trainStochasticGradientDescent(standardTrainConfig 
     int miniBatchSize = trainConfig.trainInputs.size() / trainConfig.batchSize;
     int outputCount = trainConfig.trainOutputs[0].size();
 
-    // All Possible Indexes Across Dataset
-    vector<int> trainIndexes;
-    for (int i = 0; i < trainDataCount; i++) {
-        trainIndexes.push_back(i);
-    }
-
     vector<float> result;
     for (int epoch = 0; epoch < trainConfig.epochs; epoch++) {
         // Create Random Sectional Indexes for Stochastic Training Unless Epoch is Divisible by Full Dataset Test Parameter
@@ -685,10 +683,6 @@ vector<float> NeuralNetwork::trainStochasticGradientDescent(standardTrainConfig 
 
             currentLearningRate = value * trainConfig.learningRate;
             currentMomentum = (1 - value) * trainConfig.momentum;
-        }
-
-        if (trainConfig.learningRateType == ADAM_LEARNING_RATE) {
-
         }
 
         // Randomly Disable Some Nodes to Prevent Overfitting
@@ -838,45 +832,82 @@ void NeuralNetwork::adjustWeightsRPROP(float increase, float decrease, bool init
 }
 
 // Natural Selection
-vector<NeuralNetwork> NeuralNetwork::initialisePopulation(vector<int> layers, vector<int> biases, vector<int> activations, int count, float lowestWeight, float highestWeight) {
-    randomMinimum = lowestWeight;
-    randomMaximum = highestWeight;
+float NeuralNetwork::measureNetworkFitness(NeuralNetwork network, standardTrainConfig trainConfig, vector<vector<float>> usedInputs, vector<vector<float>> usedOutputs) {
+    // A Higher Fitness is better, meaning further negative is worse
+    int datasetSize = usedInputs.size();
+    int outputCount = usedOutputs[0].size();
+    float currentFitness = 0.0f;
 
-    vector<NeuralNetwork> result;
-    for (int i = 0; i < count; i++) {
-        NeuralNetwork newNetwork = NeuralNetwork(layers, biases, activations);
-        result.push_back(newNetwork);
-    }
-    
-    randomMinimum = -1.0f;
-    randomMaximum = 1.0f;
+    for (int j = 0; j < datasetSize; j++) {
+        vector<float> predicted = network.predict(usedInputs[j]);
 
-    return result;
-}
-vector<float> NeuralNetwork::measurePopulationFitness(vector<NeuralNetwork> population, vector<vector<float>> inputSet, vector<vector<float>> outputSet) {
-    int populationSize = population.size();
-    int datasetSize = inputSet.size();
-    int outputCount = outputSet[0].size();
-
-    vector<float> result;    
-    for (int i = 0; i < populationSize; i++) {
-        float currentFitness = 0.0f;
-
-        for (int j = 0; j < datasetSize; j++) {
-            vector<float> predicted = population[i].predict(inputSet[j]);
-
-            for (int k = 0; k < outputCount; k++) {
-                currentFitness = currentFitness - powf(outputSet[j][k] - predicted[k], 2.0f); // A Higher Fitness is better, meaning further negative is worse
+        for (int k = 0; k < outputCount; k++) {
+            if (trainConfig.fitnessFunctionType == ABSOLUTE_ERROR) {
+                currentFitness = currentFitness - abs(usedOutputs[j][k] - predicted[k]);
+            }
+            if (trainConfig.fitnessFunctionType == SQUARED_ERROR || trainConfig.fitnessFunctionType == ROOT_SQUARED_ERROR || trainConfig.fitnessFunctionType == MEAN_SQUARED_ERROR) {
+                currentFitness = currentFitness - powf(usedOutputs[j][k] - predicted[k], 2.0f);
             }
         }
-
-        //currentFitness = currentFitness * (1.0f / float(datasetSize)); // Make "MEAN" squared error
-
-        result.push_back(currentFitness);
     }
-   
+
+    if (trainConfig.fitnessFunctionType == ROOT_SQUARED_ERROR) {
+        currentFitness = sqrtf(currentFitness);
+    }
+    if (trainConfig.fitnessFunctionType == MEAN_SQUARED_ERROR) {
+        currentFitness = (1.0f / float(datasetSize)) * currentFitness;
+    }
+    if (trainConfig.useStochasticDataset) {
+        currentFitness = currentFitness * (float(trainConfig.trainInputs.size()) / float(trainConfig.stochasticDatasetSize));
+    }
+
+    return currentFitness;
+}
+vector<float> NeuralNetwork::measurePopulationFitness(vector<NeuralNetwork> population, standardTrainConfig trainConfig) {
+    int populationSize = population.size();
+
+    vector<vector<float>> usedInputs = trainConfig.trainInputs;
+    vector<vector<float>> usedOutputs = trainConfig.trainOutputs;
+
+    if (trainConfig.useStochasticDataset) {
+        int miniBatchSize = trainConfig.trainInputs.size() / trainConfig.stochasticDatasetSize;
+
+        usedInputs.clear();
+        usedOutputs.clear();
+
+        for (int i = 0; i < trainConfig.stochasticDatasetSize; i++) {
+            int newIndex = (i * miniBatchSize) + (rand() % miniBatchSize);
+
+            usedInputs.push_back(trainConfig.trainInputs[newIndex]);
+            usedOutputs.push_back(trainConfig.trainOutputs[newIndex]);
+        }
+    }
+    
+    vector<float> result;
+    int populationCount = population.size();
+
+    if (!trainConfig.useFitnessThreading) {
+        for (int i = 0; i < populationCount; i++) {
+            float currentFitness = measureNetworkFitness(population[i], trainConfig, usedInputs, usedOutputs);
+            result.push_back(currentFitness);
+        }
+    }
+    if (trainConfig.useFitnessThreading) {
+        vector<shared_future<float>> threads;
+
+        for (int i = 0; i < populationCount; i++) {
+            shared_future<float> future = async(measureNetworkFitness, population[i], trainConfig, usedInputs, usedOutputs);
+            threads.push_back(future);
+        }
+        for (int i = 0; i < populationCount; i++) {
+            float returnedFitnessValue = threads[i].get();
+            result.push_back(returnedFitnessValue);
+        }
+    }
+
     return result;
 }
+
 NeuralNetwork NeuralNetwork::reproduceParents(vector<NeuralNetwork> parents) {
     NeuralNetwork result = parents[0];
     int parentCount = parents.size();
@@ -925,7 +956,7 @@ NeuralNetwork NeuralNetwork::reproduceParents(vector<NeuralNetwork> parents) {
 
     return result;
 }
-vector<NeuralNetwork> NeuralNetwork::reproducePopulation(vector<NeuralNetwork> parentPopulation, vector<float> fitnessScores, int parentCount) {
+vector<NeuralNetwork> NeuralNetwork::reproducePopulation(vector<NeuralNetwork> parentPopulation, vector<float> fitnessScores, standardTrainConfig trainConfig) {
     // Apply softmax to fitness scores
     int populationSize = parentPopulation.size();
     float total = 0.0f;
@@ -943,7 +974,7 @@ vector<NeuralNetwork> NeuralNetwork::reproducePopulation(vector<NeuralNetwork> p
         // Find parents according to softmax fitness probabilities
         vector<NeuralNetwork> parents;
 
-        for (int j = 0; j < parentCount; j++) {
+        for (int j = 0; j < trainConfig.parentCount; j++) {
             float randomProbability = double(rand()) / RAND_MAX; // creates probability in range 0 -> 1
             NeuralNetwork chosenParent = parentPopulation[0];
 
@@ -961,7 +992,10 @@ vector<NeuralNetwork> NeuralNetwork::reproducePopulation(vector<NeuralNetwork> p
 
         // Reproduce with parents
         NeuralNetwork child = reproduceParents(parents);
-        child = mutateNetwork(child);
+        if (trainConfig.useChildMutation) {
+            child = mutateNetwork(child);
+        }
+
         result.push_back(child);
     }
 
@@ -989,6 +1023,22 @@ NeuralNetwork NeuralNetwork::mutateNetwork(NeuralNetwork input) {
 
     return input;
 }
+
+vector<NeuralNetwork> NeuralNetwork::initialisePopulation(vector<int> layers, vector<int> biases, vector<int> activations, int count, float lowestWeight, float highestWeight) {
+    randomMinimum = lowestWeight;
+    randomMaximum = highestWeight;
+
+    vector<NeuralNetwork> result;
+    for (int i = 0; i < count; i++) {
+        NeuralNetwork newNetwork = NeuralNetwork(layers, biases, activations);
+        result.push_back(newNetwork);
+    }
+
+    randomMinimum = -1.0f;
+    randomMaximum = 1.0f;
+
+    return result;
+}
 NeuralNetwork NeuralNetwork::trainNaturalSelectionMethod(standardTrainConfig trainConfig, vector<int> layers, vector<int> biases, vector<int> activations) {
     vector<NeuralNetwork> population = initialisePopulation(layers, biases, activations, trainConfig.population, trainConfig.lowestInitialisedWeight, trainConfig.highestInitialisedWeight);
     cout << "Initialised population.. " << endl;
@@ -997,7 +1047,7 @@ NeuralNetwork NeuralNetwork::trainNaturalSelectionMethod(standardTrainConfig tra
     float bestFitness = -1.0f;
 
     for (int i = 0; i < trainConfig.epochs; i++) {
-        vector<float> currentFitnessScores = measurePopulationFitness(population, trainConfig.trainInputs, trainConfig.trainOutputs);
+        vector<float> currentFitnessScores = measurePopulationFitness(population, trainConfig);
 
         float lowestFitness = currentFitnessScores[0];
         int lowestFitnessIndex = 0;
@@ -1014,8 +1064,8 @@ NeuralNetwork NeuralNetwork::trainNaturalSelectionMethod(standardTrainConfig tra
             bestNetwork = population[lowestFitnessIndex];
         }
 
-        cout << "Epoch: " << i + 1 << " / " << trainConfig.epochs << ", Mean Squared Error : " << -lowestFitness << endl;
-        population = reproducePopulation(population, currentFitnessScores, trainConfig.parentCount);
+        cout << "Epoch: " << i + 1 << " / " << trainConfig.epochs << ", Fitness: " << -lowestFitness << endl;
+        population = reproducePopulation(population, currentFitnessScores, trainConfig);
     }
 
     return bestNetwork;

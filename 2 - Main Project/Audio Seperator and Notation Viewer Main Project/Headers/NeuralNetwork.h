@@ -39,6 +39,12 @@ struct audioFileConfig;
 #define CYCLICAL_LEARNING_RATE 1
 #define ADAM_LEARNING_RATE 2
 
+// Fitness Function Options for Natural Selection
+#define ABSOLUTE_ERROR 0
+#define SQUARED_ERROR 1
+#define ROOT_SQUARED_ERROR 2
+#define MEAN_SQUARED_ERROR 3
+
 // Network
 class NeuralNetwork{
 public:
@@ -82,6 +88,14 @@ public:
         
         float lowestInitialisedWeight = -10.0f;
         float highestInitialisedWeight = 10.0f;
+
+        int fitnessFunctionType = ABSOLUTE_ERROR;
+        bool useChildMutation = true;
+
+        bool useStochasticDataset = false;
+        int stochasticDatasetSize = 200;
+
+        bool useFitnessThreading = true;
 
         // Random Method
         float errorThreshold = 500.0f;
@@ -170,11 +184,14 @@ public:
     void adjustWeightsRPROP(float increase, float decrease, bool initialUpdate);
     
     // Natural Selection
-    static vector<NeuralNetwork> initialisePopulation(vector<int> layers, vector<int> biases, vector<int> activations, int count, float lowestWeight, float highestWeight);
-    static vector<float> measurePopulationFitness(vector<NeuralNetwork> population, vector<vector<float>> inputSet, vector<vector<float>> outputSet);
+    static float measureNetworkFitness(NeuralNetwork network, standardTrainConfig trainConfig, vector<vector<float>> usedInputs, vector<vector<float>> usedOutputs);
+    static vector<float> measurePopulationFitness(vector<NeuralNetwork> population, standardTrainConfig trainConfig);
+
     static NeuralNetwork reproduceParents(vector<NeuralNetwork> parents);
-    static vector<NeuralNetwork> reproducePopulation(vector<NeuralNetwork> parentPopulation, vector<float> fitnessScores, int parentCount);
+    static vector<NeuralNetwork> reproducePopulation(vector<NeuralNetwork> parentPopulation, vector<float> fitnessScores, standardTrainConfig trainConfig);
     static NeuralNetwork mutateNetwork(NeuralNetwork input);
+
+    static vector<NeuralNetwork> initialisePopulation(vector<int> layers, vector<int> biases, vector<int> activations, int count, float lowestWeight, float highestWeight);
     static NeuralNetwork trainNaturalSelectionMethod(standardTrainConfig trainConfig, vector<int> layers, vector<int> biases, vector<int> activations);
 
     // Random Weights Method

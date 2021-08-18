@@ -43,13 +43,20 @@ int main() {
 	newConfig.trainInputs = inputSet;
 	newConfig.trainOutputs = outputSet;
 
-	newConfig.epochs = 125;
+	newConfig.epochs = 10000;
 
-	newConfig.population = 300;
-	newConfig.parentCount = 3;
+	newConfig.population = 25;
+	newConfig.parentCount = 2;
 
-	newConfig.lowestInitialisedWeight = -10.0f;
-	newConfig.highestInitialisedWeight = 10.0f;
+	newConfig.lowestInitialisedWeight = -100.0f;
+	newConfig.highestInitialisedWeight = 100.0f;
+
+	newConfig.useChildMutation = true;
+	newConfig.useFitnessThreading = true;
+	newConfig.fitnessFunctionType = ABSOLUTE_ERROR;
+
+	newConfig.useStochasticDataset = false;
+	newConfig.stochasticDatasetSize = 10;
 
 
 	NeuralNetwork bestNetwork = NeuralNetwork::trainNaturalSelectionMethod(newConfig, layers, biases, activations);
