@@ -50,6 +50,10 @@ struct audioFileConfig;
 #define EXPONENTIAL_PARENTS 1
 #define PROBABILITY_PARENTS 2
 
+// Parent Reproduction Methods
+#define AVERAGE_PARENTS 0
+#define WEIGHTED_PARENTS 1
+
 // Network
 class NeuralNetwork{
 public:
@@ -96,11 +100,13 @@ public:
 
         int fitnessFunctionType = ABSOLUTE_ERROR;
         int parentSelectionMethod = TOP_PARENTS;
+
+        int breedingMethod = WEIGHTED_PARENTS;
         bool useChildMutation = true;
 
         bool useStochasticDataset = false;
         int stochasticDatasetSize = 200;
-        bool useFitnessThreading = true;
+        bool useThreading = true;
 
         // Random Method
         float errorThreshold = 500.0f;
@@ -189,12 +195,13 @@ public:
     void adjustWeightsRPROP(float increase, float decrease, bool initialUpdate);
     
     // Natural Selection
+    static vector<float> softmax(vector<float> input);
     static float measureNetworkFitness(NeuralNetwork network, standardTrainConfig trainConfig, vector<vector<float>> usedInputs, vector<vector<float>> usedOutputs);
     static vector<float> measurePopulationFitness(vector<NeuralNetwork> population, standardTrainConfig trainConfig);
 
-    static NeuralNetwork reproduceParents(vector<NeuralNetwork> parents);
+    static NeuralNetwork reproduceParents(vector<NeuralNetwork> parents, vector<float> fitnessScores, standardTrainConfig trainConfig);
     static vector<NeuralNetwork> sortNetworks(vector<NeuralNetwork> networks, vector<float> fitnessScores);
-    static NeuralNetwork chooseParent(vector<NeuralNetwork> population, vector<float> fitnessScores, standardTrainConfig trainConfig);
+    static pair<NeuralNetwork, float> chooseParent(vector<NeuralNetwork> population, vector<float> fitnessScores, standardTrainConfig trainConfig);
     
     static vector<NeuralNetwork> reproducePopulation(vector<NeuralNetwork> parentPopulation, vector<float> fitnessScores, standardTrainConfig trainConfig);
     static NeuralNetwork mutateNetwork(NeuralNetwork input);

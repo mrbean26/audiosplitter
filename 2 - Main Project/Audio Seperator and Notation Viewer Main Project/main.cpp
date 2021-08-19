@@ -45,20 +45,21 @@ int main() {
 
 	newConfig.epochs = 10000;
 
-	newConfig.population = 25;
-	newConfig.parentCount = 2;
+	newConfig.population = 15;
+	newConfig.parentCount = 3;
 
 	newConfig.lowestInitialisedWeight = -100.0f;
 	newConfig.highestInitialisedWeight = 100.0f;
 
 	newConfig.useChildMutation = true;
-	newConfig.useFitnessThreading = true;
+	newConfig.useThreading = true;
 
 	newConfig.fitnessFunctionType = ABSOLUTE_ERROR;
 	newConfig.parentSelectionMethod = EXPONENTIAL_PARENTS;
+	newConfig.breedingMethod = WEIGHTED_PARENTS;
 
 	newConfig.useStochasticDataset = true;
-	newConfig.stochasticDatasetSize = 100;
+	newConfig.stochasticDatasetSize = 10;
 
 
 	NeuralNetwork bestNetwork = NeuralNetwork::trainNaturalSelectionMethod(newConfig, layers, biases, activations);

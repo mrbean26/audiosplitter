@@ -832,6 +832,33 @@ void NeuralNetwork::adjustWeightsRPROP(float increase, float decrease, bool init
 }
 
 // Natural Selection
+vector<float> NeuralNetwork::softmax(vector<float> input) {
+    vector<float> result = input;
+
+    // To avoid high computation, subtract largest value from all - produces same results
+    int size = input.size();
+    float maxValue = input[0];
+    
+    for (int i = 0; i < size; i++) {
+        maxValue = fmaxf(abs(input[i]), maxValue);
+    }
+    for (int i = 0; i < size; i++) {
+        
+        result[i] = input[i] / maxValue;
+    }
+    
+    // Peform softmax
+    float total = 0.0f;
+    for (int i = 0; i < size; i++) {
+        total = total + expf(result[i]);
+    }
+
+    for (int i = 0; i < size; i++) {
+        input[i] = expf(result[i]) / total;
+    }
+    
+    return input;
+}
 float NeuralNetwork::measureNetworkFitness(NeuralNetwork network, standardTrainConfig trainConfig, vector<vector<float>> usedInputs, vector<vector<float>> usedOutputs) {
     // A Higher Fitness is better, meaning further negative is worse
     int datasetSize = usedInputs.size();
@@ -886,13 +913,13 @@ vector<float> NeuralNetwork::measurePopulationFitness(vector<NeuralNetwork> popu
     vector<float> result;
     int populationCount = population.size();
 
-    if (!trainConfig.useFitnessThreading) {
+    if (!trainConfig.useThreading) {
         for (int i = 0; i < populationCount; i++) {
             float currentFitness = measureNetworkFitness(population[i], trainConfig, usedInputs, usedOutputs);
             result.push_back(currentFitness);
         }
     }
-    if (trainConfig.useFitnessThreading) {
+    if (trainConfig.useThreading) {
         vector<shared_future<float>> threads;
 
         for (int i = 0; i < populationCount; i++) {
@@ -908,53 +935,78 @@ vector<float> NeuralNetwork::measurePopulationFitness(vector<NeuralNetwork> popu
     return result;
 }
 
-NeuralNetwork NeuralNetwork::reproduceParents(vector<NeuralNetwork> parents) {
-    NeuralNetwork result = parents[0];
-    int parentCount = parents.size();
+NeuralNetwork NeuralNetwork::reproduceParents(vector<NeuralNetwork> parents, vector<float> fitnessScores, standardTrainConfig trainConfig) {
+    if (trainConfig.breedingMethod == AVERAGE_PARENTS) {
+        NeuralNetwork result = parents[0];
+        int parentCount = parents.size();
 
-    // Add up all weights
-    for (int i = 1; i < parentCount; i++) {
-        int layerCount = result.layerNodes.size();
+        // Add up all weights and take mean
+        for (int i = 1; i < parentCount; i++) {
+            int layerCount = result.layerNodes.size();
 
-        for (int l = 0; l < layerCount - 1; l++) {
-            int nodeCount = result.layerNodes[l].size();
-            int biasCount = result.layerBiases[l].size();
-            int weightCount = result.layerNodes[l + 1].size();
+            for (int l = 0; l < layerCount - 1; l++) {
+                int nodeCount = result.layerNodes[l].size();
+                int biasCount = result.layerBiases[l].size();
+                int weightCount = result.layerNodes[l + 1].size();
 
-            for (int n = 0; n < nodeCount; n++) {
-                for (int w = 0; w < weightCount; w++) {
-                    result.layerNodes[l][n].outWeights[w] = result.layerNodes[l][n].outWeights[w] + parents[i].layerNodes[l][n].outWeights[w];
+                for (int n = 0; n < nodeCount; n++) {
+                    for (int w = 0; w < weightCount; w++) {
+                        result.layerNodes[l][n].outWeights[w] = result.layerNodes[l][n].outWeights[w] + parents[i].layerNodes[l][n].outWeights[w] * (1.0f / parentCount);
+                    }
+                }
+                for (int b = 0; b < biasCount; b++) {
+                    for (int w = 0; w < weightCount; w++) {
+                        result.layerBiases[l][b].outWeights[w] = result.layerBiases[l][b].outWeights[w] + parents[i].layerBiases[l][b].outWeights[w] * (1.0f / parentCount);
+                    }
                 }
             }
-            for (int b = 0; b < biasCount; b++) {
-                for (int w = 0; w < weightCount; w++) {
-                    result.layerBiases[l][b].outWeights[w] = result.layerBiases[l][b].outWeights[w] + parents[i].layerBiases[l][b].outWeights[w];
+        }
+
+        return result;
+    }
+    if (trainConfig.breedingMethod == WEIGHTED_PARENTS) {
+        // Apply softmax to fitness scores to make them multiplicable to weights
+        fitnessScores = softmax(fitnessScores);
+        
+        // Create output
+        int populationSize = parents.size();
+        NeuralNetwork result = parents[0];
+
+        for (int i = 0; i < populationSize; i++) {
+            int layerCount = result.layerNodes.size();
+
+            for (int l = 0; l < layerCount - 1; l++) {
+                int nodeCount = result.layerNodes[l].size();
+                int biasCount = result.layerBiases[l].size();
+                int weightCount = result.layerNodes[l + 1].size();
+
+                for (int n = 0; n < nodeCount; n++) {
+                    for (int w = 0; w < weightCount; w++) {
+                        float newWeight = result.layerNodes[l][n].outWeights[w];
+                        if (i == 0) {
+                            newWeight = 0.0f;
+                        }
+                        
+                        newWeight = newWeight + parents[i].layerNodes[l][n].outWeights[w] * fitnessScores[i];
+                        result.layerNodes[l][n].outWeights[w] = newWeight;
+                    }
+                }
+                for (int b = 0; b < biasCount; b++) {
+                    for (int w = 0; w < weightCount; w++) {
+                        float newWeight = result.layerBiases[l][b].outWeights[w];
+                        if (i == 0) {
+                            newWeight = 0.0f;
+                        }
+
+                        newWeight = newWeight + parents[i].layerBiases[l][b].outWeights[w] * fitnessScores[i];
+                        result.layerBiases[l][b].outWeights[w] = newWeight;
+                    }
                 }
             }
         }
+        
+        return result;
     }
-
-    // Take mean (non weighted) of accumulative weights
-    int layerCount = result.layerNodes.size();
-
-    for (int l = 0; l < layerCount - 1; l++) {
-        int nodeCount = result.layerNodes[l].size();
-        int biasCount = result.layerBiases[l].size();
-        int weightCount = result.layerNodes[l + 1].size();
-
-        for (int n = 0; n < nodeCount; n++) {
-            for (int w = 0; w < weightCount; w++) {
-                result.layerNodes[l][n].outWeights[w] = result.layerNodes[l][n].outWeights[w] / parentCount;
-            }
-        }
-        for (int b = 0; b < biasCount; b++) {
-            for (int w = 0; w < weightCount; w++) {
-                result.layerBiases[l][b].outWeights[w] = result.layerBiases[l][b].outWeights[w] / parentCount;
-            }
-        }
-    }
-
-    return result;
 }
 vector<NeuralNetwork> NeuralNetwork::sortNetworks(vector<NeuralNetwork> networks, vector<float> fitnessScores) {
     // Bubble sort algorithm due to fitness scores
@@ -979,13 +1031,13 @@ vector<NeuralNetwork> NeuralNetwork::sortNetworks(vector<NeuralNetwork> networks
     reverse(networks.begin(), networks.end());
     return networks;
 }
-NeuralNetwork NeuralNetwork::chooseParent(vector<NeuralNetwork> population, vector<float> fitnessScores, standardTrainConfig trainConfig) {
+pair<NeuralNetwork, float> NeuralNetwork::chooseParent(vector<NeuralNetwork> population, vector<float> fitnessScores, standardTrainConfig trainConfig) {
     if (trainConfig.parentSelectionMethod == TOP_PARENTS) {
         // Take random from top 10% of population
         int maxIndex = ceilf(float(population.size()) / 10.0f);
         int randomIndex = rand() % maxIndex;
 
-        return population[randomIndex];
+        return make_pair(population[randomIndex], fitnessScores[randomIndex]);
     }
     if (trainConfig.parentSelectionMethod == EXPONENTIAL_PARENTS) {
         // Use exponential distribution to choose index of sorted list
@@ -997,34 +1049,31 @@ NeuralNetwork NeuralNetwork::chooseParent(vector<NeuralNetwork> population, vect
         float distributionOutput = fminf(distribution(generator) * populationSize, populationSize - 1);
         int exponentialIndex = floorf(distributionOutput);
         
-        return population[exponentialIndex];
+        return make_pair(population[exponentialIndex], fitnessScores[exponentialIndex]);
     }
     if (trainConfig.parentSelectionMethod == PROBABILITY_PARENTS) {
         // Apply softmax to fitness scores
-        int populationSize = population.size();
-        float total = 0.0f;
-
-        for (int i = 0; i < populationSize; i++) {
-            total = total + expf(fitnessScores[i]);
-        }
-        for (int i = 0; i < populationSize; i++) {
-            fitnessScores[i] = expf(fitnessScores[i]) / total;
-        }
+        fitnessScores = softmax(fitnessScores);
 
         // Find parent according to softmax fitness probabilities
+        int populationSize = population.size();
         float randomProbability = double(rand()) / RAND_MAX; // creates probability in range 0 -> 1
+        
         NeuralNetwork chosenParent = population[0];
+        float chosenFitness = fitnessScores[0];
 
         float accumulativeTotal = 0.0f;
         for (int k = 0; k < populationSize; k++) {
             if (randomProbability < accumulativeTotal + fitnessScores[k]) {
                 chosenParent = population[k];
+                chosenFitness = fitnessScores[k];
+
                 break;
             }
             accumulativeTotal = accumulativeTotal + fitnessScores[k];
         }
 
-        return chosenParent;
+        return make_pair(chosenParent, chosenFitness);
     }
 }
 
@@ -1040,14 +1089,17 @@ vector<NeuralNetwork> NeuralNetwork::reproducePopulation(vector<NeuralNetwork> p
     for (int i = 0; i < populationSize; i++) {
         // Find parents according to softmax fitness probabilities
         vector<NeuralNetwork> parents;
+        vector<float> correspondingFitness;
 
         for (int j = 0; j < trainConfig.parentCount; j++) {
-            NeuralNetwork chosenParent = chooseParent(parentPopulation, fitnessScores, trainConfig);
-            parents.push_back(chosenParent);
+            pair<NeuralNetwork, float> chosenParent = chooseParent(parentPopulation, fitnessScores, trainConfig);
+
+            parents.push_back(chosenParent.first);
+            correspondingFitness.push_back(chosenParent.second);
         }
 
         // Reproduce with parents
-        NeuralNetwork child = reproduceParents(parents);
+        NeuralNetwork child = reproduceParents(parents, correspondingFitness, trainConfig);
         if (trainConfig.useChildMutation) {
             child = mutateNetwork(child);
         }
