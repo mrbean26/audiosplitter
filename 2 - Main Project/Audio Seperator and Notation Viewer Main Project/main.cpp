@@ -29,45 +29,15 @@ int main() {
 	// Train Network - One Song Training
 	vector<vector<float>> inputSet = generateInputs(audioConfig);
 	vector<vector<float>> outputSet = generateOutputs(audioConfig);
-	
+
 	int inputSize = inputSet[0].size();
 	int outputSize = outputSet[0].size();
 
-	vector<int> layers = { inputSize, 128, 128, 128, 128, outputSize };
+	vector<int> layers = { inputSize, 128, 128, 128, 128, 128, outputSize };
 	vector<int> biases = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
 	vector<int> activations = { SIGMOID, SIGMOID, SIGMOID, SIGMOID, SIGMOID, SIGMOID, SIGMOID, SIGMOID };
-	
-	// natural selection
-
-	NeuralNetwork::standardTrainConfig newConfig = NeuralNetwork::standardTrainConfig();
-	newConfig.trainInputs = inputSet;
-	newConfig.trainOutputs = outputSet;
-
-	newConfig.epochs = 10000;
-
-	newConfig.population = 15;
-	newConfig.parentCount = 3;
-
-	newConfig.lowestInitialisedWeight = -100.0f;
-	newConfig.highestInitialisedWeight = 100.0f;
-
-	newConfig.useChildMutation = true;
-	newConfig.useThreading = true;
-
-	newConfig.fitnessFunctionType = ABSOLUTE_ERROR;
-	newConfig.parentSelectionMethod = EXPONENTIAL_PARENTS;
-	newConfig.breedingMethod = WEIGHTED_PARENTS;
-
-	newConfig.useStochasticDataset = true;
-	newConfig.stochasticDatasetSize = 10;
-
-
-	NeuralNetwork bestNetwork = NeuralNetwork::trainNaturalSelectionMethod(newConfig, layers, biases, activations);
-
-	/*
-	 
-	BACKPROPAGATION ALGORITHM 
-	
+		 
+	// Some Version of Backpropagation Here 	
 	NeuralNetwork newNetwork = NeuralNetwork(layers, biases, activations);
 	
 	NeuralNetwork::standardTrainConfig newConfig = NeuralNetwork::standardTrainConfig();
@@ -75,14 +45,11 @@ int main() {
 	newConfig.trainOutputs = outputSet;
 
 	newConfig.epochs = 25000;
-	newConfig.learningRate = 0.75f;
+	newConfig.learningRate = 1.0f;
 	newConfig.momentum = 0.125f;
 	newConfig.learningRateType = CYCLICAL_LEARNING_RATE;
 
-	newConfig.entireBatchEpochIntervals = 1000;
-	newConfig.batchSize = 400;
-
-	newConfig.trainType = STOCHASTIC_GRADIENT_DESCENT;
+	newConfig.trainType = BATCH_GRADIENT_DESCENT;
 
 	vector<float> errors = newNetwork.train(newConfig);
 	createOutputTestTrack(newNetwork, audioConfig);
@@ -101,9 +68,8 @@ int main() {
 		1000.0f,
 		0.0f,
 	};
-
 	writeToImage(imageConfig);
-	*/
+	
 
 	system("pause");
 	return 0;

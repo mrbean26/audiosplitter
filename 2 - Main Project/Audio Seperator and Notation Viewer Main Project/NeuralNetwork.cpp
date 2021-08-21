@@ -220,6 +220,9 @@ vector<float> NeuralNetwork::train(standardTrainConfig trainConfig) {
     if (trainConfig.trainType == LEVENBERG_MARQUARDT) {
         result = trainLevenbergMarquardt(trainConfig);
     }
+    if (trainConfig.trainType == BATCH_GRADIENT_DESCENT) {
+        result = trainBatchGradientDescent(trainConfig);
+    }
 
     return result;
 }
@@ -1424,4 +1427,140 @@ vector<float> NeuralNetwork::trainLevenbergMarquardt(standardTrainConfig trainCo
     }
 
     return result;
+}
+
+// Batch Gradient Descent
+vector<float> NeuralNetwork::trainBatchGradientDescent(standardTrainConfig trainConfig) {
+    int trainDataCount = trainConfig.trainInputs.size();
+    int outputCount = trainConfig.trainOutputs[0].size();
+
+    vector<float> result;
+    for (int epoch = 0; epoch < trainConfig.epochs; epoch++) {
+        // Calculate Current Learning Rate
+        float currentLearningRate = trainConfig.learningRate;
+
+        if (trainConfig.learningRateType == CYCLICAL_LEARNING_RATE) {
+            // Calculate Multiplier For Learning Parameters such That The Multiplier Peaks at Half Epochs
+            double currentCoefficient = double(epoch + 1) / (double(trainConfig.epochs));
+            float value = 1.0f - abs(2.0f * (currentCoefficient - 0.5f));
+
+            currentLearningRate = value * trainConfig.learningRate;
+        }
+
+        // Randomly Disable Some Nodes to Prevent Overfitting
+        if (trainConfig.useDropout) {
+            randomlyDropNodes(trainConfig.nodeBiasDropoutProbability);
+        }
+
+        // Accumulate Weight Deltas (no mean just yet)
+        float totalError = 0.0f;
+        for (int t = 0; t < trainDataCount; t++) {
+            vector<float> prediction = predict(trainConfig.trainInputs[t]);
+
+            // Calculate Differences
+            vector<float> errors;
+            for (int e = 0; e < outputCount; e++) {
+                totalError = totalError + abs(trainConfig.trainOutputs[t][e] - prediction[e]);
+                errors.push_back(trainConfig.trainOutputs[t][e] - prediction[e]);
+            }
+
+            calculateDerivatives(errors);
+
+            // Add Derivatives To "Previous Deltas" Field
+            addDerivativesBatchGradientDescent();
+        }
+
+        // Update Parameters
+        averageDerivativesBatchGradientDescent(trainDataCount);
+        updateNetworkBatchGradientDescent(currentLearningRate);
+
+        // Reset Network
+        zeroPreviousDeltasBatchGradientDescent();
+        reactivateNodes();
+
+        cout << "Epoch: " << epoch + 1 << " / " << trainConfig.epochs << ", Total Error : " << totalError << endl;
+        result.push_back(totalError);
+    }
+    return result;
+}
+void NeuralNetwork::updateNetworkBatchGradientDescent(float learningRate) {
+    int layerCount = layerNodes.size();
+
+    for (int l = 0; l < layerCount - 1; l++) {
+        int nodeCount = layerNodes[l].size();
+        int biasCount = layerBiases[l].size();
+        int weightCount = layerNodes[l + 1].size();
+
+        for (int n = 0; n < nodeCount; n++) {
+            for (int w = 0; w < weightCount; w++) {
+                layerNodes[l][n].outWeights[w] += layerNodes[l][n].previousDeltas[w] * learningRate;
+            }
+        }
+        for (int b = 0; b < biasCount; b++) {
+            for (int w = 0; w < weightCount; w++) {
+                layerBiases[l][b].outWeights[w] += layerBiases[l][b].previousDeltas[w] * learningRate;
+            }
+        }
+    }
+}
+
+void NeuralNetwork::addDerivativesBatchGradientDescent() {
+    int layerCount = layerNodes.size();
+
+    for (int l = 0; l < layerCount - 1; l++) {
+        int nodeCount = layerNodes[l].size();
+        int biasCount = layerBiases[l].size();
+        int weightCount = layerNodes[l + 1].size();
+
+        for (int n = 0; n < nodeCount; n++) {
+            for (int w = 0; w < weightCount; w++) {
+                layerNodes[l][n].previousDeltas[w] += layerNodes[l][n].value * layerNodes[l + 1][w].derivativeErrorValue;
+            }
+        }
+        for (int b = 0; b < biasCount; b++) {
+            for (int w = 0; w < weightCount; w++) {
+                layerBiases[l][b].previousDeltas[w] += 1.0f * layerNodes[l + 1][w].derivativeErrorValue;
+            }
+        }
+    }
+}
+void NeuralNetwork::averageDerivativesBatchGradientDescent(int count) {
+    int layerCount = layerNodes.size();
+
+    for (int l = 0; l < layerCount - 1; l++) {
+        int nodeCount = layerNodes[l].size();
+        int biasCount = layerBiases[l].size();
+        int weightCount = layerNodes[l + 1].size();
+
+        for (int n = 0; n < nodeCount; n++) {
+            for (int w = 0; w < weightCount; w++) {
+                layerNodes[l][n].previousDeltas[w] = layerNodes[l][n].previousDeltas[w] / float(count);
+            }
+        }
+        for (int b = 0; b < biasCount; b++) {
+            for (int w = 0; w < weightCount; w++) {
+                layerBiases[l][b].previousDeltas[w] = layerBiases[l][b].previousDeltas[w] / float(count);
+            }
+        }
+    }
+}
+void NeuralNetwork::zeroPreviousDeltasBatchGradientDescent() {
+    int layerCount = layerNodes.size();
+
+    for (int l = 0; l < layerCount - 1; l++) {
+        int nodeCount = layerNodes[l].size();
+        int biasCount = layerBiases[l].size();
+        int weightCount = layerNodes[l + 1].size();
+
+        for (int n = 0; n < nodeCount; n++) {
+            for (int w = 0; w < weightCount; w++) {
+                layerNodes[l][n].previousDeltas[w] = 0.0f;
+            }
+        }
+        for (int b = 0; b < biasCount; b++) {
+            for (int w = 0; w < weightCount; w++) {
+                layerBiases[l][b].previousDeltas[w] = 0.0f;
+            }
+        }
+    }
 }

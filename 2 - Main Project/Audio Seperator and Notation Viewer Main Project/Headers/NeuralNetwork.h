@@ -33,6 +33,7 @@ struct audioFileConfig;
 #define RESISTANT_PROPAGATION 2
 #define RANDOM_METHOD 3
 #define LEVENBERG_MARQUARDT 4
+#define BATCH_GRADIENT_DESCENT 5
 
 // Learning Rate Calculation Definition
 #define FIXED_LEARNING_RATE 0
@@ -218,6 +219,14 @@ public:
     vector<float> calculateDeltasLM(vector<vector<float>> jacobianMatrix, vector<vector<float>> costMatrix, float dampen);
     vector<float> getJacobianRowLM();
     vector<float> trainLevenbergMarquardt(standardTrainConfig trainConfig); 
+
+    // Batch Gradient Descent
+    vector<float> trainBatchGradientDescent(standardTrainConfig trainConfig);
+    void updateNetworkBatchGradientDescent(float learningRate);
+
+    void addDerivativesBatchGradientDescent();
+    void averageDerivativesBatchGradientDescent(int count);
+    void zeroPreviousDeltasBatchGradientDescent();
 };
 
 #endif // !NEURALNETWORK_H
