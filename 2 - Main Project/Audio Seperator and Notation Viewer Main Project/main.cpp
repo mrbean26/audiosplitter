@@ -45,9 +45,9 @@ int main() {
 	newConfig.trainOutputs = outputSet;
 
 	newConfig.epochs = 25000;
-	newConfig.learningRate = 1.0f;
-	newConfig.momentum = 0.125f;
-	newConfig.learningRateType = CYCLICAL_LEARNING_RATE;
+	newConfig.learningRate = 0.5f;
+	newConfig.momentum = 0.0f;
+	newConfig.learningRateType = FIXED_LEARNING_RATE;
 
 	newConfig.trainType = BATCH_GRADIENT_DESCENT;
 

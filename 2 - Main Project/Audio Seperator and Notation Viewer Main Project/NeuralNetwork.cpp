@@ -64,28 +64,18 @@ void NeuralNetwork::initialiseWeights() {
         int currentNodeCount = layerNodes[i].size();
         int nextNodeCount = layerNodes[i + 1].size();
 
-        // For "ADAM" Learning
-        vector<float> emptyVector(nextNodeCount);
-
+        // Initialise Weights with Random Values
         for (int n = 0; n < currentNodeCount; n++) {
             for (int n1 = 0; n1 < nextNodeCount; n1++) {
                 layerNodes[i][n].outWeights.push_back(randomFloat());
-                layerNodes[i][n].previousDeltas.push_back(0.0f);
             }
-
-            layerNodes[i][n].previousExponentials = emptyVector;
-            layerNodes[i][n].previousSquaredExponentials = emptyVector;
         }
 
         int currentBiasCount = layerBiases[i].size();
         for (int b = 0; b < currentBiasCount; b++) {
             for (int n = 0; n < nextNodeCount; n++) {
                 layerBiases[i][b].outWeights.push_back(randomFloat());
-                layerBiases[i][b].previousDeltas.push_back(0.0f);
             }
-
-            layerBiases[i][b].previousExponentials = emptyVector;
-            layerBiases[i][b].previousSquaredExponentials = emptyVector;
         }
     }
 }
@@ -202,8 +192,43 @@ void NeuralNetwork::loadWeightsFromFile(string directory) {
 }
 
 // General Training
+void NeuralNetwork::setupNetworkForTraining(standardTrainConfig trainConfig) {
+    for (int i = 0; i < layerCount - 1; i++) {
+        int nodeCount = layerNodes[i].size();
+        int biasCount = layerBiases[i].size();
+
+        int weightCount = layerNodes[i + 1].size();
+        vector<float> emptyVector(weightCount);
+
+        for (int n = 0; n < nodeCount; n++) {
+            if (trainConfig.learningRateType == ADAM_LEARNING_RATE) {
+                layerNodes[i][n].previousExponentials = emptyVector;
+                layerNodes[i][n].previousSquaredExponentials = emptyVector;
+            }
+            else {
+                layerNodes[i][n].previousDeltas = emptyVector;
+            }
+            if (trainConfig.trainType == BATCH_GRADIENT_DESCENT) {
+                layerNodes[i][n].accumulativeDeltas = emptyVector;
+            }
+        }
+        for (int b = 0; b < biasCount; b++) {
+            if (trainConfig.learningRateType == ADAM_LEARNING_RATE) {
+                layerBiases[i][b].previousExponentials = emptyVector;
+                layerBiases[i][b].previousSquaredExponentials = emptyVector;
+            }
+            else {
+                layerBiases[i][b].previousDeltas = emptyVector;
+            }
+            if (trainConfig.trainType == BATCH_GRADIENT_DESCENT) {
+                layerBiases[i][b].accumulativeDeltas = emptyVector;
+            }
+        }
+    }
+}
 vector<float> NeuralNetwork::train(standardTrainConfig trainConfig) {
     vector<float> result;
+    setupNetworkForTraining(trainConfig);
 
     if (trainConfig.trainType == STOCHASTIC_GRADIENT_DESCENT) {
         result = trainStochasticGradientDescent(trainConfig);
@@ -1154,6 +1179,10 @@ NeuralNetwork NeuralNetwork::trainNaturalSelectionMethod(standardTrainConfig tra
     vector<NeuralNetwork> population = initialisePopulation(layers, biases, activations, trainConfig.population, trainConfig.lowestInitialisedWeight, trainConfig.highestInitialisedWeight);
     cout << "Initialised population.. " << endl;
 
+    for (int i = 0; i < trainConfig.population; i++) {
+        population[i].setupNetworkForTraining(trainConfig);
+    }
+
     NeuralNetwork bestNetwork = population[0];
     float bestFitness = -1.0f;
 
@@ -1438,6 +1467,7 @@ vector<float> NeuralNetwork::trainBatchGradientDescent(standardTrainConfig train
     for (int epoch = 0; epoch < trainConfig.epochs; epoch++) {
         // Calculate Current Learning Rate
         float currentLearningRate = trainConfig.learningRate;
+        float currentMomentum = trainConfig.momentum;
 
         if (trainConfig.learningRateType == CYCLICAL_LEARNING_RATE) {
             // Calculate Multiplier For Learning Parameters such That The Multiplier Peaks at Half Epochs
@@ -1445,6 +1475,7 @@ vector<float> NeuralNetwork::trainBatchGradientDescent(standardTrainConfig train
             float value = 1.0f - abs(2.0f * (currentCoefficient - 0.5f));
 
             currentLearningRate = value * trainConfig.learningRate;
+            currentMomentum = value * trainConfig.momentum;
         }
 
         // Randomly Disable Some Nodes to Prevent Overfitting
@@ -1472,18 +1503,23 @@ vector<float> NeuralNetwork::trainBatchGradientDescent(standardTrainConfig train
 
         // Update Parameters
         averageDerivativesBatchGradientDescent(trainDataCount);
-        updateNetworkBatchGradientDescent(currentLearningRate);
+        if (trainConfig.learningRateType == ADAM_LEARNING_RATE) {
+            updateNetworkBatchGradientDescentADAM(trainConfig);
+        }
+        else {
+            updateNetworkBatchGradientDescent(currentLearningRate, currentMomentum);
+        }
 
         // Reset Network
         zeroPreviousDeltasBatchGradientDescent();
         reactivateNodes();
 
-        cout << "Epoch: " << epoch + 1 << " / " << trainConfig.epochs << ", Total Error : " << totalError << endl;
+        cout << "Epoch: " << epoch + 1 << " / " << trainConfig.epochs << ", Total Error : " << totalError << ", Layers: " << layerCount << ", LR:" << currentLearningRate << endl;
         result.push_back(totalError);
     }
     return result;
 }
-void NeuralNetwork::updateNetworkBatchGradientDescent(float learningRate) {
+void NeuralNetwork::updateNetworkBatchGradientDescent(float learningRate, float momentum) {
     int layerCount = layerNodes.size();
 
     for (int l = 0; l < layerCount - 1; l++) {
@@ -1492,13 +1528,93 @@ void NeuralNetwork::updateNetworkBatchGradientDescent(float learningRate) {
         int weightCount = layerNodes[l + 1].size();
 
         for (int n = 0; n < nodeCount; n++) {
+            if (!layerNodes[l][n].active) {
+                continue;
+            }
+
             for (int w = 0; w < weightCount; w++) {
-                layerNodes[l][n].outWeights[w] += layerNodes[l][n].previousDeltas[w] * learningRate;
+                float newDelta = layerNodes[l][n].accumulativeDeltas[w] * learningRate;
+                layerNodes[l][n].outWeights[w] += newDelta;
+
+                layerNodes[l][n].outWeights[w] += layerNodes[l][n].previousDeltas[w] * momentum;
+                layerNodes[l][n].previousDeltas[w] = newDelta;
             }
         }
         for (int b = 0; b < biasCount; b++) {
+            if (!layerBiases[l][b].active) {
+                continue;
+            }
+
             for (int w = 0; w < weightCount; w++) {
-                layerBiases[l][b].outWeights[w] += layerBiases[l][b].previousDeltas[w] * learningRate;
+                float newDelta = layerBiases[l][b].accumulativeDeltas[w] * learningRate;
+                layerBiases[l][b].outWeights[w] += newDelta;
+
+                layerBiases[l][b].outWeights[w] += layerBiases[l][b].previousDeltas[w] * momentum;
+                layerBiases[l][b].previousDeltas[w] = newDelta;
+            }
+        }
+    }
+}
+void NeuralNetwork::updateNetworkBatchGradientDescentADAM(standardTrainConfig trainConfig) {
+    for (int i = 0; i < layerCount; i++) {
+        int nodeCount = layerNodes[i].size();
+
+        // Adjust Weights That Come From Nodes
+        for (int n = 0; n < nodeCount; n++) {
+            if (!layerNodes[i][n].active) {
+                continue;
+            }
+
+            int weightCount = layerNodes[i][n].outWeights.size();
+            for (int w = 0; w < weightCount; w++) {
+                // Calculate Gradient of Error With Respect To Node
+                float gradient = layerNodes[i][n].accumulativeDeltas[w];
+
+                // ADAM Parameters#
+                float newExponential = trainConfig.betaOne * layerNodes[i][n].previousExponentials[w] + (1 - trainConfig.betaOne) * gradient;
+                float newSquaredExponential = trainConfig.betaTwo * layerNodes[i][n].previousSquaredExponentials[w] + (1 - trainConfig.betaTwo) * powf(gradient, 2.0f);
+
+                float currentExponential = newExponential / (1 - trainConfig.betaOne);
+                float currentSquaredExponential = newSquaredExponential / (1 - trainConfig.betaTwo);
+
+                float learningRate = trainConfig.learningRate * (currentExponential / (sqrtf(currentSquaredExponential) + trainConfig.epsillon));
+                float delta = learningRate * gradient;
+
+                layerNodes[i][n].outWeights[w] -= delta;
+
+                // Update ADAM Parameters
+                layerNodes[i][n].previousExponentials[w] = newExponential;
+                layerNodes[i][n].previousSquaredExponentials[w] = newSquaredExponential;
+            }
+        }
+
+        // Adjust Weights That Come From Biases
+        int biasCount = layerBiases[i].size();
+        for (int b = 0; b < biasCount; b++) {
+            if (!layerBiases[i][b].active) {
+                continue;
+            }
+
+            int outWeightCount = layerBiases[i][b].outWeights.size();
+            for (int w = 0; w < outWeightCount; w++) {
+                // Calculate Gradient of Error With Respect To Node
+                float gradient = layerBiases[i][b].outWeights[w];
+
+                // ADAM Parameters
+                float newExponential = trainConfig.betaOne * layerBiases[i][b].previousExponentials[w] + (1 - trainConfig.betaOne) * gradient;
+                float newSquaredExponential = trainConfig.betaTwo * layerBiases[i][b].previousSquaredExponentials[w] + (1 - trainConfig.betaTwo) * powf(gradient, 2.0f);
+
+                float currentExponential = newExponential / (1 - trainConfig.betaOne);
+                float currentSquaredExponential = newSquaredExponential / (1 - trainConfig.betaTwo);
+
+                float learningRate = trainConfig.learningRate * (currentExponential / (sqrtf(currentSquaredExponential) + trainConfig.epsillon));
+                float delta = learningRate * gradient;
+
+                layerBiases[i][b].outWeights[w] -= delta;
+
+                // Update ADAM Parameters
+                layerBiases[i][b].previousExponentials[w] = newExponential;
+                layerBiases[i][b].previousSquaredExponentials[w] = newSquaredExponential;
             }
         }
     }
@@ -1514,12 +1630,12 @@ void NeuralNetwork::addDerivativesBatchGradientDescent() {
 
         for (int n = 0; n < nodeCount; n++) {
             for (int w = 0; w < weightCount; w++) {
-                layerNodes[l][n].previousDeltas[w] += layerNodes[l][n].value * layerNodes[l + 1][w].derivativeErrorValue;
+                layerNodes[l][n].accumulativeDeltas[w] += layerNodes[l][n].value * layerNodes[l + 1][w].derivativeErrorValue;
             }
         }
         for (int b = 0; b < biasCount; b++) {
             for (int w = 0; w < weightCount; w++) {
-                layerBiases[l][b].previousDeltas[w] += 1.0f * layerNodes[l + 1][w].derivativeErrorValue;
+                layerBiases[l][b].accumulativeDeltas[w] += 1.0f * layerNodes[l + 1][w].derivativeErrorValue;
             }
         }
     }
@@ -1534,12 +1650,12 @@ void NeuralNetwork::averageDerivativesBatchGradientDescent(int count) {
 
         for (int n = 0; n < nodeCount; n++) {
             for (int w = 0; w < weightCount; w++) {
-                layerNodes[l][n].previousDeltas[w] = layerNodes[l][n].previousDeltas[w] / float(count);
+                layerNodes[l][n].accumulativeDeltas[w] = layerNodes[l][n].accumulativeDeltas[w] / float(count);
             }
         }
         for (int b = 0; b < biasCount; b++) {
             for (int w = 0; w < weightCount; w++) {
-                layerBiases[l][b].previousDeltas[w] = layerBiases[l][b].previousDeltas[w] / float(count);
+                layerBiases[l][b].accumulativeDeltas[w] = layerBiases[l][b].accumulativeDeltas[w] / float(count);
             }
         }
     }
@@ -1554,12 +1670,12 @@ void NeuralNetwork::zeroPreviousDeltasBatchGradientDescent() {
 
         for (int n = 0; n < nodeCount; n++) {
             for (int w = 0; w < weightCount; w++) {
-                layerNodes[l][n].previousDeltas[w] = 0.0f;
+                layerNodes[l][n].accumulativeDeltas[w] = 0.0f;
             }
         }
         for (int b = 0; b < biasCount; b++) {
             for (int w = 0; w < weightCount; w++) {
-                layerBiases[l][b].previousDeltas[w] = 0.0f;
+                layerBiases[l][b].accumulativeDeltas[w] = 0.0f;
             }
         }
     }

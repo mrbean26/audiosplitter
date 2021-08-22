@@ -133,6 +133,9 @@ public:
         // ADAM Learning Rates
         vector<float> previousExponentials;
         vector<float> previousSquaredExponentials;
+
+        // Batch Graient Descent
+        vector<float> accumulativeDeltas;
     };
 
     static struct Bias {
@@ -148,6 +151,9 @@ public:
         // ADAM Learning Rates
         vector<float> previousExponentials;
         vector<float> previousSquaredExponentials;
+
+        // Batch Graient Descent
+        vector<float> accumulativeDeltas;
     };
 
     // Config
@@ -165,6 +171,7 @@ public:
     void loadWeightsFromFile(string directory);
 
     // General Training
+    void setupNetworkForTraining(standardTrainConfig trainConfig);
     vector<float> train(standardTrainConfig trainConfig);
 
     float activate(float x, int layer);
@@ -222,7 +229,8 @@ public:
 
     // Batch Gradient Descent
     vector<float> trainBatchGradientDescent(standardTrainConfig trainConfig);
-    void updateNetworkBatchGradientDescent(float learningRate);
+    void updateNetworkBatchGradientDescent(float learningRate, float momentum);
+    void updateNetworkBatchGradientDescentADAM(standardTrainConfig trainConfig);
 
     void addDerivativesBatchGradientDescent();
     void averageDerivativesBatchGradientDescent(int count);
