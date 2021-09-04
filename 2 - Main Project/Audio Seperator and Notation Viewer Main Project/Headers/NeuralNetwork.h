@@ -116,7 +116,7 @@ public:
         float betaOne = 0.9f;
         float betaTwo = 0.999f;
         float epsillon = 0.00000001f;
-    } bar;
+    } trainConfig;
 
     static struct Node {
         // Runtime
@@ -137,7 +137,6 @@ public:
         // Batch Graient Descent
         vector<float> accumulativeDeltas;
     };
-
     static struct Bias {
         // Runtime
         vector<float> outWeights;
@@ -235,6 +234,40 @@ public:
     void addDerivativesBatchGradientDescent();
     void averageDerivativesBatchGradientDescent(int count);
     void zeroPreviousDeltasBatchGradientDescent();
+
+    // Big Train Algorithm For Finding Best Architechture
+    static struct architechtureFindingConfig{
+        // Measuring Network Quality
+        vector<vector<float>> trainInputs;
+        vector<vector<float>> trainOutputs;
+
+        int epochs = 2500;
+        int batchSize = 250;
+
+        // Variation
+        int layerSizeInterval = 64;
+        int layerSizeVariation = 2;
+
+        int layerCountVariation = 2;
+        int biasCountVariation = 1;
+           
+        float learningRateInterval = 0.25f;
+        int learningRateVariation = 2;
+
+        float momentumInterval = 0.05f;
+        int momentumVariation = 2;
+
+        // Default Network Architechture
+        int layerSize = 256;
+        int layerCount = 8;
+
+        int biasCount = 1;
+
+        float learningRate = 0.75f;
+        float momentum = 0.1f;
+    } architechtureConfig;
+    static float testNetworkArchitechture(vector<vector<float>> trainInputs, vector<vector<float>> trainOutputs, int epochs, int batchSize, int layerSize, int layerCount, int biasCount, float lr, float momentum);
+    static void findBestArchitechture(architechtureFindingConfig config);
 };
 
 #endif // !NEURALNETWORK_H

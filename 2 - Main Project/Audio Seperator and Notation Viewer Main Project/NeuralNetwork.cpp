@@ -1680,3 +1680,119 @@ void NeuralNetwork::zeroPreviousDeltasBatchGradientDescent() {
         }
     }
 }
+
+// Big Train Algorithm For Finding Best Architechture
+float NeuralNetwork::testNetworkArchitechture(vector<vector<float>> trainInputs, vector<vector<float>> trainOutputs, int epochs, int batchSize, int layerSize, int layerCount, int biasCount, float lr, float momentum) {
+    int inputSize = trainInputs[0].size();
+    int outputSize = trainOutputs[0].size();
+
+    // Create Network
+    vector<int> layers = { inputSize };
+    for (int i = 0; i < layerCount; i++) {
+        layers.push_back(layerSize);
+    }
+    layers.push_back(outputSize);
+
+    vector<int> biases;
+    vector<int> activations;
+
+    for (int i = 0; i < layerCount + 2; i++) {
+        biases.push_back(biasCount);
+        activations.push_back(SIGMOID);
+    }
+
+    NeuralNetwork newNetwork = NeuralNetwork(layers, biases, activations);
+
+    // Create Train Config
+    standardTrainConfig newTrainConfig = standardTrainConfig();
+    newTrainConfig.epochs = epochs;
+
+    newTrainConfig.learningRateType = CYCLICAL_LEARNING_RATE;
+    newTrainConfig.learningRate = lr;
+    newTrainConfig.momentum = momentum;
+
+    newTrainConfig.trainInputs = trainInputs;
+    newTrainConfig.trainOutputs = trainOutputs;
+
+    newTrainConfig.trainType = STOCHASTIC_GRADIENT_DESCENT;
+    newTrainConfig.batchSize = batchSize;
+
+    // Find Errors
+    vector<float> errors = newNetwork.train(newTrainConfig);
+    return errors[epochs - 1];
+}
+void NeuralNetwork::findBestArchitechture(architechtureFindingConfig config) {
+    int chosenLayerSize = 0;
+    int chosenLayerCount = 0;
+    int chosenBiasCount = 0;
+
+    float chosenLearningRate = 0.0f;
+    float chosenMomentum = 0.0f;
+
+    // Find best layer size 
+    float currentLowestError = -1.0f;
+    for (int i = -config.layerSizeVariation; i < config.layerSizeVariation + 1; i++) {
+        int currentLayerSize = config.layerSize + i * config.layerSizeInterval;
+        float returnedError = testNetworkArchitechture(config.trainInputs, config.trainOutputs, config.epochs, config.batchSize, currentLayerSize, config.layerCount, config.biasCount, config.learningRate, config.momentum);
+
+        if (returnedError < currentLowestError || currentLowestError == -1.0f) {
+            currentLowestError = returnedError;
+            chosenLayerSize = currentLayerSize;
+        }
+    }
+
+    // Find best layer count
+    currentLowestError = -1.0f;
+    for (int i = -config.layerCountVariation; i < config.layerCountVariation + 1; i++) {
+        int currentLayerCount = config.layerCount + i;
+        float returnedError = testNetworkArchitechture(config.trainInputs, config.trainOutputs, config.epochs, config.batchSize, config.layerSize, currentLayerCount, config.biasCount, config.learningRate, config.momentum);
+
+        if (returnedError < currentLowestError || currentLowestError == -1.0f) {
+            currentLowestError = returnedError;
+            chosenLayerCount = currentLayerCount;
+        }
+    }
+
+    // Find best bias count
+    currentLowestError = -1.0f;
+    for (int i = -config.biasCountVariation; i < config.biasCountVariation + 1; i++) {
+        int currentBiasCount = config.biasCount + i;
+        float returnedError = testNetworkArchitechture(config.trainInputs, config.trainOutputs, config.epochs, config.batchSize, config.layerSize, config.biasCount, currentBiasCount, config.learningRate, config.momentum);
+
+        if (returnedError < currentLowestError || currentLowestError == -1.0f) {
+            currentLowestError = returnedError;
+            chosenBiasCount = currentBiasCount;
+        }
+    }
+
+    // Find best learning rate
+    currentLowestError = -1.0f;
+    for (int i = -config.learningRateVariation; i < config.learningRateVariation + 1; i++) {
+        float currentLearningRate = config.learningRate + i * config.learningRateInterval;
+        float returnedError = testNetworkArchitechture(config.trainInputs, config.trainOutputs, config.epochs, config.batchSize, config.layerSize, config.biasCount, config.biasCount, currentLearningRate, config.momentum);
+
+        if (returnedError < currentLowestError || currentLowestError == -1.0f) {
+            currentLowestError = returnedError;
+            chosenLearningRate = currentLearningRate;
+        }
+    }
+
+    // Find best momentum
+    currentLowestError = -1.0f;
+    for (int i = -config.momentumVariation; i < config.momentumVariation + 1; i++) {
+        float currentMomentum = config.momentum + i * config.momentumInterval;
+        float returnedError = testNetworkArchitechture(config.trainInputs, config.trainOutputs, config.epochs, config.batchSize, config.layerSize, config.biasCount, config.biasCount, config.learningRate, currentMomentum);
+
+        if (returnedError < currentLowestError || currentLowestError == -1.0f) {
+            currentLowestError = returnedError;
+            chosenMomentum = currentMomentum;
+        }
+    }
+
+    // output results
+    cout << "Best layer size: " << chosenLayerSize << endl;
+    cout << "Best layer count: " << chosenLayerCount << endl;
+    cout << "Best bias count: " << chosenBiasCount << endl;
+    cout << "Best LR: " << chosenLearningRate << endl;
+    cout << "Best momentum: " << chosenMomentum << endl;
+}
