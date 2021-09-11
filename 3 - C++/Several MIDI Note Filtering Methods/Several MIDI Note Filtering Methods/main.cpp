@@ -342,13 +342,40 @@ int main() {
 		finalSpectrogramExponent.push_back(resultantChunk);
 	}
 	
+	// Percentage Filtering (E.g take top 75% of each chunk)
+	vector<vector<float>> finalSpectrogramPercentage;
+	float percentageThreshold = 0.75f; // Take top 25% (1 - 0.75)
+
+	for (int i = 0; i < initialSpectrogram.size(); i++) {
+		vector<float> resultantChunk;
+
+		float maxValue = 0.0f;
+		for (int j = 0; j < initialSpectrogram[0].size(); j++) {
+			maxValue = max(maxValue, initialSpectrogram[i][j]);
+		}
+
+		float threshold = maxValue * percentageThreshold;
+		for (int j = 0; j < initialSpectrogram[0].size(); j++) {
+			if (initialSpectrogram[i][j] > threshold) {
+				resultantChunk.push_back(initialSpectrogram[i][j]);
+			}
+			else {
+				resultantChunk.push_back(0.0f);
+			}
+		}
+
+		finalSpectrogramPercentage.push_back(resultantChunk);
+	}
+
 	// Spectrogram to Samples
 	vector<int16_t> outputSamplesThreshold = vocalSamples("vocals.mp3", samplesPerChunk, samplesPerChunk, finalSpectrogramThreshold);
 	vector<int16_t> outputSamplesExponent = vocalSamples("vocals.mp3", samplesPerChunk, samplesPerChunk, finalSpectrogramExponent);
+	vector<int16_t> outputSamplesPercentage = vocalSamples("vocals.mp3", samplesPerChunk, samplesPerChunk, finalSpectrogramPercentage);
 
 	// Write to WAV
 	writeToWAV("Threshold.wav", outputSamplesThreshold);
 	writeToWAV("Exponent.wav", outputSamplesExponent);
+	writeToWAV("Percentage.wav", outputSamplesPercentage);
 	
 	system("pause");
 	return 0;
