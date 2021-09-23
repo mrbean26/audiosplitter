@@ -39,6 +39,7 @@ struct audioFileConfig;
 #define FIXED_LEARNING_RATE 0
 #define CYCLICAL_LEARNING_RATE 1
 #define ADAM_LEARNING_RATE 2
+#define DECREASING_LEARNING_RATE 3
 
 // Fitness Function Options for Natural Selection
 #define ABSOLUTE_ERROR 0

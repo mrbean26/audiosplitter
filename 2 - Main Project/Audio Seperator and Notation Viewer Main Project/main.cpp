@@ -16,7 +16,7 @@ int main() {
 		4, // chunk border
 
 		1, // start file index
-		1, // song count
+		4, // song count
 
 		2.5f, // spectrogram emphasis, no emphasis = 1.0f
 
@@ -30,9 +30,9 @@ int main() {
 	int inputSize = inputSet[0].size();
 	int outputSize = outputSet[0].size();
 
-	vector<int> layers = { inputSize, 128, 128, 128, 128, 128, 128, 128, 128, outputSize };
-	vector<int> biases = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
-	vector<int> activations = { SIGMOID, SIGMOID, SIGMOID, SIGMOID, SIGMOID, SIGMOID, SIGMOID, SIGMOID, SIGMOID, SIGMOID };
+	vector<int> layers = { inputSize, 86, 86, 86, 86, 86, 86, 86, 86, 86, 86, outputSize };
+	vector<int> biases = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
+	vector<int> activations = { SIGMOID, SIGMOID, SIGMOID, SIGMOID, SIGMOID, SIGMOID, SIGMOID, SIGMOID, SIGMOID, SIGMOID, SIGMOID, SIGMOID };
 
 	// Natural Selection
 	NeuralNetwork::standardTrainConfig trainConfig = NeuralNetwork::standardTrainConfig();
@@ -41,18 +41,17 @@ int main() {
 	trainConfig.trainInputs = inputSet;
 	trainConfig.trainOutputs = outputSet;
 
-	trainConfig.useDropout = true;
-	trainConfig.nodeBiasDropoutProbability = 25;
+	trainConfig.epochs = 2500;
 
-	trainConfig.epochs = 1000;
-	trainConfig.batchSize = 25;
+	trainConfig.learningRate = 0.75f;
+	trainConfig.momentum = 0.15f;
 
-	trainConfig.learningRate = 1.5f;
-	trainConfig.momentum = 0.2f;
-	trainConfig.learningRateType = CYCLICAL_LEARNING_RATE;
+	trainConfig.learningRateType = DECREASING_LEARNING_RATE;
 
 	NeuralNetwork newNetwork = NeuralNetwork(layers, biases, activations);
 	newNetwork.train(trainConfig);
+
+	createOutputTestTrack(newNetwork, audioConfig);	
 
 	system("pause");
 	return 0;

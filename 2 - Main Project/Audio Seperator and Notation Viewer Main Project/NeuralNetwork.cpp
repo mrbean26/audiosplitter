@@ -629,6 +629,12 @@ vector<float> NeuralNetwork::trainGradientDescent(standardTrainConfig trainConfi
             currentMomentum = (1 - value) * trainConfig.momentum;
         }
 
+        if (trainConfig.learningRateType == DECREASING_LEARNING_RATE) {
+            float multiplier = float(epoch + 1) / float(trainConfig.epochs);
+            currentLearningRate = (1.0f - multiplier) * trainConfig.learningRate;
+            currentMomentum = multiplier * trainConfig.learningRate;
+        }
+
         // Randomly Disable Some Nodes to Prevent Overfitting
         if (trainConfig.useDropout) {
             randomlyDropNodes(trainConfig.nodeBiasDropoutProbability);
@@ -712,6 +718,12 @@ vector<float> NeuralNetwork::trainStochasticGradientDescent(standardTrainConfig 
 
             currentLearningRate = value * trainConfig.learningRate;
             currentMomentum = (1 - value) * trainConfig.momentum;
+        }
+
+        if (trainConfig.learningRateType == DECREASING_LEARNING_RATE) {
+            float multiplier = float(epoch + 1) / float(trainConfig.epochs);
+            currentLearningRate = (1.0f - multiplier) * trainConfig.learningRate;
+            currentMomentum = multiplier * trainConfig.learningRate;
         }
 
         // Randomly Disable Some Nodes to Prevent Overfitting
@@ -1488,6 +1500,12 @@ vector<float> NeuralNetwork::trainBatchGradientDescent(standardTrainConfig train
 
             currentLearningRate = value * trainConfig.learningRate;
             currentMomentum = value * trainConfig.momentum;
+        }
+
+        if (trainConfig.learningRateType == DECREASING_LEARNING_RATE) {
+            float multiplier = float(epoch + 1) / float(trainConfig.epochs);
+            currentLearningRate = (1.0f - multiplier) * trainConfig.learningRate;
+            currentMomentum = multiplier * trainConfig.learningRate;
         }
 
         // Randomly Disable Some Nodes to Prevent Overfitting
