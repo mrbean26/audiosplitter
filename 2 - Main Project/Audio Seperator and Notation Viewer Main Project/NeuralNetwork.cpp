@@ -1828,3 +1828,45 @@ void NeuralNetwork::findBestArchitechture(architechtureFindingConfig config) {
 }
 
 // Natural Selection Algorithm for Finding Best Architechture
+float NeuralNetwork::measureArchitechtureFitness(standardTrainConfig trainConfig) {
+    int trainDataCount = trainConfig.trainInputs.size();
+    int outputCount = trainConfig.trainOutputs[0].size();
+
+    vector<int> trainIndexes;
+    for (int i = 0; i < trainDataCount; i++) {
+        trainIndexes.push_back(i);
+    }
+
+    float previousError = -1.0f;
+    while (true) {
+        // Randomly Shuffle Dataset Indexes to Prevent Overfitting
+        random_shuffle(trainIndexes.begin(), trainIndexes.end());
+
+        // Calculate Current Learning Rate
+        float currentLearningRate = trainConfig.learningRate;
+        float currentMomentum = trainConfig.momentum;
+
+        float totalError = 0.0f;
+        for (int t = 0; t < trainDataCount; t++) {
+            int currentIndex = trainIndexes[t];
+            vector<float> result = predict(trainConfig.trainInputs[currentIndex]);
+
+            // Calculate Differences In Actual Output
+            vector<float> errors;
+            for (int e = 0; e < outputCount; e++) {
+                totalError += abs(trainConfig.trainOutputs[currentIndex][e] - result[e]);
+                errors.push_back(trainConfig.trainOutputs[currentIndex][e] - result[e]);
+            }
+
+            calculateDerivatives(errors);
+            adjustWeightsGradientDescent(currentLearningRate, trainConfig.momentum);
+        }
+
+        if (abs(totalError - previousError) < 1.0f) {
+            break;
+        }
+        previousError = totalError;
+    }
+
+    return previousError;
+}
