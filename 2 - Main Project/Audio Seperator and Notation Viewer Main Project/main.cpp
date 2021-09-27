@@ -43,8 +43,8 @@ int main() {
 
 	trainConfig.epochs = 2500;
 
-	trainConfig.learningRate = 0.75f;
-	trainConfig.momentum = 0.15f;
+	trainConfig.learningRate = 0.25f;
+	trainConfig.momentum = -0.00f;
 
 	trainConfig.learningRateType = DECREASING_LEARNING_RATE;
 

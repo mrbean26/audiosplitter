@@ -117,6 +117,16 @@ public:
         float betaOne = 0.9f;
         float betaTwo = 0.999f;
         float epsillon = 0.00000001f;
+
+        // Natural Selection Architechture Algorithm
+        int selectionMinLayers = 3;
+        int selectionMaxLayers = 18;
+
+        int selectionMinNodes = 1;
+        int selectionMaxNodes = 640;
+
+        int selectionMinBias = 0;
+        int selectionMaxBias = 3;
     } trainConfig;
 
     static struct Node {
@@ -270,6 +280,17 @@ public:
     } architechtureConfig;
     static float testNetworkArchitechture(vector<vector<float>> trainInputs, vector<vector<float>> trainOutputs, int epochs, int batchSize, int layerSize, int layerCount, int biasCount, float lr, float momentum);
     static void findBestArchitechture(architechtureFindingConfig config);
+
+    // Natural Selection Algorithm for Finding Best Architechture
+    static NeuralNetwork architechtureNaturalSelection(standardTrainConfig trainConfig);
+    
+    static vector<float> measureArchitechturePopulationFitness(vector<NeuralNetwork> population, standardTrainConfig trainConfig);
+    float measureArchitechtureFitness(standardTrainConfig trainConfig);
+
+    static vector<NeuralNetwork> reproduceArchitechtureNetworks(vector<NeuralNetwork> population, vector<float> scores, standardTrainConfig trainConfig);
+    static NeuralNetwork reproduceArchitechtureParents(vector<NeuralNetwork> parents, vector<float> fitnessScores, standardTrainConfig trainConfig);
+
+    static NeuralNetwork mutateNetworkArchitechture(NeuralNetwork input);
 };
 
 #endif // !NEURALNETWORK_H

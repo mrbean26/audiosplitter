@@ -1826,3 +1826,5 @@ void NeuralNetwork::findBestArchitechture(architechtureFindingConfig config) {
     cout << "Best LR: " << chosenLearningRate << endl;
     cout << "Best momentum: " << chosenMomentum << endl;
 }
+
+// Natural Selection Algorithm for Finding Best Architechture
