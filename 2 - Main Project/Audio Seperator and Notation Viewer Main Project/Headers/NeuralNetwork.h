@@ -283,7 +283,8 @@ public:
 
     // Natural Selection Algorithm for Finding Best Architechture
     static NeuralNetwork architechtureNaturalSelection(standardTrainConfig trainConfig);
-    
+    static vector<NeuralNetwork> initialiseArchitechturePopulation(standardTrainConfig trainConfig);
+
     static vector<float> measureArchitechturePopulationFitness(vector<NeuralNetwork> population, standardTrainConfig trainConfig);
     float measureArchitechtureFitness(standardTrainConfig trainConfig);
 

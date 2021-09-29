@@ -1828,6 +1828,69 @@ void NeuralNetwork::findBestArchitechture(architechtureFindingConfig config) {
 }
 
 // Natural Selection Algorithm for Finding Best Architechture
+NeuralNetwork NeuralNetwork::architechtureNaturalSelection(standardTrainConfig trainConfig) {
+    vector<NeuralNetwork> population = initialiseArchitechturePopulation(trainConfig);
+    cout << "Population initialised" << endl;
+
+    for (int i = 0; i < trainConfig.population; i++) {
+        population[i].setupNetworkForTraining(trainConfig);
+    }
+
+    NeuralNetwork bestNetwork = population[0];
+    float bestFitness = 0.0f;
+
+    for (int i = 0; i < trainConfig.epochs; i++) {
+        vector<float> fitnessScores = measureArchitechturePopulationFitness(population, trainConfig);
+
+        float lowestFitness = fitnessScores[0];
+        int lowestFitnessIndex = 0;
+
+        for (int j = 1; j < trainConfig.population; j++) {
+            if (fitnessScores[j] > lowestFitness) {
+                lowestFitness = fitnessScores[j];
+                lowestFitnessIndex = j;
+            }
+        }
+
+        if (lowestFitness > bestFitness || bestFitness == -1.0f) {
+            bestFitness = lowestFitness;
+            bestNetwork = population[lowestFitnessIndex];
+        }
+
+        cout << "Epoch: " << i + 1 << " / " << trainConfig.epochs << ", Fitness: " << -lowestFitness << endl;
+        population = reproducePopulation(population, fitnessScores, trainConfig);
+    }
+
+    return bestNetwork;
+}
+vector<NeuralNetwork> NeuralNetwork::initialiseArchitechturePopulation(standardTrainConfig trainConfig) {
+    vector<NeuralNetwork> result;
+
+    int inputSize = trainConfig.trainInputs[0].size();
+    int outputSize = trainConfig.trainOutputs[0].size();
+
+    for (int i = 0; i < trainConfig.population; i++) {
+        vector<int> layers = { inputSize };
+        vector<int> biases = { 1 };
+        vector<int> activations = { SIGMOID };
+
+        int chosenLayerCount = trainConfig.selectionMinLayers + (rand() % static_cast<int>(trainConfig.selectionMaxLayers - trainConfig.selectionMinLayers + 1));
+        for (int j = 0; j < chosenLayerCount - 2; j++) {
+            int newLayerSize = trainConfig.selectionMinNodes + (rand() % static_cast<int>(trainConfig.selectionMaxNodes - trainConfig.selectionMinNodes + 1));
+            layers.push_back(newLayerSize);
+
+            int newBiasCount = trainConfig.selectionMinBias + (rand() % static_cast<int>(trainConfig.selectionMaxBias - trainConfig.selectionMinBias + 1));
+            biases.push_back(newBiasCount);
+
+            activations.push_back(SIGMOID);
+        }
+
+        NeuralNetwork newNetwork = NeuralNetwork(layers, biases, activations);
+        result.push_back(newNetwork);
+    }
+    return result;
+}
+
 float NeuralNetwork::measureArchitechtureFitness(standardTrainConfig trainConfig) {
     int trainDataCount = trainConfig.trainInputs.size();
     int outputCount = trainConfig.trainOutputs[0].size();
