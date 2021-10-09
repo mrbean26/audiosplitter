@@ -1838,7 +1838,7 @@ NeuralNetwork NeuralNetwork::architechtureNaturalSelection(standardTrainConfig t
 
     NeuralNetwork bestNetwork = population[0];
     float bestFitness = 0.0f;
-
+    /*
     for (int i = 0; i < trainConfig.epochs; i++) {
         vector<float> fitnessScores = measureArchitechturePopulationFitness(population, trainConfig);
 
@@ -1860,7 +1860,7 @@ NeuralNetwork NeuralNetwork::architechtureNaturalSelection(standardTrainConfig t
         cout << "Epoch: " << i + 1 << " / " << trainConfig.epochs << ", Fitness: " << -lowestFitness << endl;
         population = reproducePopulation(population, fitnessScores, trainConfig);
     }
-
+    */
     return bestNetwork;
 }
 vector<NeuralNetwork> NeuralNetwork::initialiseArchitechturePopulation(standardTrainConfig trainConfig) {
@@ -1891,9 +1891,52 @@ vector<NeuralNetwork> NeuralNetwork::initialiseArchitechturePopulation(standardT
     return result;
 }
 
+vector<float> NeuralNetwork::measureArchitechturePopulationFitness(vector<NeuralNetwork> population, standardTrainConfig trainConfig) {
+    vector<float> result;
+    int populationCount = population.size();
+
+    if (!trainConfig.useThreading) {
+        for (int i = 0; i < populationCount; i++) {
+            float currentFitness = population[i].measureArchitechtureFitness(trainConfig);
+            result.push_back(currentFitness);
+        }
+    }
+    if (trainConfig.useThreading) {
+        vector<shared_future<float>> threads;
+
+        for (int i = 0; i < populationCount; i++) {
+            shared_future<float> future = async(&NeuralNetwork::measureArchitechtureFitness, &population[i], trainConfig);
+            threads.push_back(future);
+        }
+        for (int i = 0; i < populationCount; i++) {
+            float returnedFitnessValue = threads[i].get();
+            result.push_back(returnedFitnessValue);
+        }
+    }
+
+    return result;
+}
 float NeuralNetwork::measureArchitechtureFitness(standardTrainConfig trainConfig) {
-    int trainDataCount = trainConfig.trainInputs.size();
-    int outputCount = trainConfig.trainOutputs[0].size();
+    vector<vector<float>> usedInputs = trainConfig.trainInputs;
+    vector<vector<float>> usedOutputs = trainConfig.trainOutputs;
+
+    if (trainConfig.useStochasticDataset) {
+        int miniBatchSize = trainConfig.trainInputs.size() / trainConfig.stochasticDatasetSize;
+
+        usedInputs.clear();
+        usedOutputs.clear();
+
+        // Make stochastic dataset
+        for (int i = 0; i < trainConfig.stochasticDatasetSize; i++) {
+            int newIndex = (i * miniBatchSize) + (rand() % miniBatchSize);
+
+            usedInputs.push_back(trainConfig.trainInputs[newIndex]);
+            usedOutputs.push_back(trainConfig.trainOutputs[newIndex]);
+        }
+    }
+
+    int trainDataCount = usedInputs.size();
+    int outputCount = usedOutputs.size();
 
     vector<int> trainIndexes;
     for (int i = 0; i < trainDataCount; i++) {
@@ -1912,13 +1955,13 @@ float NeuralNetwork::measureArchitechtureFitness(standardTrainConfig trainConfig
         float totalError = 0.0f;
         for (int t = 0; t < trainDataCount; t++) {
             int currentIndex = trainIndexes[t];
-            vector<float> result = predict(trainConfig.trainInputs[currentIndex]);
+            vector<float> result = predict(usedInputs[currentIndex]);
 
             // Calculate Differences In Actual Output
             vector<float> errors;
             for (int e = 0; e < outputCount; e++) {
-                totalError += abs(trainConfig.trainOutputs[currentIndex][e] - result[e]);
-                errors.push_back(trainConfig.trainOutputs[currentIndex][e] - result[e]);
+                totalError += abs(usedOutputs[currentIndex][e] - result[e]);
+                errors.push_back(usedOutputs[currentIndex][e] - result[e]);
             }
 
             calculateDerivatives(errors);

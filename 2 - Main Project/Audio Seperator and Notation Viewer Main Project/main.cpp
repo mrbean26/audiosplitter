@@ -30,26 +30,30 @@ int main() {
 	int inputSize = inputSet[0].size();
 	int outputSize = outputSet[0].size();
 
-	vector<int> layers = { inputSize, 86, 86, 86, 86, 86, 86, 86, 86, 86, 86, outputSize };
+	vector<int> layers = { inputSize, 256, 256, 256, 256, 256, outputSize };
 	vector<int> biases = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
 	vector<int> activations = { SIGMOID, SIGMOID, SIGMOID, SIGMOID, SIGMOID, SIGMOID, SIGMOID, SIGMOID, SIGMOID, SIGMOID, SIGMOID, SIGMOID };
 
 	// Natural Selection
 	NeuralNetwork::standardTrainConfig trainConfig = NeuralNetwork::standardTrainConfig();
-	trainConfig.trainType = GRADIENT_DESCENT;
 
 	trainConfig.trainInputs = inputSet;
 	trainConfig.trainOutputs = outputSet;
 
-	trainConfig.epochs = 2500;
+	trainConfig.epochs = 500;
 
-	trainConfig.learningRate = 0.25f;
-	trainConfig.momentum = -0.00f;
+	trainConfig.population = 20;
+	trainConfig.parentCount = 2;
 
-	trainConfig.learningRateType = DECREASING_LEARNING_RATE;
+	trainConfig.lowestInitialisedWeight = -100.0f;
+	trainConfig.highestInitialisedWeight = 100.0f;
 
-	NeuralNetwork newNetwork = NeuralNetwork(layers, biases, activations);
-	newNetwork.train(trainConfig);
+	trainConfig.parentSelectionMethod = EXPONENTIAL_PARENTS;
+	trainConfig.useStochasticDataset = true;
+	trainConfig.useThreading = true;
+	trainConfig.stochasticDatasetSize = 200;
+
+	NeuralNetwork newNetwork = NeuralNetwork::trainNaturalSelectionMethod(trainConfig, layers, biases, activations);
 
 	createOutputTestTrack(newNetwork, audioConfig);	
 
