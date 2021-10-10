@@ -46,6 +46,11 @@ float normalDistribution() {
     return distribution(generator);
 }
 
+normal_distribution<float> distributionArchitechture(0.0f, 0.75f);
+float architechtureNormalDistribution() {
+    return distributionArchitechture(generator);
+}
+
 void NeuralNetwork::initialiseWeights() {
     // clear weights
     for (int i = 0; i < layerCount; i++) {
@@ -1975,4 +1980,41 @@ float NeuralNetwork::measureArchitechtureFitness(standardTrainConfig trainConfig
     }
 
     return previousError;
+}
+
+pair<vector<int>, vector<int>> NeuralNetwork::mutateNetworkArchitechture(pair<vector<int>, vector<int>> currentArchitechture) {
+    // Make layers
+    vector<int> layerResult = currentArchitechture.first;
+    int layerCount = layerResult.size();
+
+    for (int i = 1; i < layerCount - 1; i++) { // skip input & output layers
+        int currentSize = layerResult[i];
+        int maximumSizeDeviation = ceil(currentSize / 10); // Maximum 10% deviation
+
+        int actualDeviation = ceil(architechtureNormalDistribution() * maximumSizeDeviation);
+        int newLayerSize = currentSize + actualDeviation;
+
+        if (newLayerSize <= 0) {
+            newLayerSize = currentSize;
+        }
+        layerResult[i] = newLayerSize;
+    }
+
+    // Make biases
+    vector<int> biasResult = currentArchitechture.second;
+    for (int i = 1; i < layerCount - 1; i++) {
+        int currentSize = biasResult[i];
+        int maximumSizeDeviation = ceil(currentSize / 10); // Maximum 10% deviation
+
+        int actualDeviation = ceil(architechtureNormalDistribution() * maximumSizeDeviation);
+        int newLayerSize = currentSize + actualDeviation;
+
+        if (newLayerSize < 0) {
+            newLayerSize = currentSize;
+        }
+        biasResult[i] = newLayerSize;
+    }
+
+    // Return
+    return make_pair(layerResult, biasResult);
 }

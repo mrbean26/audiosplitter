@@ -291,7 +291,7 @@ public:
     static vector<NeuralNetwork> reproduceArchitechtureNetworks(vector<NeuralNetwork> population, vector<float> scores, standardTrainConfig trainConfig);
     static NeuralNetwork reproduceArchitechtureParents(vector<NeuralNetwork> parents, vector<float> fitnessScores, standardTrainConfig trainConfig);
 
-    static pair<vector<vector<int>>, vector<vector<int>>> mutateNetworkArchitechture(pair<vector<vector<int>>, vector<vector<int>>> currentArchitechture);
+    static pair<vector<int>, vector<int>> mutateNetworkArchitechture(pair<vector<int>, vector<int>> currentArchitechture);
 };
 
 #endif // !NEURALNETWORK_H
