@@ -1982,6 +1982,94 @@ float NeuralNetwork::measureArchitechtureFitness(standardTrainConfig trainConfig
     return previousError;
 }
 
+NeuralNetwork NeuralNetwork::reproduceArchitechtureParents(vector<NeuralNetwork> parents, vector<float> fitnessScores, standardTrainConfig trainConfig) {
+    // Find current architechtures
+    vector<pair<vector<int>, vector<int>>> parentArchitechtures;
+    int parentCount = parents.size();
+
+    vector<int> resultantLayers;
+    vector<int> resultantBiases;
+
+    for (int i = 0; i < parentCount; i++) {
+        vector<int> currentLayers;
+        vector<int> currentBiases;
+
+        int layerCount = parents[i].layerNodes.size();
+        for (int j = 0; j < layerCount; j++) {
+            currentLayers.push_back(parents[i].layerNodes[j].size());
+            currentBiases.push_back(parents[i].layerBiases[j].size());
+        }
+
+        parentArchitechtures.push_back(make_pair(currentLayers, currentBiases));
+    }
+
+    // Average Parents Method
+    if (trainConfig.breedingMethod == AVERAGE_PARENTS) {
+        // Take Mean Layer Count
+        int layerAccumulation = 0;
+        for (int i = 0; i < parentCount; i++) {
+            layerAccumulation = layerAccumulation + parentArchitechtures[i].first.size();
+        }
+        int chosenLayerCount = int(layerAccumulation / parentCount);
+
+        for (int i = 0; i < chosenLayerCount; i++) {
+            int accumulativeLayerSize = 0;
+            int accumulativeBiasSize = 0;
+
+            // Find Average Layer & Bias Count in Layers
+            for (int j = 0; j < parentCount; j++) {
+                accumulativeLayerSize = accumulativeLayerSize + parentArchitechtures[j].first[i];
+                accumulativeBiasSize = accumulativeBiasSize + parentArchitechtures[j].second[i];
+            }
+
+            resultantLayers.push_back(accumulativeLayerSize / parentCount);
+            resultantBiases.push_back(accumulativeBiasSize / parentCount);
+        }
+    }
+    if (trainConfig.breedingMethod == WEIGHTED_PARENTS) {
+        vector<float> multipliers = softmax(fitnessScores);
+
+        // Layer Count
+        float accumulativeLayerCount = 0.0f;
+        for (int i = 0; i < parentCount; i++) {
+            accumulativeLayerCount = accumulativeLayerCount + float(parentArchitechtures[i].first.size()) * multipliers[i];
+        }
+        int chosenLayerCount = int(accumulativeLayerCount);
+
+        for (int i = 0; i < chosenLayerCount; i++) {
+            float accumulativeLayerSize = 0;
+            float accumulativeBiasSize = 0;
+
+            // Find Average Layer & Bias Count in Layers
+            for (int j = 0; j < parentCount; j++) {
+                accumulativeLayerSize = accumulativeLayerSize + float(parentArchitechtures[j].first[i]) * multipliers[j];
+                accumulativeBiasSize = accumulativeBiasSize + float(parentArchitechtures[j].second[i]) * multipliers[j];
+            }
+
+            resultantLayers.push_back(accumulativeLayerSize);
+            resultantBiases.push_back(accumulativeBiasSize);
+        }
+    }
+    
+    // Mutate
+    if (trainConfig.useChildMutation) {
+        pair<vector<int>, vector<int>> resultantMutation = mutateNetworkArchitechture(make_pair(resultantLayers, resultantBiases));
+        resultantLayers = resultantMutation.first;
+        resultantBiases = resultantMutation.second;
+    }
+
+    // Create Network
+    vector<int> activations = {};
+
+    int layerCount = resultantLayers.size();
+    for (int i = 0; i < layerCount; i++) {
+        activations.push_back(SIGMOID);
+    }
+
+    NeuralNetwork resultantNetwork = NeuralNetwork(resultantLayers, resultantBiases, activations);
+    return resultantNetwork;
+}
+
 pair<vector<int>, vector<int>> NeuralNetwork::mutateNetworkArchitechture(pair<vector<int>, vector<int>> currentArchitechture) {
     // Make layers
     vector<int> layerResult = currentArchitechture.first;
