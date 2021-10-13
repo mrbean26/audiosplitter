@@ -1982,6 +1982,49 @@ float NeuralNetwork::measureArchitechtureFitness(standardTrainConfig trainConfig
     return previousError;
 }
 
+vector<NeuralNetwork> NeuralNetwork::reproduceArchitechtureNetworks(vector<NeuralNetwork> population, vector<float> scores, standardTrainConfig trainConfig) {
+    int populationSize = population.size();
+
+    if (trainConfig.parentSelectionMethod == TOP_PARENTS || trainConfig.parentSelectionMethod == EXPONENTIAL_PARENTS) {
+        population = sortNetworks(population, scores);
+    }
+
+    // Create Population
+    vector<NeuralNetwork> result;
+    vector<shared_future<NeuralNetwork>> threads;
+
+    for (int i = 0; i < populationSize; i++) {
+        // Find parents according to softmax fitness probabilities
+        vector<NeuralNetwork> parents;
+        vector<float> correspondingFitness;
+
+        for (int j = 0; j < trainConfig.parentCount; j++) {
+            pair<NeuralNetwork, float> chosenParent = chooseParent(population, scores, trainConfig);
+
+            parents.push_back(chosenParent.first);
+            correspondingFitness.push_back(chosenParent.second);
+        }
+
+        if (!trainConfig.useThreading) {
+            // Reproduce with parents
+            NeuralNetwork child = reproduceArchitechtureParents(parents, correspondingFitness, trainConfig);
+            result.push_back(child);
+        }
+        if (trainConfig.useThreading) {
+            shared_future<NeuralNetwork> future = async(reproduceArchitechtureParents, parents, correspondingFitness, trainConfig);
+            threads.push_back(future);
+        }
+    }
+
+    if (trainConfig.useThreading) {
+        for (int i = 0; i < populationSize; i++) {
+            NeuralNetwork returnedChild = threads[i].get();
+            result.push_back(returnedChild);
+        }
+    }
+
+    return result;
+}
 NeuralNetwork NeuralNetwork::reproduceArchitechtureParents(vector<NeuralNetwork> parents, vector<float> fitnessScores, standardTrainConfig trainConfig) {
     // Find current architechtures
     vector<pair<vector<int>, vector<int>>> parentArchitechtures;
