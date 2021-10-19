@@ -292,6 +292,7 @@ public:
     static NeuralNetwork reproduceArchitechtureParents(vector<NeuralNetwork> parents, vector<float> fitnessScores, standardTrainConfig trainConfig);
 
     static pair<vector<int>, vector<int>> mutateNetworkArchitechture(pair<vector<int>, vector<int>> currentArchitechture);
+    void outputNetworkArchitechture();
 };
 
 #endif // !NEURALNETWORK_H

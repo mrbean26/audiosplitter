@@ -1843,7 +1843,7 @@ NeuralNetwork NeuralNetwork::architechtureNaturalSelection(standardTrainConfig t
 
     NeuralNetwork bestNetwork = population[0];
     float bestFitness = 0.0f;
-    /*
+    
     for (int i = 0; i < trainConfig.epochs; i++) {
         vector<float> fitnessScores = measureArchitechturePopulationFitness(population, trainConfig);
 
@@ -1865,7 +1865,7 @@ NeuralNetwork NeuralNetwork::architechtureNaturalSelection(standardTrainConfig t
         cout << "Epoch: " << i + 1 << " / " << trainConfig.epochs << ", Fitness: " << -lowestFitness << endl;
         population = reproducePopulation(population, fitnessScores, trainConfig);
     }
-    */
+    
     return bestNetwork;
 }
 vector<NeuralNetwork> NeuralNetwork::initialiseArchitechturePopulation(standardTrainConfig trainConfig) {
@@ -1880,7 +1880,7 @@ vector<NeuralNetwork> NeuralNetwork::initialiseArchitechturePopulation(standardT
         vector<int> activations = { SIGMOID };
 
         int chosenLayerCount = trainConfig.selectionMinLayers + (rand() % static_cast<int>(trainConfig.selectionMaxLayers - trainConfig.selectionMinLayers + 1));
-        for (int j = 0; j < chosenLayerCount - 2; j++) {
+        for (int j = 1; j < chosenLayerCount - 2; j++) {
             int newLayerSize = trainConfig.selectionMinNodes + (rand() % static_cast<int>(trainConfig.selectionMaxNodes - trainConfig.selectionMinNodes + 1));
             layers.push_back(newLayerSize);
 
@@ -1889,6 +1889,10 @@ vector<NeuralNetwork> NeuralNetwork::initialiseArchitechturePopulation(standardT
 
             activations.push_back(SIGMOID);
         }
+
+        layers.push_back(outputSize);
+        biases.push_back(0);
+        activations.push_back(SIGMOID);
 
         NeuralNetwork newNetwork = NeuralNetwork(layers, biases, activations);
         result.push_back(newNetwork);
@@ -1941,7 +1945,7 @@ float NeuralNetwork::measureArchitechtureFitness(standardTrainConfig trainConfig
     }
 
     int trainDataCount = usedInputs.size();
-    int outputCount = usedOutputs.size();
+    int outputCount = usedOutputs[0].size();
 
     vector<int> trainIndexes;
     for (int i = 0; i < trainDataCount; i++) {
@@ -1961,18 +1965,18 @@ float NeuralNetwork::measureArchitechtureFitness(standardTrainConfig trainConfig
         for (int t = 0; t < trainDataCount; t++) {
             int currentIndex = trainIndexes[t];
             vector<float> result = predict(usedInputs[currentIndex]);
-
+            
             // Calculate Differences In Actual Output
             vector<float> errors;
-            for (int e = 0; e < outputCount; e++) {
+            for (int e = 0; e < outputCount; e++) {                
                 totalError += abs(usedOutputs[currentIndex][e] - result[e]);
                 errors.push_back(usedOutputs[currentIndex][e] - result[e]);
             }
-
+            
             calculateDerivatives(errors);
             adjustWeightsGradientDescent(currentLearningRate, trainConfig.momentum);
         }
-
+        cout << "Total error: " << totalError << endl;
         if (abs(totalError - previousError) < 1.0f) {
             break;
         }
@@ -2148,4 +2152,20 @@ pair<vector<int>, vector<int>> NeuralNetwork::mutateNetworkArchitechture(pair<ve
 
     // Return
     return make_pair(layerResult, biasResult);
+}
+void NeuralNetwork::outputNetworkArchitechture() {
+    int layerCount = layerNodes.size();
+    cout << "Output Network Architechture: " << endl;
+
+    cout << "Layers: ";
+    for (int i = 0; i < layerCount; i++) {
+        cout << layerNodes[i].size() << ",";
+    }
+    cout << endl;
+
+    cout << "Biases: ";
+    for (int i = 0; i < layerCount; i++) {
+        cout << layerBiases[i].size() << ",";
+    }
+    cout << endl;
 }

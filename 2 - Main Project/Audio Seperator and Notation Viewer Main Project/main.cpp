@@ -27,34 +27,36 @@ int main() {
 	vector<vector<float>> inputSet = generateInputs(audioConfig);
 	vector<vector<float>> outputSet = generateOutputs(audioConfig);
 
-	int inputSize = inputSet[0].size();
-	int outputSize = outputSet[0].size();
+	NeuralNetwork::standardTrainConfig newConfig = NeuralNetwork::standardTrainConfig();
+	newConfig.epochs = 25;
 
-	vector<int> layers = { inputSize, 256, 256, 256, 256, 256, outputSize };
-	vector<int> biases = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
-	vector<int> activations = { SIGMOID, SIGMOID, SIGMOID, SIGMOID, SIGMOID, SIGMOID, SIGMOID, SIGMOID, SIGMOID, SIGMOID, SIGMOID, SIGMOID };
+	newConfig.population = 25;
+	newConfig.parentCount = 2;
 
-	// Natural Selection
-	NeuralNetwork::standardTrainConfig trainConfig = NeuralNetwork::standardTrainConfig();
+	newConfig.fitnessFunctionType = ABSOLUTE_ERROR;
+	newConfig.parentSelectionMethod = EXPONENTIAL_PARENTS;
 
-	trainConfig.trainInputs = inputSet;
-	trainConfig.trainOutputs = outputSet;
+	newConfig.breedingMethod = WEIGHTED_PARENTS;
+	newConfig.useChildMutation = true;
 
-	trainConfig.epochs = 500;
+	newConfig.useStochasticDataset = true;
+	newConfig.stochasticDatasetSize = 250;
+	newConfig.useThreading = true;
 
-	trainConfig.population = 20;
-	trainConfig.parentCount = 2;
+	newConfig.selectionMinLayers = 3;
+	newConfig.selectionMaxLayers = 18;
+	
+	newConfig.selectionMinNodes = 1;
+	newConfig.selectionMaxNodes = 640;
 
-	trainConfig.lowestInitialisedWeight = -100.0f;
-	trainConfig.highestInitialisedWeight = 100.0f;
+	newConfig.selectionMinBias = 0;
+	newConfig.selectionMaxBias = 5;
 
-	trainConfig.parentSelectionMethod = EXPONENTIAL_PARENTS;
-	trainConfig.useStochasticDataset = true;
-	trainConfig.useThreading = true;
-	trainConfig.stochasticDatasetSize = 200;
+	newConfig.trainInputs = inputSet;
+	newConfig.trainOutputs = outputSet;
 
-	NeuralNetwork newNetwork = NeuralNetwork::trainNaturalSelectionMethod(trainConfig, layers, biases, activations);
-
+	NeuralNetwork newNetwork = NeuralNetwork::architechtureNaturalSelection(newConfig);
+	newNetwork.outputNetworkArchitechture();
 	createOutputTestTrack(newNetwork, audioConfig);	
 
 	system("pause");
