@@ -41,7 +41,7 @@ int main() {
 
 	newConfig.useStochasticDataset = true;
 	newConfig.stochasticDatasetSize = 250;
-	newConfig.useThreading = true;
+	newConfig.useThreading = false;
 
 	newConfig.selectionMinLayers = 3;
 	newConfig.selectionMaxLayers = 18;

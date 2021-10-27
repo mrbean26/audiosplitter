@@ -1863,7 +1863,7 @@ NeuralNetwork NeuralNetwork::architechtureNaturalSelection(standardTrainConfig t
         }
 
         cout << "Epoch: " << i + 1 << " / " << trainConfig.epochs << ", Fitness: " << -lowestFitness << endl;
-        population = reproducePopulation(population, fitnessScores, trainConfig);
+        population = reproduceArchitechtureNetworks(population, fitnessScores, trainConfig);
     }
     
     return bestNetwork;
@@ -1929,8 +1929,10 @@ float NeuralNetwork::measureArchitechtureFitness(standardTrainConfig trainConfig
     vector<vector<float>> usedInputs = trainConfig.trainInputs;
     vector<vector<float>> usedOutputs = trainConfig.trainOutputs;
 
+    int errorMultiplier = 1;
     if (trainConfig.useStochasticDataset) {
         int miniBatchSize = trainConfig.trainInputs.size() / trainConfig.stochasticDatasetSize;
+        errorMultiplier = miniBatchSize;
 
         usedInputs.clear();
         usedOutputs.clear();
@@ -1953,6 +1955,8 @@ float NeuralNetwork::measureArchitechtureFitness(standardTrainConfig trainConfig
     }
 
     float previousError = -1.0f;
+    int counter = 0;
+
     while (true) {
         // Randomly Shuffle Dataset Indexes to Prevent Overfitting
         random_shuffle(trainIndexes.begin(), trainIndexes.end());
@@ -1976,11 +1980,15 @@ float NeuralNetwork::measureArchitechtureFitness(standardTrainConfig trainConfig
             calculateDerivatives(errors);
             adjustWeightsGradientDescent(currentLearningRate, trainConfig.momentum);
         }
-        cout << "Total error: " << totalError << endl;
+        cout << "Approximate error: " << totalError * errorMultiplier << endl;
         if (abs(totalError - previousError) < 1.0f) {
-            break;
+            counter = counter + 1;
         }
         previousError = totalError;
+
+        if (counter == 10) { // Same Error Required 10 Times To Break
+            break;
+        }
     }
 
     return previousError;
@@ -1992,7 +2000,7 @@ vector<NeuralNetwork> NeuralNetwork::reproduceArchitechtureNetworks(vector<Neura
     if (trainConfig.parentSelectionMethod == TOP_PARENTS || trainConfig.parentSelectionMethod == EXPONENTIAL_PARENTS) {
         population = sortNetworks(population, scores);
     }
-
+    
     // Create Population
     vector<NeuralNetwork> result;
     vector<shared_future<NeuralNetwork>> threads;
@@ -2037,14 +2045,35 @@ NeuralNetwork NeuralNetwork::reproduceArchitechtureParents(vector<NeuralNetwork>
     vector<int> resultantLayers;
     vector<int> resultantBiases;
 
+    int inputSize = trainConfig.trainInputs[0].size();
+    int outputSize = trainConfig.trainOutputs[0].size();
+
+    // Find amximum length of all architechtures to allow all to fit together
+    int maximumLength = 0;
+    for (int i = 0; i < parentCount; i++) {
+        maximumLength = max(maximumLength, int(parents[i].layerNodes.size()));
+    }
+    maximumLength = maximumLength - 2; // Remove input and output layers
+    
     for (int i = 0; i < parentCount; i++) {
         vector<int> currentLayers;
         vector<int> currentBiases;
 
         int layerCount = parents[i].layerNodes.size();
-        for (int j = 0; j < layerCount; j++) {
+        for (int j = 1; j < layerCount - 1; j++) {
             currentLayers.push_back(parents[i].layerNodes[j].size());
             currentBiases.push_back(parents[i].layerBiases[j].size());
+        }
+
+        // Make all architechtures the same length in order to not mess with vector indexes
+        int resultantSize = layerCount - 2;
+        if (resultantSize < maximumLength) {
+            int difference = maximumLength - resultantSize;
+
+            for (int j = 0; j < difference; j++) {
+                currentLayers.push_back(0);
+                currentBiases.push_back(0);
+            }
         }
 
         parentArchitechtures.push_back(make_pair(currentLayers, currentBiases));
@@ -2059,6 +2088,9 @@ NeuralNetwork NeuralNetwork::reproduceArchitechtureParents(vector<NeuralNetwork>
         }
         int chosenLayerCount = int(layerAccumulation / parentCount);
 
+        resultantLayers.push_back(inputSize);
+        resultantBiases.push_back(0);
+
         for (int i = 0; i < chosenLayerCount; i++) {
             int accumulativeLayerSize = 0;
             int accumulativeBiasSize = 0;
@@ -2072,6 +2104,9 @@ NeuralNetwork NeuralNetwork::reproduceArchitechtureParents(vector<NeuralNetwork>
             resultantLayers.push_back(accumulativeLayerSize / parentCount);
             resultantBiases.push_back(accumulativeBiasSize / parentCount);
         }
+
+        resultantLayers.push_back(outputSize);
+        resultantBiases.push_back(0);
     }
     if (trainConfig.breedingMethod == WEIGHTED_PARENTS) {
         vector<float> multipliers = softmax(fitnessScores);
@@ -2083,6 +2118,9 @@ NeuralNetwork NeuralNetwork::reproduceArchitechtureParents(vector<NeuralNetwork>
         }
         int chosenLayerCount = int(accumulativeLayerCount);
 
+        resultantLayers.push_back(inputSize);
+        resultantBiases.push_back(0);
+
         for (int i = 0; i < chosenLayerCount; i++) {
             float accumulativeLayerSize = 0;
             float accumulativeBiasSize = 0;
@@ -2092,12 +2130,15 @@ NeuralNetwork NeuralNetwork::reproduceArchitechtureParents(vector<NeuralNetwork>
                 accumulativeLayerSize = accumulativeLayerSize + float(parentArchitechtures[j].first[i]) * multipliers[j];
                 accumulativeBiasSize = accumulativeBiasSize + float(parentArchitechtures[j].second[i]) * multipliers[j];
             }
-
+            
             resultantLayers.push_back(accumulativeLayerSize);
             resultantBiases.push_back(accumulativeBiasSize);
         }
+
+        resultantLayers.push_back(outputSize);
+        resultantBiases.push_back(0);
     }
-    
+
     // Mutate
     if (trainConfig.useChildMutation) {
         pair<vector<int>, vector<int>> resultantMutation = mutateNetworkArchitechture(make_pair(resultantLayers, resultantBiases));
@@ -2107,13 +2148,15 @@ NeuralNetwork NeuralNetwork::reproduceArchitechtureParents(vector<NeuralNetwork>
 
     // Create Network
     vector<int> activations = {};
-
+    
     int layerCount = resultantLayers.size();
     for (int i = 0; i < layerCount; i++) {
         activations.push_back(SIGMOID);
     }
-
+    
     NeuralNetwork resultantNetwork = NeuralNetwork(resultantLayers, resultantBiases, activations);
+    resultantNetwork.setupNetworkForTraining(trainConfig);
+    
     return resultantNetwork;
 }
 
