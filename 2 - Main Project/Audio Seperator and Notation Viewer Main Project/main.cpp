@@ -28,20 +28,23 @@ int main() {
 	vector<vector<float>> outputSet = generateOutputs(audioConfig);
 
 	NeuralNetwork::standardTrainConfig newConfig = NeuralNetwork::standardTrainConfig();
-	newConfig.epochs = 25;
+	newConfig.epochs = 5;
 
 	newConfig.population = 25;
-	newConfig.parentCount = 2;
+	newConfig.parentCount = 3;
 
 	newConfig.fitnessFunctionType = ABSOLUTE_ERROR;
-	newConfig.parentSelectionMethod = EXPONENTIAL_PARENTS;
+	newConfig.parentSelectionMethod = TOP_PARENTS;
 
 	newConfig.breedingMethod = WEIGHTED_PARENTS;
 	newConfig.useChildMutation = true;
 
+	newConfig.learningRate = 0.25f;
+	newConfig.momentum = 0.0f;
+
 	newConfig.useStochasticDataset = true;
 	newConfig.stochasticDatasetSize = 250;
-	newConfig.useThreading = false;
+	newConfig.useThreading = true;
 
 	newConfig.selectionMinLayers = 3;
 	newConfig.selectionMaxLayers = 18;

@@ -1839,11 +1839,12 @@ NeuralNetwork NeuralNetwork::architechtureNaturalSelection(standardTrainConfig t
 
     for (int i = 0; i < trainConfig.population; i++) {
         population[i].setupNetworkForTraining(trainConfig);
+        population[i].outputNetworkArchitechture();
     }
 
     NeuralNetwork bestNetwork = population[0];
     float bestFitness = 0.0f;
-    
+
     for (int i = 0; i < trainConfig.epochs; i++) {
         vector<float> fitnessScores = measureArchitechturePopulationFitness(population, trainConfig);
 
@@ -1863,9 +1864,15 @@ NeuralNetwork NeuralNetwork::architechtureNaturalSelection(standardTrainConfig t
         }
 
         cout << "Epoch: " << i + 1 << " / " << trainConfig.epochs << ", Fitness: " << -lowestFitness << endl;
+        cout << "Architechtures:" << endl;
+
+        for (int i = 0; i < trainConfig.population; i++) {
+            population[i].outputNetworkArchitechture();
+        }
+
         population = reproduceArchitechtureNetworks(population, fitnessScores, trainConfig);
     }
-    
+
     return bestNetwork;
 }
 vector<NeuralNetwork> NeuralNetwork::initialiseArchitechturePopulation(standardTrainConfig trainConfig) {
@@ -1980,7 +1987,7 @@ float NeuralNetwork::measureArchitechtureFitness(standardTrainConfig trainConfig
             calculateDerivatives(errors);
             adjustWeightsGradientDescent(currentLearningRate, trainConfig.momentum);
         }
-        cout << "Approximate error: " << totalError * errorMultiplier << endl;
+        //cout << "Approximate error: " << totalError * errorMultiplier << ", ";
         if (abs(totalError - previousError) < 1.0f) {
             counter = counter + 1;
         }
