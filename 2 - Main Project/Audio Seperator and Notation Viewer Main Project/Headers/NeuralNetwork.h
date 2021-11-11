@@ -285,7 +285,7 @@ public:
     static NeuralNetwork architechtureNaturalSelection(standardTrainConfig trainConfig);
     static vector<NeuralNetwork> initialiseArchitechturePopulation(standardTrainConfig trainConfig);
 
-    static vector<float> measureArchitechturePopulationFitness(vector<NeuralNetwork> population, standardTrainConfig trainConfig);
+    static vector<float> measureArchitechturePopulationFitness(vector<NeuralNetwork*> population, standardTrainConfig trainConfig);
     float measureArchitechtureFitness(standardTrainConfig trainConfig);
 
     static vector<NeuralNetwork> reproduceArchitechtureNetworks(vector<NeuralNetwork> population, vector<float> scores, standardTrainConfig trainConfig);

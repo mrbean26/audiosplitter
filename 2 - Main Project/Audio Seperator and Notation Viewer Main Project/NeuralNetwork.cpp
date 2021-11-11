@@ -1843,16 +1843,21 @@ NeuralNetwork NeuralNetwork::architechtureNaturalSelection(standardTrainConfig t
     }
 
     NeuralNetwork bestNetwork = population[0];
-    float bestFitness = 0.0f;
+    float bestFitness = -1.0f;
 
     for (int i = 0; i < trainConfig.epochs; i++) {
-        vector<float> fitnessScores = measureArchitechturePopulationFitness(population, trainConfig);
+        vector<NeuralNetwork*> populationAddress;
+        for (int j = 0; j < trainConfig.population; j++) {
+            populationAddress.push_back(&population[j]);
+        }
+
+        vector<float> fitnessScores = measureArchitechturePopulationFitness(populationAddress, trainConfig);
 
         float lowestFitness = fitnessScores[0];
         int lowestFitnessIndex = 0;
 
         for (int j = 1; j < trainConfig.population; j++) {
-            if (fitnessScores[j] > lowestFitness) {
+            if (fitnessScores[j] < lowestFitness) {
                 lowestFitness = fitnessScores[j];
                 lowestFitnessIndex = j;
             }
@@ -1907,13 +1912,13 @@ vector<NeuralNetwork> NeuralNetwork::initialiseArchitechturePopulation(standardT
     return result;
 }
 
-vector<float> NeuralNetwork::measureArchitechturePopulationFitness(vector<NeuralNetwork> population, standardTrainConfig trainConfig) {
+vector<float> NeuralNetwork::measureArchitechturePopulationFitness(vector<NeuralNetwork*> population, standardTrainConfig trainConfig) {
     vector<float> result;
     int populationCount = population.size();
 
     if (!trainConfig.useThreading) {
         for (int i = 0; i < populationCount; i++) {
-            float currentFitness = population[i].measureArchitechtureFitness(trainConfig);
+            float currentFitness = population[i]->measureArchitechtureFitness(trainConfig);
             result.push_back(currentFitness);
         }
     }
@@ -1921,7 +1926,7 @@ vector<float> NeuralNetwork::measureArchitechturePopulationFitness(vector<Neural
         vector<shared_future<float>> threads;
 
         for (int i = 0; i < populationCount; i++) {
-            shared_future<float> future = async(&NeuralNetwork::measureArchitechtureFitness, &population[i], trainConfig);
+            shared_future<float> future = async(&NeuralNetwork::measureArchitechtureFitness, population[i], trainConfig);
             threads.push_back(future);
         }
         for (int i = 0; i < populationCount; i++) {
