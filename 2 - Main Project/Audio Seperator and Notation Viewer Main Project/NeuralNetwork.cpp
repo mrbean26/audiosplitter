@@ -1073,8 +1073,6 @@ vector<NeuralNetwork> NeuralNetwork::sortNetworks(vector<NeuralNetwork> networks
         }
     }
 
-    // Reverse so that largest network is first
-    reverse(networks.begin(), networks.end());
     return networks;
 }
 pair<NeuralNetwork, float> NeuralNetwork::chooseParent(vector<NeuralNetwork> population, vector<float> fitnessScores, standardTrainConfig trainConfig) {

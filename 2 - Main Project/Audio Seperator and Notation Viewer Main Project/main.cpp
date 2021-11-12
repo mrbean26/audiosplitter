@@ -28,7 +28,7 @@ int main() {
 	vector<vector<float>> outputSet = generateOutputs(audioConfig);
 
 	NeuralNetwork::standardTrainConfig newConfig = NeuralNetwork::standardTrainConfig();
-	newConfig.epochs = 5;
+	newConfig.epochs = 25;
 
 	newConfig.population = 25;
 	newConfig.parentCount = 3;
