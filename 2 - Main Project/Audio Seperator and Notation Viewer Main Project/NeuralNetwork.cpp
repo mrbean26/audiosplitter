@@ -1837,7 +1837,7 @@ NeuralNetwork NeuralNetwork::architechtureNaturalSelection(standardTrainConfig t
 
     for (int i = 0; i < trainConfig.population; i++) {
         population[i].setupNetworkForTraining(trainConfig);
-        population[i].outputNetworkArchitechture();
+        //population[i].outputNetworkArchitechture();
     }
 
     NeuralNetwork bestNetwork = population[0];
@@ -1867,11 +1867,8 @@ NeuralNetwork NeuralNetwork::architechtureNaturalSelection(standardTrainConfig t
         }
 
         cout << "Epoch: " << i + 1 << " / " << trainConfig.epochs << ", Fitness: " << -lowestFitness << endl;
-        cout << "Architechtures:" << endl;
-
-        for (int i = 0; i < trainConfig.population; i++) {
-            population[i].outputNetworkArchitechture();
-        }
+        cout << "Best Architechture So Far:" << endl;
+        bestNetwork.outputNetworkArchitechture(); 
 
         population = reproduceArchitechtureNetworks(population, fitnessScores, trainConfig);
     }
@@ -1886,7 +1883,10 @@ vector<NeuralNetwork> NeuralNetwork::initialiseArchitechturePopulation(standardT
 
     for (int i = 0; i < trainConfig.population; i++) {
         vector<int> layers = { inputSize };
-        vector<int> biases = { 1 };
+
+        int firstLayerBiasCount = trainConfig.selectionMinBias + (rand() % static_cast<int>(trainConfig.selectionMaxBias - trainConfig.selectionMinBias + 1));
+        vector<int> biases = { firstLayerBiasCount };
+
         vector<int> activations = { SIGMOID };
 
         int chosenLayerCount = trainConfig.selectionMinLayers + (rand() % static_cast<int>(trainConfig.selectionMaxLayers - trainConfig.selectionMinLayers + 1));
@@ -2067,7 +2067,7 @@ NeuralNetwork NeuralNetwork::reproduceArchitechtureParents(vector<NeuralNetwork>
     
     for (int i = 0; i < parentCount; i++) {
         vector<int> currentLayers;
-        vector<int> currentBiases;
+        vector<int> currentBiases = { (int) parents[i].layerBiases[0].size() };
 
         int layerCount = parents[i].layerNodes.size();
         for (int j = 1; j < layerCount - 1; j++) {
@@ -2099,7 +2099,13 @@ NeuralNetwork NeuralNetwork::reproduceArchitechtureParents(vector<NeuralNetwork>
         int chosenLayerCount = int(layerAccumulation / parentCount);
 
         resultantLayers.push_back(inputSize);
-        resultantBiases.push_back(0);
+        
+        // Find first layer bias count
+        int firstLayerBiasCount = 0;
+        for (int j = 0; j < parentCount; j++) {
+            firstLayerBiasCount = firstLayerBiasCount + parentArchitechtures[j].second[0];
+        }
+        resultantBiases.push_back(firstLayerBiasCount / parentCount);
 
         for (int i = 0; i < chosenLayerCount; i++) {
             int accumulativeLayerSize = 0;
@@ -2108,7 +2114,7 @@ NeuralNetwork NeuralNetwork::reproduceArchitechtureParents(vector<NeuralNetwork>
             // Find Average Layer & Bias Count in Layers
             for (int j = 0; j < parentCount; j++) {
                 accumulativeLayerSize = accumulativeLayerSize + parentArchitechtures[j].first[i];
-                accumulativeBiasSize = accumulativeBiasSize + parentArchitechtures[j].second[i];
+                accumulativeBiasSize = accumulativeBiasSize + parentArchitechtures[j].second[i + 1]; // +1 due to first layer bias count
             }
 
             resultantLayers.push_back(accumulativeLayerSize / parentCount);
@@ -2129,7 +2135,13 @@ NeuralNetwork NeuralNetwork::reproduceArchitechtureParents(vector<NeuralNetwork>
         int chosenLayerCount = int(accumulativeLayerCount);
 
         resultantLayers.push_back(inputSize);
-        resultantBiases.push_back(0);
+
+        // Find first layer bias count
+        float firstLayerBiasCount = 0;
+        for (int j = 0; j < parentCount; j++) {
+            firstLayerBiasCount = firstLayerBiasCount + float(parentArchitechtures[j].second[0]) * multipliers[j];
+        }
+        resultantBiases.push_back(firstLayerBiasCount);
 
         for (int i = 0; i < chosenLayerCount; i++) {
             float accumulativeLayerSize = 0;
@@ -2138,7 +2150,7 @@ NeuralNetwork NeuralNetwork::reproduceArchitechtureParents(vector<NeuralNetwork>
             // Find Average Layer & Bias Count in Layers
             for (int j = 0; j < parentCount; j++) {
                 accumulativeLayerSize = accumulativeLayerSize + float(parentArchitechtures[j].first[i]) * multipliers[j];
-                accumulativeBiasSize = accumulativeBiasSize + float(parentArchitechtures[j].second[i]) * multipliers[j];
+                accumulativeBiasSize = accumulativeBiasSize + float(parentArchitechtures[j].second[i + 1]) * multipliers[j]; // +1 due to first layer bias count
             }
             
             resultantLayers.push_back(accumulativeLayerSize);

@@ -26,12 +26,12 @@ int main() {
 
 	vector<vector<float>> inputSet = generateInputs(audioConfig);
 	vector<vector<float>> outputSet = generateOutputs(audioConfig);
-
+	cout << "Complete Dataset Size: " << inputSet.size() << endl;
 	NeuralNetwork::standardTrainConfig newConfig = NeuralNetwork::standardTrainConfig();
-	newConfig.epochs = 25;
+	newConfig.epochs = 5;
 
 	newConfig.population = 25;
-	newConfig.parentCount = 3;
+	newConfig.parentCount = 2;
 
 	newConfig.fitnessFunctionType = ABSOLUTE_ERROR;
 	newConfig.parentSelectionMethod = TOP_PARENTS;
@@ -59,7 +59,6 @@ int main() {
 	newConfig.trainOutputs = outputSet;
 
 	NeuralNetwork newNetwork = NeuralNetwork::architechtureNaturalSelection(newConfig);
-	newNetwork.outputNetworkArchitechture();
 	createOutputTestTrack(newNetwork, audioConfig);	
 
 	system("pause");
