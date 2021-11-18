@@ -1887,8 +1887,6 @@ vector<NeuralNetwork> NeuralNetwork::initialiseArchitechturePopulation(standardT
         int firstLayerBiasCount = trainConfig.selectionMinBias + (rand() % static_cast<int>(trainConfig.selectionMaxBias - trainConfig.selectionMinBias + 1));
         vector<int> biases = { firstLayerBiasCount };
 
-        vector<int> activations = { SIGMOID };
-
         int chosenLayerCount = trainConfig.selectionMinLayers + (rand() % static_cast<int>(trainConfig.selectionMaxLayers - trainConfig.selectionMinLayers + 1));
         for (int j = 1; j < chosenLayerCount - 2; j++) {
             int newLayerSize = trainConfig.selectionMinNodes + (rand() % static_cast<int>(trainConfig.selectionMaxNodes - trainConfig.selectionMinNodes + 1));
@@ -1896,13 +1894,24 @@ vector<NeuralNetwork> NeuralNetwork::initialiseArchitechturePopulation(standardT
 
             int newBiasCount = trainConfig.selectionMinBias + (rand() % static_cast<int>(trainConfig.selectionMaxBias - trainConfig.selectionMinBias + 1));
             biases.push_back(newBiasCount);
-
-            activations.push_back(SIGMOID);
         }
 
         layers.push_back(outputSize);
         biases.push_back(0);
-        activations.push_back(SIGMOID);
+        
+        vector<int> activations = {};
+        if (trainConfig.selectionAllowedActivations == ACTIVATION_NONLINEAR_ONLY) {
+            for (int j = 0; j < chosenLayerCount; j++) {
+                int chosenActivation = 0 + (rand() % static_cast<int>(1 - 0 + 1)); // Sigmoid or TANH
+                activations.push_back(chosenActivation);
+            }
+        }
+        if (trainConfig.selectionAllowedActivations == ACTIVATION_ALL) {
+            for (int j = 0; j < chosenLayerCount; j++) {
+                int chosenActivation = 0 + (rand() % static_cast<int>(5 - 0 + 1)); // All Activations
+                activations.push_back(chosenActivation);
+            }
+        }
 
         NeuralNetwork newNetwork = NeuralNetwork(layers, biases, activations);
         result.push_back(newNetwork);
@@ -2170,10 +2179,19 @@ NeuralNetwork NeuralNetwork::reproduceArchitechtureParents(vector<NeuralNetwork>
 
     // Create Network
     vector<int> activations = {};
-    
     int layerCount = resultantLayers.size();
-    for (int i = 0; i < layerCount; i++) {
-        activations.push_back(SIGMOID);
+
+    if (trainConfig.selectionAllowedActivations == ACTIVATION_NONLINEAR_ONLY) {
+        for (int j = 0; j < layerCount; j++) {
+            int chosenActivation = 0 + (rand() % static_cast<int>(1 - 0 + 1)); // Sigmoid or TANH
+            activations.push_back(chosenActivation);
+        }
+    }
+    if (trainConfig.selectionAllowedActivations == ACTIVATION_ALL) {
+        for (int j = 0; j < layerCount; j++) {
+            int chosenActivation = 0 + (rand() % static_cast<int>(5 - 0 + 1)); // All Activations
+            activations.push_back(chosenActivation);
+        }
     }
     
     NeuralNetwork resultantNetwork = NeuralNetwork(resultantLayers, resultantBiases, activations);

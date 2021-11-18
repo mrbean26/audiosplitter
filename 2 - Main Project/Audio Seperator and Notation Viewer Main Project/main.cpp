@@ -36,6 +36,7 @@ int main() {
 	newConfig.fitnessFunctionType = ABSOLUTE_ERROR;
 	newConfig.parentSelectionMethod = TOP_PARENTS;
 
+	newConfig.selectionAllowedActivations = ACTIVATION_NONLINEAR_ONLY;
 	newConfig.breedingMethod = WEIGHTED_PARENTS;
 	newConfig.useChildMutation = true;
 

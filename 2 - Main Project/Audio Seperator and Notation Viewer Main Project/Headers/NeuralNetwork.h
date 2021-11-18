@@ -56,6 +56,10 @@ struct audioFileConfig;
 #define AVERAGE_PARENTS 0
 #define WEIGHTED_PARENTS 1
 
+// Architechture Selection
+#define ACTIVATION_NONLINEAR_ONLY 0
+#define ACTIVATION_ALL 1
+
 // Network
 class NeuralNetwork{
 public:
@@ -119,6 +123,7 @@ public:
         float epsillon = 0.00000001f;
 
         // Natural Selection Architechture Algorithm
+        int selectionAllowedActivations = ACTIVATION_NONLINEAR_ONLY;
         int selectionMinLayers = 3;
         int selectionMaxLayers = 18;
 
