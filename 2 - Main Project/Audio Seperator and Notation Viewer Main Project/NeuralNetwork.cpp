@@ -1999,17 +1999,22 @@ float NeuralNetwork::measureArchitechtureFitness(standardTrainConfig trainConfig
             calculateDerivatives(errors);
             adjustWeightsGradientDescent(currentLearningRate, trainConfig.momentum);
         }
-        //cout << "Approximate error: " << totalError * errorMultiplier << ", ";
-        if (abs(totalError - previousError) < 1.0f) {
+        
+        // Check for convergence with chosen method
+        if (abs(totalError - previousError) < trainConfig.selectionConvergenceValue) {
             counter = counter + 1;
         }
-        previousError = totalError;
-
-        if (counter == 10) { // Same Error Required 10 Times To Break
+        else {
+            counter = 0;
+        }
+        if (counter == trainConfig.selectionConvergenceCounter) { // Same Error Required 10 Times To Break
             break;
         }
+
+        previousError = totalError;
     }
 
+    cout << "Network finished, final error: " << previousError << endl;
     return previousError;
 }
 

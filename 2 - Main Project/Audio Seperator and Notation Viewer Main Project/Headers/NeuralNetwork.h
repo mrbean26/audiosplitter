@@ -124,6 +124,10 @@ public:
 
         // Natural Selection Architechture Algorithm
         int selectionAllowedActivations = ACTIVATION_NONLINEAR_ONLY;
+
+        int selectionConvergenceCounter = 10;
+        float selectionConvergenceValue = 1.0f;
+
         int selectionMinLayers = 3;
         int selectionMaxLayers = 18;
 

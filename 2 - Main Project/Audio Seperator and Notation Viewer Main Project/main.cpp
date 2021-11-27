@@ -27,16 +27,16 @@ int main() {
 	vector<vector<float>> inputSet = generateInputs(audioConfig);
 	vector<vector<float>> outputSet = generateOutputs(audioConfig);
 	cout << "Complete Dataset Size: " << inputSet.size() << endl;
+
 	NeuralNetwork::standardTrainConfig newConfig = NeuralNetwork::standardTrainConfig();
 	newConfig.epochs = 5;
 
-	newConfig.population = 25;
+	newConfig.population = 10;
 	newConfig.parentCount = 2;
 
 	newConfig.fitnessFunctionType = ABSOLUTE_ERROR;
 	newConfig.parentSelectionMethod = TOP_PARENTS;
 
-	newConfig.selectionAllowedActivations = ACTIVATION_NONLINEAR_ONLY;
 	newConfig.breedingMethod = WEIGHTED_PARENTS;
 	newConfig.useChildMutation = true;
 
@@ -46,6 +46,10 @@ int main() {
 	newConfig.useStochasticDataset = true;
 	newConfig.stochasticDatasetSize = 250;
 	newConfig.useThreading = true;
+
+	newConfig.selectionAllowedActivations = ACTIVATION_NONLINEAR_ONLY;
+	newConfig.selectionConvergenceCounter = 10;
+	newConfig.selectionConvergenceValue = 10.0f;
 
 	newConfig.selectionMinLayers = 3;
 	newConfig.selectionMaxLayers = 18;
