@@ -59,6 +59,7 @@ struct audioFileConfig;
 // Architechture Selection
 #define ACTIVATION_NONLINEAR_ONLY 0
 #define ACTIVATION_ALL 1
+#define ACTIVATION_SIGMOID_ONLY 2
 
 // Network
 class NeuralNetwork{

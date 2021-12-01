@@ -419,7 +419,7 @@ void NeuralNetwork::calculateDerivatives(vector<float> outputErrors, float error
                 }
 
                 // Derivative is Accumulative to Nodes in Next Layer
-                layerNodes[i][n].derivativeErrorValue += valueMultiplier * layerNodes[i][n].outWeights[w] * layerNodes[i + 1][w].derivativeErrorValue;
+                layerNodes[i][n].derivativeErrorValue += valueMultiplier * layerNodes[i][n].outWeights[w] * layerNodes[i + 1][w].derivativeErrorValue;                
             }
         }
 
@@ -516,7 +516,7 @@ void NeuralNetwork::adjustWeightsGradientDescent(float lr, float momentum) {
                 // Calculate Gradient of Error With Respect To Node
                 float newDelta = layerNodes[i][n].value * layerNodes[i + 1][w].derivativeErrorValue * lr;
                 layerNodes[i][n].outWeights[w] += newDelta;
-
+                
                 // Add a proportion of last updates' adjustments
                 layerNodes[i][n].outWeights[w] += layerNodes[i][n].previousDeltas[w] * momentum;
                 layerNodes[i][n].previousDeltas[w] = newDelta;
@@ -535,7 +535,7 @@ void NeuralNetwork::adjustWeightsGradientDescent(float lr, float momentum) {
                 // Calculate Gradient of Error With Respect To Node
                 float newDelta = 1.0f * layerNodes[i + 1][w].derivativeErrorValue * lr;
                 layerBiases[i][b].outWeights[w] += newDelta;
-
+                
                 // Add a proportion of last updates' adjustments
                 layerBiases[i][b].outWeights[w] += layerBiases[i][b].previousDeltas[w] * momentum;
                 layerBiases[i][b].previousDeltas[w] = newDelta;
@@ -1912,6 +1912,12 @@ vector<NeuralNetwork> NeuralNetwork::initialiseArchitechturePopulation(standardT
                 activations.push_back(chosenActivation);
             }
         }
+        if (trainConfig.selectionAllowedActivations == ACTIVATION_SIGMOID_ONLY) {
+            for (int j = 0; j < chosenLayerCount; j++) {
+                int chosenActivation = SIGMOID;
+                activations.push_back(chosenActivation);
+            }
+        }
 
         NeuralNetwork newNetwork = NeuralNetwork(layers, biases, activations);
         result.push_back(newNetwork);
@@ -1988,14 +1994,14 @@ float NeuralNetwork::measureArchitechtureFitness(standardTrainConfig trainConfig
         for (int t = 0; t < trainDataCount; t++) {
             int currentIndex = trainIndexes[t];
             vector<float> result = predict(usedInputs[currentIndex]);
-            
+
             // Calculate Differences In Actual Output
             vector<float> errors;
             for (int e = 0; e < outputCount; e++) {                
                 totalError += abs(usedOutputs[currentIndex][e] - result[e]);
                 errors.push_back(usedOutputs[currentIndex][e] - result[e]);
             }
-            
+
             calculateDerivatives(errors);
             adjustWeightsGradientDescent(currentLearningRate, trainConfig.momentum);
         }
@@ -2012,6 +2018,7 @@ float NeuralNetwork::measureArchitechtureFitness(standardTrainConfig trainConfig
         }
 
         previousError = totalError;
+        break;
     }
 
     cout << "Network finished, final error: " << previousError << endl;
@@ -2195,6 +2202,12 @@ NeuralNetwork NeuralNetwork::reproduceArchitechtureParents(vector<NeuralNetwork>
     if (trainConfig.selectionAllowedActivations == ACTIVATION_ALL) {
         for (int j = 0; j < layerCount; j++) {
             int chosenActivation = 0 + (rand() % static_cast<int>(5 - 0 + 1)); // All Activations
+            activations.push_back(chosenActivation);
+        }
+    }
+    if (trainConfig.selectionAllowedActivations == ACTIVATION_SIGMOID_ONLY) {
+        for (int j = 0; j < layerCount; j++) {
+            int chosenActivation = SIGMOID;
             activations.push_back(chosenActivation);
         }
     }

@@ -44,11 +44,11 @@ int main() {
 	newConfig.momentum = 0.0f;
 
 	newConfig.useStochasticDataset = true;
-	newConfig.stochasticDatasetSize = 250;
+	newConfig.stochasticDatasetSize = 1500;
 	newConfig.useThreading = true;
 
 	newConfig.selectionAllowedActivations = ACTIVATION_NONLINEAR_ONLY;
-	newConfig.selectionConvergenceCounter = 10;
+	newConfig.selectionConvergenceCounter = 4;
 	newConfig.selectionConvergenceValue = 10.0f;
 
 	newConfig.selectionMinLayers = 3;
@@ -57,7 +57,7 @@ int main() {
 	newConfig.selectionMinNodes = 1;
 	newConfig.selectionMaxNodes = 640;
 
-	newConfig.selectionMinBias = 0;
+	newConfig.selectionMinBias = 1;
 	newConfig.selectionMaxBias = 5;
 
 	newConfig.trainInputs = inputSet;
