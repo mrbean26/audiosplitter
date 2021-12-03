@@ -38,6 +38,7 @@ D:\Projects\Audio Splitter App\3 - C++\Several MIDI Note Filtering Methods\Sever
               _Ty=int16_t
           ]
 D:\Projects\Audio Splitter App\3 - C++\Several MIDI Note Filtering Methods\Several MIDI Note Filtering Methods\main.cpp(237,34): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+D:\Projects\Audio Splitter App\3 - C++\Several MIDI Note Filtering Methods\Several MIDI Note Filtering Methods\main.cpp(374,18): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
 C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30133\include\xmemory(714,47): warning C4244: 'initializing': conversion from 'double' to '_Objty', possible loss of data
           with
           [

@@ -277,10 +277,10 @@ void writeToWAV(const char* fileName, vector<int16_t> samples) {
 
 int main() {
 	int samplesPerChunk = 1024;
-	int frequencyResolution = 128;
+	int frequencyResolution = 1024;
 
 	// Generate Spectrogram
-	vector<vector<float>> initialSpectrogram = spectrogramOutput("vocals.mp3", samplesPerChunk, samplesPerChunk, frequencyResolution);
+	vector<vector<float>> initialSpectrogram = spectrogramOutput("test2000hz.mp3", samplesPerChunk, samplesPerChunk, frequencyResolution);
 
 	// Filter Notes Threshold
 	float usedThreshold = 0.1f;
@@ -358,6 +358,25 @@ int main() {
 		for (int j = 0; j < initialSpectrogram[0].size(); j++) {
 			if (initialSpectrogram[i][j] > threshold) {
 				resultantChunk.push_back(initialSpectrogram[i][j]);
+
+				if (j > 2) { // Filter out some lower frequency 'noise' data
+					// Works best with closest frequencyresolution and samples per chunk
+					// Mutliply height of index in spectrogram (place in spectrogram) (first term)
+					// By the maximum frequency (sample rate / 2) (second term)
+
+					float predictedFrequency = (float(j) / float(initialSpectrogram[0].size())) * (44100.0f / 2.0f);
+					cout << "Predicted Frequency: " << predictedFrequency << endl;
+
+					// Note detection
+					// Formula added to research
+
+					// 55 hz base is at A
+					int noteGap = log2f(predictedFrequency / 55.0f) * 12;
+					noteGap = noteGap % 12;
+
+					vector<string> notes = {"A", "A#", "B", "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#"};
+					cout << "Predicted Note: " << notes[noteGap] << endl;
+				}
 			}
 			else {
 				resultantChunk.push_back(0.0f);
