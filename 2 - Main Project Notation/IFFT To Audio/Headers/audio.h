@@ -9,4 +9,7 @@ using namespace std;
 pair<vector<vector<float>>, float> spectrogramOutput(const char* mp3Filename, int samplesPerChunk, int samplesPerStride, int frequencyResolution);
 pair<vector<vector<float>>, float> addSpectrogramError(pair<vector<vector<float>>, float> original, float error);
 
+vector<vector<float>> percentageFiltering(vector<vector<float>> inputSpectrogram, float percentageMultiplier);
+vector<vector<int>> returnNoteFormat(vector<vector<float>> filteredSpectrogram);
+
 #endif // !AUDIO_H

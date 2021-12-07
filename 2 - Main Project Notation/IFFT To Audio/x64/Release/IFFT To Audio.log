@@ -18,12 +18,15 @@ D:\Projects\Audio Splitter App\2 - Main Project Notation\IFFT To Audio\Headers\m
 D:\Projects\Audio Splitter App\2 - Main Project Notation\IFFT To Audio\Headers\minimp3_ex.h(916,45): warning C4267: '+=': conversion from 'size_t' to 'int', possible loss of data
 D:\Projects\Audio Splitter App\2 - Main Project Notation\IFFT To Audio\Headers\minimp3_ex.h(917,37): warning C4267: '-=': conversion from 'size_t' to 'int', possible loss of data
 D:\Projects\Audio Splitter App\2 - Main Project Notation\IFFT To Audio\Headers\minimp3_ex.h(943,40): warning C4267: '+=': conversion from 'size_t' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project Notation\IFFT To Audio\audio.cpp(41,101): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project Notation\IFFT To Audio\audio.cpp(58,45): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project Notation\IFFT To Audio\audio.cpp(76,43): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project Notation\IFFT To Audio\audio.cpp(119,54): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project Notation\IFFT To Audio\audio.cpp(154,39): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project Notation\IFFT To Audio\audio.cpp(155,39): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+D:\Projects\Audio Splitter App\2 - Main Project Notation\IFFT To Audio\audio.cpp(43,101): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+D:\Projects\Audio Splitter App\2 - Main Project Notation\IFFT To Audio\audio.cpp(60,45): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+D:\Projects\Audio Splitter App\2 - Main Project Notation\IFFT To Audio\audio.cpp(78,43): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+D:\Projects\Audio Splitter App\2 - Main Project Notation\IFFT To Audio\audio.cpp(121,54): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+D:\Projects\Audio Splitter App\2 - Main Project Notation\IFFT To Audio\audio.cpp(156,39): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+D:\Projects\Audio Splitter App\2 - Main Project Notation\IFFT To Audio\audio.cpp(157,39): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+D:\Projects\Audio Splitter App\2 - Main Project Notation\IFFT To Audio\audio.cpp(197,45): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+D:\Projects\Audio Splitter App\2 - Main Project Notation\IFFT To Audio\audio.cpp(198,49): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+D:\Projects\Audio Splitter App\2 - Main Project Notation\IFFT To Audio\audio.cpp(207,17): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
 C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30133\include\utility(249,61): warning C4244: 'initializing': conversion from '_Ty' to '_Ty2', possible loss of data
           with
           [
@@ -33,8 +36,8 @@ C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.2
           [
               _Ty2=float
           ]
-D:\Projects\Audio Splitter App\2 - Main Project Notation\IFFT To Audio\audio.cpp(140): message : see reference to function template instantiation 'std::pair<std::vector<std::vector<float,std::allocator<float>>,std::allocator<std::vector<float,std::allocator<float>>>>,float>::pair<std::vector<std::vector<float,std::allocator<float>>,std::allocator<std::vector<float,std::allocator<float>>>>,double,0>(std::pair<std::vector<std::vector<float,std::allocator<float>>,std::allocator<std::vector<float,std::allocator<float>>>>,double> &&) noexcept' being compiled
-D:\Projects\Audio Splitter App\2 - Main Project Notation\IFFT To Audio\audio.cpp(140): message : see reference to function template instantiation 'std::pair<std::vector<std::vector<float,std::allocator<float>>,std::allocator<std::vector<float,std::allocator<float>>>>,float>::pair<std::vector<std::vector<float,std::allocator<float>>,std::allocator<std::vector<float,std::allocator<float>>>>,double,0>(std::pair<std::vector<std::vector<float,std::allocator<float>>,std::allocator<std::vector<float,std::allocator<float>>>>,double> &&) noexcept' being compiled
+D:\Projects\Audio Splitter App\2 - Main Project Notation\IFFT To Audio\audio.cpp(142): message : see reference to function template instantiation 'std::pair<std::vector<std::vector<float,std::allocator<float>>,std::allocator<std::vector<float,std::allocator<float>>>>,float>::pair<std::vector<std::vector<float,std::allocator<float>>,std::allocator<std::vector<float,std::allocator<float>>>>,double,0>(std::pair<std::vector<std::vector<float,std::allocator<float>>,std::allocator<std::vector<float,std::allocator<float>>>>,double> &&) noexcept' being compiled
+D:\Projects\Audio Splitter App\2 - Main Project Notation\IFFT To Audio\audio.cpp(142): message : see reference to function template instantiation 'std::pair<std::vector<std::vector<float,std::allocator<float>>,std::allocator<std::vector<float,std::allocator<float>>>>,float>::pair<std::vector<std::vector<float,std::allocator<float>>,std::allocator<std::vector<float,std::allocator<float>>>>,double,0>(std::pair<std::vector<std::vector<float,std::allocator<float>>,std::allocator<std::vector<float,std::allocator<float>>>>,double> &&) noexcept' being compiled
 C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30133\include\xmemory(714,47): warning C4244: 'initializing': conversion from 'double' to '_Objty', possible loss of data
           with
           [
@@ -91,14 +94,14 @@ C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.2
           [
               _Iter=double *
           ]
-D:\Projects\Audio Splitter App\2 - Main Project Notation\IFFT To Audio\audio.cpp(135): message : see reference to function template instantiation 'std::vector<float,std::allocator<float>>::vector<std::_Vector_iterator<std::_Vector_val<std::_Simple_types<_Ty>>>,0>(_Iter,_Iter,const _Alloc &)' being compiled
+D:\Projects\Audio Splitter App\2 - Main Project Notation\IFFT To Audio\audio.cpp(137): message : see reference to function template instantiation 'std::vector<float,std::allocator<float>>::vector<std::_Vector_iterator<std::_Vector_val<std::_Simple_types<_Ty>>>,0>(_Iter,_Iter,const _Alloc &)' being compiled
           with
           [
               _Ty=double,
               _Iter=std::_Vector_iterator<std::_Vector_val<std::_Simple_types<double>>>,
               _Alloc=std::allocator<float>
           ]
-D:\Projects\Audio Splitter App\2 - Main Project Notation\IFFT To Audio\audio.cpp(135): message : see reference to function template instantiation 'std::vector<float,std::allocator<float>>::vector<std::_Vector_iterator<std::_Vector_val<std::_Simple_types<_Ty>>>,0>(_Iter,_Iter,const _Alloc &)' being compiled
+D:\Projects\Audio Splitter App\2 - Main Project Notation\IFFT To Audio\audio.cpp(137): message : see reference to function template instantiation 'std::vector<float,std::allocator<float>>::vector<std::_Vector_iterator<std::_Vector_val<std::_Simple_types<_Ty>>>,0>(_Iter,_Iter,const _Alloc &)' being compiled
           with
           [
               _Ty=double,
@@ -107,8 +110,9 @@ D:\Projects\Audio Splitter App\2 - Main Project Notation\IFFT To Audio\audio.cpp
           ]
   main.cpp
   Generating code
-  Previous IPDB not found, fall back to full compilation.
-D:\Projects\Audio Splitter App\2 - Main Project Notation\IFFT To Audio\audio.cpp(38): warning C4715: 'loadAudioSamples': not all control paths return a value
-  All 442 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
+  Previous IPDB and IOBJ mismatch, fall back to full compilation.
+D:\Projects\Audio Splitter App\2 - Main Project Notation\IFFT To Audio\audio.cpp(40): warning C4715: 'loadAudioSamples': not all control paths return a value
+D:\Projects\Audio Splitter App\2 - Main Project Notation\IFFT To Audio\audio.cpp(215): warning C4715: 'returnNoteFormat': not all control paths return a value
+  All 540 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
   Finished generating code
   IFFT To Audio.vcxproj -> D:\Projects\Audio Splitter App\2 - Main Project Notation\x64\Release\Main Project Notation.exe

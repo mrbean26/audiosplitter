@@ -5,6 +5,7 @@
 #include "Headers/minimp3.h"
 #include "Headers/minimp3_ex.h"
 
+int sampleRate = 0;
 mp3dec_file_info_t loadAudioData(const char* mp3Filename) {
 	mp3dec_t mp3Decoder;
 	mp3dec_file_info_t fileInfo;
@@ -14,6 +15,7 @@ mp3dec_file_info_t loadAudioData(const char* mp3Filename) {
 		return mp3dec_file_info_t();
 	}
 
+	sampleRate = fileInfo.hz;
 	return fileInfo;
 }
 vector<int> loadAudioSamples(mp3d_sample_t* buffer, int sampleCount, int channels) {
@@ -162,4 +164,52 @@ pair<vector<vector<float>>, float> addSpectrogramError(pair<vector<vector<float>
 	}
 
 	return result;
+}
+
+vector<vector<float>> percentageFiltering(vector<vector<float>> inputSpectrogram, float percentageMultiplier) {
+	vector<vector<float>> result;
+
+	for (int i = 0; i < inputSpectrogram.size(); i++) {
+		vector<float> resultantChunk;
+
+		float maxValue = 0.0f;
+		for (int j = 0; j < inputSpectrogram[0].size(); j++) {
+			maxValue = max(maxValue, inputSpectrogram[i][j]);
+		}
+
+		float threshold = maxValue * percentageMultiplier;
+		for (int j = 0; j < inputSpectrogram[0].size(); j++) {
+			if (inputSpectrogram[i][j] > threshold) {
+				resultantChunk.push_back(inputSpectrogram[i][j]);
+			}
+			else {
+				resultantChunk.push_back(0.0f);
+			}
+		}
+
+		result.push_back(resultantChunk);
+	}
+	return result;
+}
+vector<vector<int>> returnNoteFormat(vector<vector<float>> filteredSpectrogram) {
+	vector<vector<int>> resultantMIDIFormat; // Each vector<int> is a time frame and each int is an integer distance "note"
+
+	int timeframes = filteredSpectrogram.size();
+	int frequencies = filteredSpectrogram[0].size();
+
+	for (int i = 0; i < timeframes; i++) {
+		vector<int> currentTimeFrame;
+
+		for (int j = 0; j < frequencies; j++) {
+			// Check if note is acceptable volume
+			if (filteredSpectrogram[i][j] > 0.0f) {
+				float predictedFrequency = (float(j) / float(frequencies)) * (sampleRate / 2);
+				int noteGap = log2f(predictedFrequency / 55.0f) * 12;
+				// Note Gap Is Distance from Note A0 (frequency = 55.0f)
+
+				currentTimeFrame.push_back(noteGap);
+			}
+		}
+		resultantMIDIFormat.push_back(currentTimeFrame);
+	}
 }
