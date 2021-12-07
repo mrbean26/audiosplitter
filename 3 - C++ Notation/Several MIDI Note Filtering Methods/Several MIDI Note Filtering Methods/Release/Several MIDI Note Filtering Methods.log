@@ -1,0 +1,7 @@
+﻿  0 File(s) copied
+main.obj : error LNK2001: unresolved external symbol __imp__fftw_malloc
+main.obj : error LNK2001: unresolved external symbol __imp__fftw_plan_dft_1d
+main.obj : error LNK2001: unresolved external symbol __imp__fftw_destroy_plan
+main.obj : error LNK2001: unresolved external symbol __imp__fftw_execute
+main.obj : error LNK2001: unresolved external symbol __imp__fftw_free
+D:\Projects\Audio Splitter App\3 - C++\Several MIDI Note Filtering Methods\Release\Several MIDI Note Filtering Methods.exe : fatal error LNK1120: 5 unresolved externals
