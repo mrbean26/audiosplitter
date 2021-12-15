@@ -207,9 +207,62 @@ vector<vector<int>> returnNoteFormat(vector<vector<float>> filteredSpectrogram) 
 				int noteGap = log2f(predictedFrequency / 55.0f) * 12;
 				// Note Gap Is Distance from Note A0 (frequency = 55.0f)
 
+				if (noteGap < 0) {
+					continue;
+				}
+
 				currentTimeFrame.push_back(noteGap);
 			}
 		}
 		resultantMIDIFormat.push_back(currentTimeFrame);
 	}
+	return resultantMIDIFormat;
+}
+
+vector<vector<int>> notesToFrets(vector<vector<int>> notes, vector<int> tunings, vector<int> maxFrets) {
+	vector<vector<int>> result;
+	int stringCount = tunings.size();
+	int frameCount = notes.size();
+
+	for (int i = 0; i < frameCount; i++) {
+		vector<int> currentFrame(stringCount);
+		std::fill(currentFrame.begin(), currentFrame.end(), -1); // Fill with -1's, meaning no fret
+
+		// Loop over all notes in frame
+		int noteCount = notes[i].size();
+		for (int j = 0; j < noteCount; j++) {
+			int lowestDifference = INT_MAX;
+			int chosenStringIndex = -1;
+
+			for (int k = 0; k < stringCount; k++) {
+				int currentDifference = notes[i][j] - tunings[k]; // Find Fret Number of Note on this String
+
+				// Find lowest fret number
+				if (currentDifference < lowestDifference && currentDifference >= 0) {
+					if (currentDifference <= tunings[k]) {
+						chosenStringIndex = k;
+						lowestDifference = currentDifference;
+					}
+				}
+			}
+
+			// Assign note to a fret on chosen string
+			for (int k = chosenStringIndex; k >= 0; k--) {
+				if (currentFrame[k] == -1) {
+					currentFrame[k] = notes[i][j] - tunings[k];
+					break;
+				}
+
+				// If the string is already occupied by a note, push note up with lowest fret
+				int newNoteFret = notes[i][j] - tunings[k];
+				int currentNoteFret = currentFrame[k];
+
+				if (currentNoteFret < newNoteFret) {
+					notes[i][j] = currentNoteFret;
+				}
+			}
+		}
+		result.push_back(currentFrame);
+	}
+	return result;
 }

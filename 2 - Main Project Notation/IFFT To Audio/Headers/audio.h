@@ -11,5 +11,6 @@ pair<vector<vector<float>>, float> addSpectrogramError(pair<vector<vector<float>
 
 vector<vector<float>> percentageFiltering(vector<vector<float>> inputSpectrogram, float percentageMultiplier);
 vector<vector<int>> returnNoteFormat(vector<vector<float>> filteredSpectrogram);
+vector<vector<int>> notesToFrets(vector<vector<int>> notes, vector<int> tunings, vector<int> maxFrets);
 
 #endif // !AUDIO_H
