@@ -1,0 +1,9 @@
+﻿  main.cpp
+LINK : warning LNK4098: defaultlib 'LIBCMT' conflicts with use of other libs; use /NODEFAULTLIB:library
+  Generating code
+  2 of 471 functions ( 0.4%) were compiled, the rest were copied from previous compilation.
+    0 functions were new in current compilation
+    1 functions had inline decision re-evaluated but remain unchanged
+  Finished generating code
+glew32s.lib(glew.obj) : warning LNK4099: PDB 'vc120.pdb' was not found with 'glew32s.lib(glew.obj)' or at 'D:\Projects\Audio Splitter App\3 - C++ Notation\Text Rendering\Release\vc120.pdb'; linking object as if no debug info
+  Text Rendering.vcxproj -> D:\Projects\Audio Splitter App\3 - C++ Notation\Text Rendering\Release\Text Rendering.exe
