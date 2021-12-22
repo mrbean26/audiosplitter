@@ -1,5 +1,5 @@
 #include "Headers/audio.h"
-#include "Headers/fftw3.h"
+#include "Headers/graphics.h"
 
 int main() {
 	int frequencyResolution = 8192;
@@ -23,7 +23,21 @@ int main() {
 	for (int i = 0; i < 6; i++) {
 		cout << noteFrets[0][i] << endl;
 	}
+	// Graphics Rendering
+	if (!startOpenGL(window, 1280, 720)) {
+		return -1;
+	}
+	textsBegin();
 
-	system("pause");
+	vec2 textWidthHeight = vec2();
+	while (!glfwWindowShouldClose(window)) {
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		vec2 textWidthHeight = renderText("Welcome To The Tab Viewer", vec2(640.0f, 360.0f) - (textWidthHeight / 2.0f), 1.0f, 1.0f, vec3(1.0f, 1.0f, 1.0f), fontCharacters);
+
+		glfwSwapBuffers(window);
+		glfwPollEvents();
+	}
+
 	return 0;
 }

@@ -24,6 +24,12 @@
     <ClCompile Include="audio.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="graphics.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="filesShaders.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Headers\audio.h">
@@ -36,6 +42,12 @@
       <Filter>Source Files\Headers</Filter>
     </ClInclude>
     <ClInclude Include="Headers\minimp3_ex.h">
+      <Filter>Source Files\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Headers\graphics.h">
+      <Filter>Source Files\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Headers\filesShaders.h">
       <Filter>Source Files\Headers</Filter>
     </ClInclude>
   </ItemGroup>
