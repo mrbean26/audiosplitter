@@ -30,6 +30,9 @@
     <ClCompile Include="filesShaders.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="tabs.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Headers\audio.h">
@@ -48,6 +51,9 @@
       <Filter>Source Files\Headers</Filter>
     </ClInclude>
     <ClInclude Include="Headers\filesShaders.h">
+      <Filter>Source Files\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Headers\tabs.h">
       <Filter>Source Files\Headers</Filter>
     </ClInclude>
   </ItemGroup>

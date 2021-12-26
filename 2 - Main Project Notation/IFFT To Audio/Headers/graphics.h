@@ -11,6 +11,8 @@ using namespace std;
 #include "filesShaders.h"
 
 extern GLFWwindow* window;
+extern int display_x, display_y;
+
 bool startOpenGL(GLFWwindow*& used_window, int width, int height);
 
 struct Character {

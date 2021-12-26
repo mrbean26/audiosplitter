@@ -32,6 +32,7 @@ bool startOpenGL(GLFWwindow*& used_window, int width, int height) {
 	if (glewInit() != GLEW_OK) {
 		return false;
 	}
+	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 	glfwSwapInterval(0); // Unlimited Frames
 
 	glEnable(GL_BLEND);
@@ -101,7 +102,7 @@ void textsBegin() {
 	int fragShader = createShader("Assets/Shaders/textFrag.txt", GL_FRAGMENT_SHADER);
 	textShader = createProgram({ vertShader, fragShader });
 	//load fonts
-	fontCharacters = getFont("Assets/zekton.ttf", LOADED_FONT_SIZE);
+	fontCharacters = getFont("Assets/TabFont.ttf", LOADED_FONT_SIZE);
 	glBindTexture(GL_TEXTURE_2D, 0);
 	//ready vbo & vao
 	glGenVertexArrays(1, &textVAO);
