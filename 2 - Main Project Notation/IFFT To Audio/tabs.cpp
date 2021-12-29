@@ -63,8 +63,11 @@ void drawTab(vector<vector<int>> noteFrets) {
 	int stringCount = noteFrets[0].size();
 
 	float lineLength = 1.0f - 2 * TAB_EDGE_DISTANCE;
-	int chunksPerLine = lineLength / TAB_TEXT_DISTANCE;
+	int chunksPerLine = TAB_CHUNKS_PER_LINE * (float(display_x) / 1000.0f);
 
+	float tabTextSize = TAB_TEXT_SIZE * (float(display_y) / 1000.0f);
+	float tabTextDistance = lineLength / float(chunksPerLine);
+	
 	// Draw Lines
 	int tabLinesCount = ceil(float(chunkCount) / float(chunksPerLine));
 	for (int i = 0; i < tabLinesCount; i++) {
@@ -80,7 +83,7 @@ void drawTab(vector<vector<int>> noteFrets) {
 		int lineIndex = i % (chunksPerLine + 1);
 		int tabChunkIndex = floor(float(i) / float(chunksPerLine + 1));
 
-		float relativeXPosition = TAB_EDGE_DISTANCE + lineIndex * TAB_TEXT_DISTANCE;
+		float relativeXPosition = TAB_EDGE_DISTANCE + lineIndex * tabTextDistance;
 
 		for (int j = 0; j < stringCount; j++) {
 			if (noteFrets[i][j] == -1) {
@@ -95,7 +98,7 @@ void drawTab(vector<vector<int>> noteFrets) {
 				position = position + vec2(0.0f, averageYCharacterSize / 2.0f); // Center Text
 			}
 
-			vec2 textWidthHeight = renderText(to_string(noteFrets[i][j]), position, 1.0f, 0.75f, vec3(0.0f), fontCharacters);
+			vec2 textWidthHeight = renderText(to_string(noteFrets[i][j]), position, 1.0f, tabTextSize, vec3(0.0f), fontCharacters);
 			if (!foundSize) {
 				averageYCharacterSize = averageYCharacterSize + textWidthHeight.y;
 				characterCount++;

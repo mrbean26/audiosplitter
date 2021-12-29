@@ -23,7 +23,7 @@ int main() {
 	vector<vector<int>> noteFrets = notesToFrets(filteredNotes, tunings, maxFrets);
 	
 	// Graphics Rendering
-	if (!startOpenGL(window, 1280, 720)) {
+	if (!startOpenGL(window, 640, 360)) {
 		return -1;
 	}
 	textsBegin();
