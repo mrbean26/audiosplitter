@@ -1,5 +1,6 @@
 #include "Headers/audio.h"
 #include <iomanip>
+#include <fstream>
 
 #define MINIMP3_IMPLEMENTATION
 #include "Headers/minimp3.h"
@@ -218,7 +219,6 @@ vector<vector<int>> returnNoteFormat(vector<vector<float>> filteredSpectrogram) 
 	}
 	return resultantMIDIFormat;
 }
-
 vector<vector<int>> notesToFrets(vector<vector<int>> notes, vector<int> tunings, vector<int> maxFrets) {
 	vector<vector<int>> result;
 	int stringCount = tunings.size();
@@ -265,4 +265,51 @@ vector<vector<int>> notesToFrets(vector<vector<int>> notes, vector<int> tunings,
 		result.push_back(currentFrame);
 	}
 	return result;
+}
+
+void saveNoteFormat(vector<vector<int>> format, int stringCount, const char* fileName) {
+	ofstream outputFile(fileName, ios::out | ios::binary);
+
+	int8_t oneByteStringCount = stringCount;
+	outputFile.write((char*)&oneByteStringCount, sizeof(oneByteStringCount));
+
+	char splitCharacter = 255;
+	int chunkCount = format.size();
+
+	for (int i = 0; i < chunkCount; i++) {
+		int noteCount = format[i].size();
+
+		for (int j = 0; j < noteCount; j++) {
+			int8_t currentNote = format[i][j];
+			outputFile.write((char*)&currentNote, sizeof(currentNote));
+		}
+
+		outputFile << splitCharacter;
+	}
+
+	outputFile.close();
+}
+vector<vector<int>> loadNoteFormat(const char* fileName) {
+	ifstream inputFile(fileName, ios::in | ios::binary);
+	
+	char currentCharacter = inputFile.get();
+	int stringCount = (int)currentCharacter;
+	currentCharacter = inputFile.get();
+
+	vector<vector<int>> resultantFormat;
+	vector<int> currentChunk;
+
+	while (inputFile.good()) {
+		if ((int)currentCharacter == -1) {
+			resultantFormat.push_back(currentChunk);
+			currentChunk.clear();
+		}
+		else {
+			currentChunk.push_back((int)currentCharacter);
+		}
+
+		currentCharacter = inputFile.get();
+	}
+	cout << resultantFormat.size() << endl;
+	return resultantFormat;
 }

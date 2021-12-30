@@ -20,8 +20,12 @@ int main() {
 	// Filter Output and Turn to Custom Note Format
 	vector<vector<float>> filteredOutput = percentageFiltering(correctOutput.first, percentageFilter);
 	vector<vector<int>> filteredNotes = returnNoteFormat(filteredOutput);
-	vector<vector<int>> noteFrets = notesToFrets(filteredNotes, tunings, maxFrets);
-	
+
+	saveNoteFormat(filteredNotes, 6, "outputNotes.audio");
+	vector<vector<int>> loadedNotes = loadNoteFormat("outputNotes.audio");
+
+	vector<vector<int>> noteFrets = notesToFrets(loadedNotes, tunings, maxFrets);
+
 	// Graphics Rendering
 	if (!startOpenGL(window, 640, 360)) {
 		return -1;

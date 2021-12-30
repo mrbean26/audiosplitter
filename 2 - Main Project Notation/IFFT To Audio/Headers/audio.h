@@ -13,4 +13,7 @@ vector<vector<float>> percentageFiltering(vector<vector<float>> inputSpectrogram
 vector<vector<int>> returnNoteFormat(vector<vector<float>> filteredSpectrogram);
 vector<vector<int>> notesToFrets(vector<vector<int>> notes, vector<int> tunings, vector<int> maxFrets);
 
+void saveNoteFormat(vector<vector<int>> format, int stringCount, const char * fileName);
+vector<vector<int>> loadNoteFormat(const char* fileName);
+
 #endif // !AUDIO_H
