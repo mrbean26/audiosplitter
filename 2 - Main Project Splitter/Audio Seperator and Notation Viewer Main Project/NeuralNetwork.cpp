@@ -207,7 +207,7 @@ void NeuralNetwork::setupNetworkForTraining(standardTrainConfig trainConfig) {
         vector<float> emptyVector(weightCount);
 
         for (int n = 0; n < nodeCount; n++) {
-            if (trainConfig.learningRateType == ADAM_LEARNING_RATE) {
+            if (trainConfig.gradientDescent.learningRateType == ADAM_LEARNING_RATE) {
                 layerNodes[i][n].previousExponentials = emptyVector;
                 layerNodes[i][n].previousSquaredExponentials = emptyVector;
             }
@@ -219,7 +219,7 @@ void NeuralNetwork::setupNetworkForTraining(standardTrainConfig trainConfig) {
             }
         }
         for (int b = 0; b < biasCount; b++) {
-            if (trainConfig.learningRateType == ADAM_LEARNING_RATE) {
+            if (trainConfig.gradientDescent.learningRateType == ADAM_LEARNING_RATE) {
                 layerBiases[i][b].previousExponentials = emptyVector;
                 layerBiases[i][b].previousSquaredExponentials = emptyVector;
             }
@@ -559,13 +559,13 @@ void NeuralNetwork::adjustWeightsADAM(standardTrainConfig trainConfig) {
                 float gradient = layerNodes[i][n].value * layerNodes[i + 1][w].derivativeErrorValue;
 
                 // ADAM Parameters#
-                float newExponential = trainConfig.betaOne * layerNodes[i][n].previousExponentials[w] + (1 - trainConfig.betaOne) * gradient;
-                float newSquaredExponential = trainConfig.betaTwo * layerNodes[i][n].previousSquaredExponentials[w] + (1 - trainConfig.betaTwo) * powf(gradient, 2.0f);
+                float newExponential = trainConfig.gradientDescent.betaOne * layerNodes[i][n].previousExponentials[w] + (1 - trainConfig.gradientDescent.betaOne) * gradient;
+                float newSquaredExponential = trainConfig.gradientDescent.betaTwo * layerNodes[i][n].previousSquaredExponentials[w] + (1 - trainConfig.gradientDescent.betaTwo) * powf(gradient, 2.0f);
                 
-                float currentExponential = newExponential / (1 - trainConfig.betaOne);
-                float currentSquaredExponential = newSquaredExponential / (1 - trainConfig.betaTwo);
+                float currentExponential = newExponential / (1 - trainConfig.gradientDescent.betaOne);
+                float currentSquaredExponential = newSquaredExponential / (1 - trainConfig.gradientDescent.betaTwo);
                 
-                float learningRate = trainConfig.learningRate * (currentExponential / (sqrtf(currentSquaredExponential) + trainConfig.epsillon));
+                float learningRate = trainConfig.learningRate * (currentExponential / (sqrtf(currentSquaredExponential) + trainConfig.gradientDescent.epsillon));
                 float delta = learningRate * gradient;
                 
                 layerNodes[i][n].outWeights[w] -= delta;
@@ -589,13 +589,13 @@ void NeuralNetwork::adjustWeightsADAM(standardTrainConfig trainConfig) {
                 float gradient = 1.0f * layerNodes[i + 1][w].derivativeErrorValue;
 
                 // ADAM Parameters
-                float newExponential = trainConfig.betaOne * layerBiases[i][b].previousExponentials[w] + (1 - trainConfig.betaOne) * gradient;
-                float newSquaredExponential = trainConfig.betaTwo * layerBiases[i][b].previousSquaredExponentials[w] + (1 - trainConfig.betaTwo) * powf(gradient, 2.0f);
+                float newExponential = trainConfig.gradientDescent.betaOne * layerBiases[i][b].previousExponentials[w] + (1 - trainConfig.gradientDescent.betaOne) * gradient;
+                float newSquaredExponential = trainConfig.gradientDescent.betaTwo * layerBiases[i][b].previousSquaredExponentials[w] + (1 - trainConfig.gradientDescent.betaTwo) * powf(gradient, 2.0f);
 
-                float currentExponential = newExponential / (1 - trainConfig.betaOne);
-                float currentSquaredExponential = newSquaredExponential / (1 - trainConfig.betaTwo);
+                float currentExponential = newExponential / (1 - trainConfig.gradientDescent.betaOne);
+                float currentSquaredExponential = newSquaredExponential / (1 - trainConfig.gradientDescent.betaTwo);
 
-                float learningRate = trainConfig.learningRate * (currentExponential / (sqrtf(currentSquaredExponential) + trainConfig.epsillon));
+                float learningRate = trainConfig.learningRate * (currentExponential / (sqrtf(currentSquaredExponential) + trainConfig.gradientDescent.epsillon));
                 float delta = learningRate * gradient;
 
                 layerBiases[i][b].outWeights[w] -= delta;
@@ -625,7 +625,7 @@ vector<float> NeuralNetwork::trainGradientDescent(standardTrainConfig trainConfi
         float currentLearningRate = trainConfig.learningRate;
         float currentMomentum = trainConfig.momentum;
 
-        if (trainConfig.learningRateType == CYCLICAL_LEARNING_RATE) {
+        if (trainConfig.gradientDescent.learningRateType == CYCLICAL_LEARNING_RATE) {
             // Peak in Middle - Use Linear Function
             double currentCoefficient = double(epoch + 1) / (double(trainConfig.epochs));
             float value = 1.0f - abs(2.0f * (currentCoefficient - 0.5f));
@@ -634,7 +634,7 @@ vector<float> NeuralNetwork::trainGradientDescent(standardTrainConfig trainConfi
             currentMomentum = (1 - value) * trainConfig.momentum;
         }
 
-        if (trainConfig.learningRateType == DECREASING_LEARNING_RATE) {
+        if (trainConfig.gradientDescent.learningRateType == DECREASING_LEARNING_RATE) {
             float multiplier = float(epoch + 1) / float(trainConfig.epochs);
             currentLearningRate = (1.0f - multiplier) * trainConfig.learningRate;
             currentMomentum = multiplier * trainConfig.learningRate;
@@ -660,7 +660,7 @@ vector<float> NeuralNetwork::trainGradientDescent(standardTrainConfig trainConfi
             calculateDerivatives(errors);
 
             // Update Parameters
-            if (trainConfig.learningRateType == ADAM_LEARNING_RATE) {
+            if (trainConfig.gradientDescent.learningRateType == ADAM_LEARNING_RATE) {
                 adjustWeightsADAM(trainConfig);
             }
             else {
@@ -686,7 +686,7 @@ vector<float> NeuralNetwork::trainGradientDescent(standardTrainConfig trainConfi
 vector<float> NeuralNetwork::trainStochasticGradientDescent(standardTrainConfig trainConfig) {
     // Useful Integers Calculated Before Iteration
     int trainDataCount = trainConfig.trainInputs.size();
-    int miniBatchSize = trainConfig.trainInputs.size() / trainConfig.batchSize;
+    int miniBatchSize = trainConfig.trainInputs.size() / trainConfig.gradientDescent.batchSize;
     int outputCount = trainConfig.trainOutputs[0].size();
 
     vector<float> result;
@@ -696,7 +696,7 @@ vector<float> NeuralNetwork::trainStochasticGradientDescent(standardTrainConfig 
         int currentBatchSize = 0;
 
         // Create Mini Dataset
-        if ((epoch + 1) % trainConfig.entireBatchEpochIntervals == 0) {
+        if ((epoch + 1) % trainConfig.gradientDescent.entireBatchEpochIntervals == 0) {
             for (int i = 0; i < trainDataCount; i++) {
                 trainIndexes.push_back(i);
             }
@@ -704,19 +704,19 @@ vector<float> NeuralNetwork::trainStochasticGradientDescent(standardTrainConfig 
             currentBatchSize = trainDataCount;
         }
         else {
-            for (int i = 0; i < trainConfig.batchSize; i++) {
+            for (int i = 0; i < trainConfig.gradientDescent.batchSize; i++) {
                 int newIndex = (i * miniBatchSize) + (rand() % miniBatchSize);
                 trainIndexes.push_back(newIndex);
             }
 
-            currentBatchSize = trainConfig.batchSize;
+            currentBatchSize = trainConfig.gradientDescent.batchSize;
         }
 
         // Calculate Current Learning Rate
         float currentLearningRate = trainConfig.learningRate;
         float currentMomentum = trainConfig.momentum;
 
-        if (trainConfig.learningRateType == CYCLICAL_LEARNING_RATE) { 
+        if (trainConfig.gradientDescent.learningRateType == CYCLICAL_LEARNING_RATE) {
             // Calculate Multiplier For Learning Parameters such That The Multiplier Peaks at Half Epochs
             double currentCoefficient = double(epoch + 1) / (double(trainConfig.epochs));
             float value = 1.0f - abs(2.0f * (currentCoefficient - 0.5f));
@@ -725,7 +725,7 @@ vector<float> NeuralNetwork::trainStochasticGradientDescent(standardTrainConfig 
             currentMomentum = (1 - value) * trainConfig.momentum;
         }
 
-        if (trainConfig.learningRateType == DECREASING_LEARNING_RATE) {
+        if (trainConfig.gradientDescent.learningRateType == DECREASING_LEARNING_RATE) {
             float multiplier = float(epoch + 1) / float(trainConfig.epochs);
             currentLearningRate = (1.0f - multiplier) * trainConfig.learningRate;
             currentMomentum = multiplier * trainConfig.learningRate;
@@ -752,7 +752,7 @@ vector<float> NeuralNetwork::trainStochasticGradientDescent(standardTrainConfig 
             calculateDerivatives(errors);
 
             // Update Parameters
-            if (trainConfig.learningRateType == ADAM_LEARNING_RATE) {
+            if (trainConfig.gradientDescent.learningRateType == ADAM_LEARNING_RATE) {
                 adjustWeightsADAM(trainConfig);
             }
             else {
@@ -807,7 +807,7 @@ vector<float> NeuralNetwork::trainResistantPropagation(standardTrainConfig train
             }
 
             calculateDerivatives(errors);
-            adjustWeightsRPROP(trainConfig.rpropWeightIncreaseMultiplier, trainConfig.rpropWeightDecreaseMultiplier, epoch == 0 && t == 0);
+            adjustWeightsRPROP(trainConfig.resistantPropagation.rpropWeightIncreaseMultiplier, trainConfig.resistantPropagation.rpropWeightDecreaseMultiplier, epoch == 0 && t == 0);
 
             // Lower Some Weights To Prevent Overfitting
             if (trainConfig.useWeightDecay) {
@@ -915,23 +915,23 @@ float NeuralNetwork::measureNetworkFitness(NeuralNetwork network, standardTrainC
         vector<float> predicted = network.predict(usedInputs[j]);
 
         for (int k = 0; k < outputCount; k++) {
-            if (trainConfig.fitnessFunctionType == ABSOLUTE_ERROR) {
+            if (trainConfig.naturalSelection.fitnessFunctionType == ABSOLUTE_ERROR) {
                 currentFitness = currentFitness - abs(usedOutputs[j][k] - predicted[k]);
             }
-            if (trainConfig.fitnessFunctionType == SQUARED_ERROR || trainConfig.fitnessFunctionType == ROOT_SQUARED_ERROR || trainConfig.fitnessFunctionType == MEAN_SQUARED_ERROR) {
+            if (trainConfig.naturalSelection.fitnessFunctionType == SQUARED_ERROR || trainConfig.naturalSelection.fitnessFunctionType == ROOT_SQUARED_ERROR || trainConfig.naturalSelection.fitnessFunctionType == MEAN_SQUARED_ERROR) {
                 currentFitness = currentFitness - powf(usedOutputs[j][k] - predicted[k], 2.0f);
             }
         }
     }
 
-    if (trainConfig.fitnessFunctionType == ROOT_SQUARED_ERROR) {
+    if (trainConfig.naturalSelection.fitnessFunctionType == ROOT_SQUARED_ERROR) {
         currentFitness = sqrtf(currentFitness);
     }
-    if (trainConfig.fitnessFunctionType == MEAN_SQUARED_ERROR) {
+    if (trainConfig.naturalSelection.fitnessFunctionType == MEAN_SQUARED_ERROR) {
         currentFitness = (1.0f / float(datasetSize)) * currentFitness;
     }
-    if (trainConfig.useStochasticDataset) {
-        currentFitness = currentFitness * (float(trainConfig.trainInputs.size()) / float(trainConfig.stochasticDatasetSize));
+    if (trainConfig.naturalSelection.useStochasticDataset) {
+        currentFitness = currentFitness * (float(trainConfig.trainInputs.size()) / float(trainConfig.naturalSelection.stochasticDatasetSize));
     }
 
     return currentFitness;
@@ -942,13 +942,13 @@ vector<float> NeuralNetwork::measurePopulationFitness(vector<NeuralNetwork> popu
     vector<vector<float>> usedInputs = trainConfig.trainInputs;
     vector<vector<float>> usedOutputs = trainConfig.trainOutputs;
 
-    if (trainConfig.useStochasticDataset) {
-        int miniBatchSize = trainConfig.trainInputs.size() / trainConfig.stochasticDatasetSize;
+    if (trainConfig.naturalSelection.useStochasticDataset) {
+        int miniBatchSize = trainConfig.trainInputs.size() / trainConfig.naturalSelection.stochasticDatasetSize;
 
         usedInputs.clear();
         usedOutputs.clear();
 
-        for (int i = 0; i < trainConfig.stochasticDatasetSize; i++) {
+        for (int i = 0; i < trainConfig.naturalSelection.stochasticDatasetSize; i++) {
             int newIndex = (i * miniBatchSize) + (rand() % miniBatchSize);
 
             usedInputs.push_back(trainConfig.trainInputs[newIndex]);
@@ -959,13 +959,13 @@ vector<float> NeuralNetwork::measurePopulationFitness(vector<NeuralNetwork> popu
     vector<float> result;
     int populationCount = population.size();
 
-    if (!trainConfig.useThreading) {
+    if (!trainConfig.naturalSelection.useThreading) {
         for (int i = 0; i < populationCount; i++) {
             float currentFitness = measureNetworkFitness(population[i], trainConfig, usedInputs, usedOutputs);
             result.push_back(currentFitness);
         }
     }
-    if (trainConfig.useThreading) {
+    if (trainConfig.naturalSelection.useThreading) {
         vector<shared_future<float>> threads;
 
         for (int i = 0; i < populationCount; i++) {
@@ -983,7 +983,7 @@ vector<float> NeuralNetwork::measurePopulationFitness(vector<NeuralNetwork> popu
 
 NeuralNetwork NeuralNetwork::reproduceParents(vector<NeuralNetwork> parents, vector<float> fitnessScores, standardTrainConfig trainConfig) {
     NeuralNetwork result = parents[0];
-    if (trainConfig.breedingMethod == AVERAGE_PARENTS) {
+    if (trainConfig.naturalSelection.breedingMethod == AVERAGE_PARENTS) {
         int parentCount = parents.size();
 
         // Add up all weights and take mean
@@ -1008,7 +1008,7 @@ NeuralNetwork NeuralNetwork::reproduceParents(vector<NeuralNetwork> parents, vec
             }
         }
     }
-    if (trainConfig.breedingMethod == WEIGHTED_PARENTS) {
+    if (trainConfig.naturalSelection.breedingMethod == WEIGHTED_PARENTS) {
         // Apply softmax to fitness scores to make them multiplicable to weights
         fitnessScores = softmax(fitnessScores);
         
@@ -1049,7 +1049,7 @@ NeuralNetwork NeuralNetwork::reproduceParents(vector<NeuralNetwork> parents, vec
         }
     }
 
-    if (trainConfig.useChildMutation) {
+    if (trainConfig.naturalSelection.useChildMutation) {
         result = mutateNetwork(result);
     }
     return result;
@@ -1076,14 +1076,14 @@ vector<NeuralNetwork> NeuralNetwork::sortNetworks(vector<NeuralNetwork> networks
     return networks;
 }
 pair<NeuralNetwork, float> NeuralNetwork::chooseParent(vector<NeuralNetwork> population, vector<float> fitnessScores, standardTrainConfig trainConfig) {
-    if (trainConfig.parentSelectionMethod == TOP_PARENTS) {
+    if (trainConfig.naturalSelection.parentSelectionMethod == TOP_PARENTS) {
         // Take random from top 10% of population
         int maxIndex = ceilf(float(population.size()) / 10.0f);
         int randomIndex = rand() % maxIndex;
 
         return make_pair(population[randomIndex], fitnessScores[randomIndex]);
     }
-    if (trainConfig.parentSelectionMethod == EXPONENTIAL_PARENTS) {
+    if (trainConfig.naturalSelection.parentSelectionMethod == EXPONENTIAL_PARENTS) {
         // Use exponential distribution to choose index of sorted list
         int populationSize = population.size();
         
@@ -1095,7 +1095,7 @@ pair<NeuralNetwork, float> NeuralNetwork::chooseParent(vector<NeuralNetwork> pop
         
         return make_pair(population[exponentialIndex], fitnessScores[exponentialIndex]);
     }
-    if (trainConfig.parentSelectionMethod == PROBABILITY_PARENTS) {
+    if (trainConfig.naturalSelection.parentSelectionMethod == PROBABILITY_PARENTS) {
         // Apply softmax to fitness scores
         fitnessScores = softmax(fitnessScores);
 
@@ -1124,7 +1124,7 @@ pair<NeuralNetwork, float> NeuralNetwork::chooseParent(vector<NeuralNetwork> pop
 vector<NeuralNetwork> NeuralNetwork::reproducePopulation(vector<NeuralNetwork> parentPopulation, vector<float> fitnessScores, standardTrainConfig trainConfig) {
     int populationSize = parentPopulation.size();
     
-    if (trainConfig.parentSelectionMethod == TOP_PARENTS || trainConfig.parentSelectionMethod == EXPONENTIAL_PARENTS) {
+    if (trainConfig.naturalSelection.parentSelectionMethod == TOP_PARENTS || trainConfig.naturalSelection.parentSelectionMethod == EXPONENTIAL_PARENTS) {
         parentPopulation = sortNetworks(parentPopulation, fitnessScores);
     }
 
@@ -1137,25 +1137,25 @@ vector<NeuralNetwork> NeuralNetwork::reproducePopulation(vector<NeuralNetwork> p
         vector<NeuralNetwork> parents;
         vector<float> correspondingFitness;
 
-        for (int j = 0; j < trainConfig.parentCount; j++) {
+        for (int j = 0; j < trainConfig.naturalSelection.parentCount; j++) {
             pair<NeuralNetwork, float> chosenParent = chooseParent(parentPopulation, fitnessScores, trainConfig);
 
             parents.push_back(chosenParent.first);
             correspondingFitness.push_back(chosenParent.second);
         }
 
-        if (!trainConfig.useThreading) {
+        if (!trainConfig.naturalSelection.useThreading) {
             // Reproduce with parents
             NeuralNetwork child = reproduceParents(parents, correspondingFitness, trainConfig);
             result.push_back(child);
         }
-        if (trainConfig.useThreading) {
+        if (trainConfig.naturalSelection.useThreading) {
             shared_future<NeuralNetwork> future = async(reproduceParents, parents, correspondingFitness, trainConfig);
             threads.push_back(future);
         }
     }
 
-    if (trainConfig.useThreading) {
+    if (trainConfig.naturalSelection.useThreading) {
         for (int i = 0; i < populationSize; i++) {
             NeuralNetwork returnedChild = threads[i].get();
             result.push_back(returnedChild);
@@ -1203,10 +1203,10 @@ vector<NeuralNetwork> NeuralNetwork::initialisePopulation(vector<int> layers, ve
     return result;
 }
 NeuralNetwork NeuralNetwork::trainNaturalSelectionMethod(standardTrainConfig trainConfig, vector<int> layers, vector<int> biases, vector<int> activations) {
-    vector<NeuralNetwork> population = initialisePopulation(layers, biases, activations, trainConfig.population, trainConfig.lowestInitialisedWeight, trainConfig.highestInitialisedWeight);
+    vector<NeuralNetwork> population = initialisePopulation(layers, biases, activations, trainConfig.naturalSelection.population, trainConfig.naturalSelection.lowestInitialisedWeight, trainConfig.naturalSelection.highestInitialisedWeight);
     cout << "Initialised population.. " << endl;
 
-    for (int i = 0; i < trainConfig.population; i++) {
+    for (int i = 0; i < trainConfig.naturalSelection.population; i++) {
         population[i].setupNetworkForTraining(trainConfig);
     }
 
@@ -1219,7 +1219,7 @@ NeuralNetwork NeuralNetwork::trainNaturalSelectionMethod(standardTrainConfig tra
         float lowestFitness = currentFitnessScores[0];
         int lowestFitnessIndex = 0;
 
-        for (int j = 1; j < trainConfig.population; j++) {
+        for (int j = 1; j < trainConfig.naturalSelection.population; j++) {
             if (currentFitnessScores[j] > lowestFitness) {
                 lowestFitness = currentFitnessScores[j];
                 lowestFitnessIndex = j;
@@ -1285,7 +1285,7 @@ vector<float> NeuralNetwork::trainRandomMethod(standardTrainConfig trainConfig) 
         result.push_back(accumulativeError);
 
         // If Network if 'Good Enough' Then Keep It
-        if (accumulativeError < trainConfig.errorThreshold) {
+        if (accumulativeError < trainConfig.randomMethod.errorThreshold) {
             break;
         }
 
@@ -1436,11 +1436,11 @@ vector<float> NeuralNetwork::trainLevenbergMarquardt(standardTrainConfig trainCo
             currentCostOutputs.push_back({ costOutput });
         }
 
-        vector<float> deltas = calculateDeltasLM(fullJacobianMatrix, currentCostOutputs, trainConfig.dampingParameter);
+        vector<float> deltas = calculateDeltasLM(fullJacobianMatrix, currentCostOutputs, trainConfig.levenbergMarquardt.dampingParameter);
 
         // In the case that the hessian could not be inverted
         if (deltas.size() == 0) {
-            trainConfig.dampingParameter *= trainConfig.dampIncreaseMultiplierLM;
+            trainConfig.levenbergMarquardt.dampingParameter *= trainConfig.levenbergMarquardt.dampIncreaseMultiplierLM;
             continue;
         }
 
@@ -1459,7 +1459,7 @@ vector<float> NeuralNetwork::trainLevenbergMarquardt(standardTrainConfig trainCo
 
         // Update Damping Parameter Accordinly
         if (newError > currentTotalCost) {
-            trainConfig.dampingParameter *= trainConfig.dampIncreaseMultiplierLM;
+            trainConfig.levenbergMarquardt.dampingParameter *= trainConfig.levenbergMarquardt.dampIncreaseMultiplierLM;
 
             int deltaCount = deltas.size();
             for (int i = 0; i < deltaCount; i++) {
@@ -1469,7 +1469,7 @@ vector<float> NeuralNetwork::trainLevenbergMarquardt(standardTrainConfig trainCo
             addDeltasLM(deltas);
         }
         else {
-            trainConfig.dampingParameter *= trainConfig.dampDecreaseMultiplierLM;
+            trainConfig.levenbergMarquardt.dampingParameter *= trainConfig.levenbergMarquardt.dampDecreaseMultiplierLM;
         }
 
         // Reset Configs
@@ -1496,7 +1496,7 @@ vector<float> NeuralNetwork::trainBatchGradientDescent(standardTrainConfig train
         float currentLearningRate = trainConfig.learningRate;
         float currentMomentum = trainConfig.momentum;
 
-        if (trainConfig.learningRateType == CYCLICAL_LEARNING_RATE) {
+        if (trainConfig.gradientDescent.learningRateType == CYCLICAL_LEARNING_RATE) {
             // Calculate Multiplier For Learning Parameters such That The Multiplier Peaks at Half Epochs
             double currentCoefficient = double(epoch + 1) / (double(trainConfig.epochs));
             float value = 1.0f - abs(2.0f * (currentCoefficient - 0.5f));
@@ -1505,7 +1505,7 @@ vector<float> NeuralNetwork::trainBatchGradientDescent(standardTrainConfig train
             currentMomentum = value * trainConfig.momentum;
         }
 
-        if (trainConfig.learningRateType == DECREASING_LEARNING_RATE) {
+        if (trainConfig.gradientDescent.learningRateType == DECREASING_LEARNING_RATE) {
             float multiplier = float(epoch + 1) / float(trainConfig.epochs);
             currentLearningRate = (1.0f - multiplier) * trainConfig.learningRate;
             currentMomentum = multiplier * trainConfig.learningRate;
@@ -1536,7 +1536,7 @@ vector<float> NeuralNetwork::trainBatchGradientDescent(standardTrainConfig train
 
         // Update Parameters
         averageDerivativesBatchGradientDescent(trainDataCount);
-        if (trainConfig.learningRateType == ADAM_LEARNING_RATE) {
+        if (trainConfig.gradientDescent.learningRateType == ADAM_LEARNING_RATE) {
             updateNetworkBatchGradientDescentADAM(trainConfig);
         }
         else {
@@ -1604,13 +1604,13 @@ void NeuralNetwork::updateNetworkBatchGradientDescentADAM(standardTrainConfig tr
                 float gradient = layerNodes[i][n].accumulativeDeltas[w];
 
                 // ADAM Parameters#
-                float newExponential = trainConfig.betaOne * layerNodes[i][n].previousExponentials[w] + (1 - trainConfig.betaOne) * gradient;
-                float newSquaredExponential = trainConfig.betaTwo * layerNodes[i][n].previousSquaredExponentials[w] + (1 - trainConfig.betaTwo) * powf(gradient, 2.0f);
+                float newExponential = trainConfig.gradientDescent.betaOne * layerNodes[i][n].previousExponentials[w] + (1 - trainConfig.gradientDescent.betaOne) * gradient;
+                float newSquaredExponential = trainConfig.gradientDescent.betaTwo * layerNodes[i][n].previousSquaredExponentials[w] + (1 - trainConfig.gradientDescent.betaTwo) * powf(gradient, 2.0f);
 
-                float currentExponential = newExponential / (1 - trainConfig.betaOne);
-                float currentSquaredExponential = newSquaredExponential / (1 - trainConfig.betaTwo);
+                float currentExponential = newExponential / (1 - trainConfig.gradientDescent.betaOne);
+                float currentSquaredExponential = newSquaredExponential / (1 - trainConfig.gradientDescent.betaTwo);
 
-                float learningRate = trainConfig.learningRate * (currentExponential / (sqrtf(currentSquaredExponential) + trainConfig.epsillon));
+                float learningRate = trainConfig.learningRate * (currentExponential / (sqrtf(currentSquaredExponential) + trainConfig.gradientDescent.epsillon));
                 float delta = learningRate * gradient;
 
                 layerNodes[i][n].outWeights[w] -= delta;
@@ -1634,13 +1634,13 @@ void NeuralNetwork::updateNetworkBatchGradientDescentADAM(standardTrainConfig tr
                 float gradient = layerBiases[i][b].outWeights[w];
 
                 // ADAM Parameters
-                float newExponential = trainConfig.betaOne * layerBiases[i][b].previousExponentials[w] + (1 - trainConfig.betaOne) * gradient;
-                float newSquaredExponential = trainConfig.betaTwo * layerBiases[i][b].previousSquaredExponentials[w] + (1 - trainConfig.betaTwo) * powf(gradient, 2.0f);
+                float newExponential = trainConfig.gradientDescent.betaOne * layerBiases[i][b].previousExponentials[w] + (1 - trainConfig.gradientDescent.betaOne) * gradient;
+                float newSquaredExponential = trainConfig.gradientDescent.betaTwo * layerBiases[i][b].previousSquaredExponentials[w] + (1 - trainConfig.gradientDescent.betaTwo) * powf(gradient, 2.0f);
 
-                float currentExponential = newExponential / (1 - trainConfig.betaOne);
-                float currentSquaredExponential = newSquaredExponential / (1 - trainConfig.betaTwo);
+                float currentExponential = newExponential / (1 - trainConfig.gradientDescent.betaOne);
+                float currentSquaredExponential = newSquaredExponential / (1 - trainConfig.gradientDescent.betaTwo);
 
-                float learningRate = trainConfig.learningRate * (currentExponential / (sqrtf(currentSquaredExponential) + trainConfig.epsillon));
+                float learningRate = trainConfig.learningRate * (currentExponential / (sqrtf(currentSquaredExponential) + trainConfig.gradientDescent.epsillon));
                 float delta = learningRate * gradient;
 
                 layerBiases[i][b].outWeights[w] -= delta;
@@ -1740,7 +1740,7 @@ float NeuralNetwork::testNetworkArchitechture(vector<vector<float>> trainInputs,
     standardTrainConfig newTrainConfig = standardTrainConfig();
     newTrainConfig.epochs = epochs;
 
-    newTrainConfig.learningRateType = CYCLICAL_LEARNING_RATE;
+    newTrainConfig.gradientDescent.learningRateType = CYCLICAL_LEARNING_RATE;
     newTrainConfig.learningRate = lr;
     newTrainConfig.momentum = momentum;
 
@@ -1748,7 +1748,7 @@ float NeuralNetwork::testNetworkArchitechture(vector<vector<float>> trainInputs,
     newTrainConfig.trainOutputs = trainOutputs;
 
     newTrainConfig.trainType = STOCHASTIC_GRADIENT_DESCENT;
-    newTrainConfig.batchSize = batchSize;
+    newTrainConfig.gradientDescent.batchSize = batchSize;
 
     // Find Errors
     vector<float> errors = newNetwork.train(newTrainConfig);
@@ -1835,7 +1835,7 @@ NeuralNetwork NeuralNetwork::architechtureNaturalSelection(standardTrainConfig t
     vector<NeuralNetwork> population = initialiseArchitechturePopulation(trainConfig);
     cout << "Population initialised" << endl;
 
-    for (int i = 0; i < trainConfig.population; i++) {
+    for (int i = 0; i < trainConfig.naturalSelection.population; i++) {
         population[i].setupNetworkForTraining(trainConfig);
         //population[i].outputNetworkArchitechture();
     }
@@ -1845,7 +1845,7 @@ NeuralNetwork NeuralNetwork::architechtureNaturalSelection(standardTrainConfig t
 
     for (int i = 0; i < trainConfig.epochs; i++) {
         vector<NeuralNetwork*> populationAddress;
-        for (int j = 0; j < trainConfig.population; j++) {
+        for (int j = 0; j < trainConfig.naturalSelection.population; j++) {
             populationAddress.push_back(&population[j]);
         }
 
@@ -1854,7 +1854,7 @@ NeuralNetwork NeuralNetwork::architechtureNaturalSelection(standardTrainConfig t
         float lowestFitness = fitnessScores[0];
         int lowestFitnessIndex = 0;
 
-        for (int j = 1; j < trainConfig.population; j++) {
+        for (int j = 1; j < trainConfig.naturalSelection.population; j++) {
             if (fitnessScores[j] < lowestFitness) {
                 lowestFitness = fitnessScores[j];
                 lowestFitnessIndex = j;
@@ -1881,18 +1881,18 @@ vector<NeuralNetwork> NeuralNetwork::initialiseArchitechturePopulation(standardT
     int inputSize = trainConfig.trainInputs[0].size();
     int outputSize = trainConfig.trainOutputs[0].size();
 
-    for (int i = 0; i < trainConfig.population; i++) {
+    for (int i = 0; i < trainConfig.naturalSelection.population; i++) {
         vector<int> layers = { inputSize };
 
-        int firstLayerBiasCount = trainConfig.selectionMinBias + (rand() % static_cast<int>(trainConfig.selectionMaxBias - trainConfig.selectionMinBias + 1));
+        int firstLayerBiasCount = trainConfig.naturalSelection.selectionMinBias + (rand() % static_cast<int>(trainConfig.naturalSelection.selectionMaxBias - trainConfig.naturalSelection.selectionMinBias + 1));
         vector<int> biases = { firstLayerBiasCount };
 
-        int chosenLayerCount = trainConfig.selectionMinLayers + (rand() % static_cast<int>(trainConfig.selectionMaxLayers - trainConfig.selectionMinLayers + 1));
+        int chosenLayerCount = trainConfig.naturalSelection.selectionMinLayers + (rand() % static_cast<int>(trainConfig.naturalSelection.selectionMaxLayers - trainConfig.naturalSelection.selectionMinLayers + 1));
         for (int j = 1; j < chosenLayerCount - 2; j++) {
-            int newLayerSize = trainConfig.selectionMinNodes + (rand() % static_cast<int>(trainConfig.selectionMaxNodes - trainConfig.selectionMinNodes + 1));
+            int newLayerSize = trainConfig.naturalSelection.selectionMinNodes + (rand() % static_cast<int>(trainConfig.naturalSelection.selectionMaxNodes - trainConfig.naturalSelection.selectionMinNodes + 1));
             layers.push_back(newLayerSize);
 
-            int newBiasCount = trainConfig.selectionMinBias + (rand() % static_cast<int>(trainConfig.selectionMaxBias - trainConfig.selectionMinBias + 1));
+            int newBiasCount = trainConfig.naturalSelection.selectionMinBias + (rand() % static_cast<int>(trainConfig.naturalSelection.selectionMaxBias - trainConfig.naturalSelection.selectionMinBias + 1));
             biases.push_back(newBiasCount);
         }
 
@@ -1900,19 +1900,19 @@ vector<NeuralNetwork> NeuralNetwork::initialiseArchitechturePopulation(standardT
         biases.push_back(0);
         
         vector<int> activations = {};
-        if (trainConfig.selectionAllowedActivations == ACTIVATION_NONLINEAR_ONLY) {
+        if (trainConfig.naturalSelection.selectionAllowedActivations == ACTIVATION_NONLINEAR_ONLY) {
             for (int j = 0; j < chosenLayerCount; j++) {
                 int chosenActivation = 0 + (rand() % static_cast<int>(1 - 0 + 1)); // Sigmoid or TANH
                 activations.push_back(chosenActivation);
             }
         }
-        if (trainConfig.selectionAllowedActivations == ACTIVATION_ALL) {
+        if (trainConfig.naturalSelection.selectionAllowedActivations == ACTIVATION_ALL) {
             for (int j = 0; j < chosenLayerCount; j++) {
                 int chosenActivation = 0 + (rand() % static_cast<int>(5 - 0 + 1)); // All Activations
                 activations.push_back(chosenActivation);
             }
         }
-        if (trainConfig.selectionAllowedActivations == ACTIVATION_SIGMOID_ONLY) {
+        if (trainConfig.naturalSelection.selectionAllowedActivations == ACTIVATION_SIGMOID_ONLY) {
             for (int j = 0; j < chosenLayerCount; j++) {
                 int chosenActivation = SIGMOID;
                 activations.push_back(chosenActivation);
@@ -1929,13 +1929,13 @@ vector<float> NeuralNetwork::measureArchitechturePopulationFitness(vector<Neural
     vector<float> result;
     int populationCount = population.size();
 
-    if (!trainConfig.useThreading) {
+    if (!trainConfig.naturalSelection.useThreading) {
         for (int i = 0; i < populationCount; i++) {
             float currentFitness = population[i]->measureArchitechtureFitness(trainConfig);
             result.push_back(currentFitness);
         }
     }
-    if (trainConfig.useThreading) {
+    if (trainConfig.naturalSelection.useThreading) {
         vector<shared_future<float>> threads;
 
         for (int i = 0; i < populationCount; i++) {
@@ -1955,15 +1955,15 @@ float NeuralNetwork::measureArchitechtureFitness(standardTrainConfig trainConfig
     vector<vector<float>> usedOutputs = trainConfig.trainOutputs;
 
     int errorMultiplier = 1;
-    if (trainConfig.useStochasticDataset) {
-        int miniBatchSize = trainConfig.trainInputs.size() / trainConfig.stochasticDatasetSize;
+    if (trainConfig.naturalSelection.useStochasticDataset) {
+        int miniBatchSize = trainConfig.trainInputs.size() / trainConfig.naturalSelection.stochasticDatasetSize;
         errorMultiplier = miniBatchSize;
 
         usedInputs.clear();
         usedOutputs.clear();
 
         // Make stochastic dataset
-        for (int i = 0; i < trainConfig.stochasticDatasetSize; i++) {
+        for (int i = 0; i < trainConfig.naturalSelection.stochasticDatasetSize; i++) {
             int newIndex = (i * miniBatchSize) + (rand() % miniBatchSize);
 
             usedInputs.push_back(trainConfig.trainInputs[newIndex]);
@@ -2007,17 +2007,18 @@ float NeuralNetwork::measureArchitechtureFitness(standardTrainConfig trainConfig
         }
         
         // Check for convergence with chosen method
-        if (abs(totalError - previousError) < trainConfig.selectionConvergenceValue) {
+        if (abs(totalError - previousError) < trainConfig.naturalSelection.selectionConvergenceValue) {
             counter = counter + 1;
         }
         else {
             counter = 0;
         }
-        if (counter == trainConfig.selectionConvergenceCounter) { // Same Error Required 10 Times To Break
+        if (counter == trainConfig.naturalSelection.selectionConvergenceCounter) { // Same Error Required 10 Times To Break
             break;
         }
 
         previousError = totalError;
+        cout << previousError << endl;
     }
 
     cout << "Network finished, final error: " << previousError << endl;
@@ -2027,7 +2028,7 @@ float NeuralNetwork::measureArchitechtureFitness(standardTrainConfig trainConfig
 vector<NeuralNetwork> NeuralNetwork::reproduceArchitechtureNetworks(vector<NeuralNetwork> population, vector<float> scores, standardTrainConfig trainConfig) {
     int populationSize = population.size();
 
-    if (trainConfig.parentSelectionMethod == TOP_PARENTS || trainConfig.parentSelectionMethod == EXPONENTIAL_PARENTS) {
+    if (trainConfig.naturalSelection.parentSelectionMethod == TOP_PARENTS || trainConfig.naturalSelection.parentSelectionMethod == EXPONENTIAL_PARENTS) {
         population = sortNetworks(population, scores);
     }
     
@@ -2040,25 +2041,25 @@ vector<NeuralNetwork> NeuralNetwork::reproduceArchitechtureNetworks(vector<Neura
         vector<NeuralNetwork> parents;
         vector<float> correspondingFitness;
 
-        for (int j = 0; j < trainConfig.parentCount; j++) {
+        for (int j = 0; j < trainConfig.naturalSelection.parentCount; j++) {
             pair<NeuralNetwork, float> chosenParent = chooseParent(population, scores, trainConfig);
 
             parents.push_back(chosenParent.first);
             correspondingFitness.push_back(chosenParent.second);
         }
 
-        if (!trainConfig.useThreading) {
+        if (!trainConfig.naturalSelection.useThreading) {
             // Reproduce with parents
             NeuralNetwork child = reproduceArchitechtureParents(parents, correspondingFitness, trainConfig);
             result.push_back(child);
         }
-        if (trainConfig.useThreading) {
+        if (trainConfig.naturalSelection.useThreading) {
             shared_future<NeuralNetwork> future = async(reproduceArchitechtureParents, parents, correspondingFitness, trainConfig);
             threads.push_back(future);
         }
     }
 
-    if (trainConfig.useThreading) {
+    if (trainConfig.naturalSelection.useThreading) {
         for (int i = 0; i < populationSize; i++) {
             NeuralNetwork returnedChild = threads[i].get();
             result.push_back(returnedChild);
@@ -2110,7 +2111,7 @@ NeuralNetwork NeuralNetwork::reproduceArchitechtureParents(vector<NeuralNetwork>
     }
 
     // Average Parents Method
-    if (trainConfig.breedingMethod == AVERAGE_PARENTS) {
+    if (trainConfig.naturalSelection.breedingMethod == AVERAGE_PARENTS) {
         // Take Mean Layer Count
         int layerAccumulation = 0;
         for (int i = 0; i < parentCount; i++) {
@@ -2144,7 +2145,7 @@ NeuralNetwork NeuralNetwork::reproduceArchitechtureParents(vector<NeuralNetwork>
         resultantLayers.push_back(outputSize);
         resultantBiases.push_back(0);
     }
-    if (trainConfig.breedingMethod == WEIGHTED_PARENTS) {
+    if (trainConfig.naturalSelection.breedingMethod == WEIGHTED_PARENTS) {
         vector<float> multipliers = softmax(fitnessScores);
 
         // Layer Count
@@ -2182,7 +2183,7 @@ NeuralNetwork NeuralNetwork::reproduceArchitechtureParents(vector<NeuralNetwork>
     }
 
     // Mutate
-    if (trainConfig.useChildMutation) {
+    if (trainConfig.naturalSelection.useChildMutation) {
         pair<vector<int>, vector<int>> resultantMutation = mutateNetworkArchitechture(make_pair(resultantLayers, resultantBiases));
         resultantLayers = resultantMutation.first;
         resultantBiases = resultantMutation.second;
@@ -2192,19 +2193,19 @@ NeuralNetwork NeuralNetwork::reproduceArchitechtureParents(vector<NeuralNetwork>
     vector<int> activations = {};
     int layerCount = resultantLayers.size();
 
-    if (trainConfig.selectionAllowedActivations == ACTIVATION_NONLINEAR_ONLY) {
+    if (trainConfig.naturalSelection.selectionAllowedActivations == ACTIVATION_NONLINEAR_ONLY) {
         for (int j = 0; j < layerCount; j++) {
             int chosenActivation = 0 + (rand() % static_cast<int>(1 - 0 + 1)); // Sigmoid or TANH
             activations.push_back(chosenActivation);
         }
     }
-    if (trainConfig.selectionAllowedActivations == ACTIVATION_ALL) {
+    if (trainConfig.naturalSelection.selectionAllowedActivations == ACTIVATION_ALL) {
         for (int j = 0; j < layerCount; j++) {
             int chosenActivation = 0 + (rand() % static_cast<int>(5 - 0 + 1)); // All Activations
             activations.push_back(chosenActivation);
         }
     }
-    if (trainConfig.selectionAllowedActivations == ACTIVATION_SIGMOID_ONLY) {
+    if (trainConfig.naturalSelection.selectionAllowedActivations == ACTIVATION_SIGMOID_ONLY) {
         for (int j = 0; j < layerCount; j++) {
             int chosenActivation = SIGMOID;
             activations.push_back(chosenActivation);

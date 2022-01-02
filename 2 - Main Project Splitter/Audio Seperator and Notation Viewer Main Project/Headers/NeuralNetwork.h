@@ -65,43 +65,31 @@ struct audioFileConfig;
 class NeuralNetwork{
 public:
     // Classes
-    static struct standardTrainConfig {
-        // General
-        int trainType = GRADIENT_DESCENT;
-        int epochs = 1000;
-
-        vector<vector<float>> trainInputs;
-        vector<vector<float>> trainOutputs;
-
-        bool useWeightDecay = false;
-        float weightDecayMultiplier = 0.9f;
-
-        bool useDropout = false;
-        int nodeBiasDropoutProbability = 10; // 1 in 10 (0.1)
-
-        // Gradient Descent
+    static struct gradientDescentConfig {
         int learningRateType = FIXED_LEARNING_RATE;
 
-        float learningRate = 1.0f;
-        float momentum = 0.25f;
+        // "ADAM" LR Parameters
+        float betaOne = 0.9f;
+        float betaTwo = 0.999f;
+        float epsillon = 0.00000001f;
 
         // Stochastic Gradient Descent
         int entireBatchEpochIntervals = 500; // Every x epochs, the entire dataset is run
         int batchSize = 50;
-
-        // Resistant Propagation
+    } gradientDescent;
+    static struct resistantPropagationConfig {
         float rpropWeightDecreaseMultiplier = 0.5f;
         float rpropWeightIncreaseMultiplier = 1.2f;
-
-        // Levenberg Marquardt
+    } resistantPropagation;
+    static struct levenbergMarquardtConfig {
         float dampingParameter = 0.01f;
         float dampIncreaseMultiplierLM = 10.0f;
         float dampDecreaseMultiplierLM = 0.1f;
-
-        // Natural Selection
+    } levenbergMarquardt;
+    static struct naturalSelectionConfig {
         int population = 10;
         int parentCount = 2;
-        
+
         float lowestInitialisedWeight = -10.0f;
         float highestInitialisedWeight = 10.0f;
 
@@ -115,15 +103,7 @@ public:
         int stochasticDatasetSize = 200;
         bool useThreading = true;
 
-        // Random Method
-        float errorThreshold = 500.0f;
-
-        // "ADAM" Learning Method
-        float betaOne = 0.9f;
-        float betaTwo = 0.999f;
-        float epsillon = 0.00000001f;
-
-        // Natural Selection Architechture Algorithm
+        // Architechture Selection
         int selectionAllowedActivations = ACTIVATION_NONLINEAR_ONLY;
 
         int selectionConvergenceCounter = 10;
@@ -137,6 +117,33 @@ public:
 
         int selectionMinBias = 0;
         int selectionMaxBias = 3;
+    } naturalSelection;
+    static struct randomMethodConfig {
+        float errorThreshold = 500.0f;
+    };
+
+    static struct standardTrainConfig {
+        // General
+        int trainType = GRADIENT_DESCENT;
+        int epochs = 1000;
+
+        float learningRate = 1.0f;
+        float momentum = 0.25f;
+
+        vector<vector<float>> trainInputs;
+        vector<vector<float>> trainOutputs;
+
+        bool useWeightDecay = false;
+        float weightDecayMultiplier = 0.9f;
+
+        bool useDropout = false;
+        int nodeBiasDropoutProbability = 10; // 1 in 10 (0.1)
+
+        gradientDescentConfig gradientDescent;
+        resistantPropagationConfig resistantPropagation;
+        levenbergMarquardtConfig levenbergMarquardt;
+        naturalSelectionConfig naturalSelection;
+        randomMethodConfig randomMethod;
     } trainConfig;
 
     static struct Node {

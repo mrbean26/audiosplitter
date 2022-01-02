@@ -394,21 +394,21 @@ void writeToImage(outputImageConfig config) {
 	imageFile << "M: " << to_string(config.trainConfig.momentum) << ", ";
 
 	string learningRateType = "";
-	if (config.trainConfig.learningRateType == FIXED_LEARNING_RATE) {
+	if (config.trainConfig.gradientDescent.learningRateType == FIXED_LEARNING_RATE) {
 		learningRateType = "FIXED_LR";
 	}
-	if (config.trainConfig.learningRateType == CYCLICAL_LEARNING_RATE) {
+	if (config.trainConfig.gradientDescent.learningRateType == CYCLICAL_LEARNING_RATE) {
 		learningRateType = "CYCLICAL_LR";
 	}
-	if (config.trainConfig.learningRateType == ADAM_LEARNING_RATE) {
+	if (config.trainConfig.gradientDescent.learningRateType == ADAM_LEARNING_RATE) {
 		learningRateType = "ADAM_LR";
 	}
 	imageFile << "Cycle: " << learningRateType << ", ";
 
 	imageFile << "Decay: " << to_string(config.trainConfig.useWeightDecay) << ", ";
 	imageFile << "Multiplier: " << to_string(config.trainConfig.weightDecayMultiplier) << ", ";
-	imageFile << "RPROPd: " << to_string(config.trainConfig.rpropWeightDecreaseMultiplier) << ", ";
-	imageFile << "RPROPi: " << to_string(config.trainConfig.rpropWeightIncreaseMultiplier) << ", ";
+	imageFile << "RPROPd: " << to_string(config.trainConfig.resistantPropagation.rpropWeightDecreaseMultiplier) << ", ";
+	imageFile << "RPROPi: " << to_string(config.trainConfig.resistantPropagation.rpropWeightIncreaseMultiplier) << ", ";
 	imageFile << "Drop: " << to_string(config.trainConfig.useDropout) << ", ";
 	imageFile << "Probability: " << to_string(config.trainConfig.nodeBiasDropoutProbability);
 	imageFile << endl;

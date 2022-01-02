@@ -46,6 +46,7 @@ pair<vector<vector<float>>, float> spectrogramOutput(const char* mp3Filename, au
 	mp3dec_file_info_t audioData = loadAudioData(mp3Filename);
 	vector<int> audioSamples = loadAudioSamples(audioData.buffer, audioData.samples, audioData.channels);
 	delete[] audioData.buffer; 
+
 	vector<double> doubleAudioSamples(audioSamples.begin(), audioSamples.end());
 	vector<vector<double>> spectrogramChunks;
 

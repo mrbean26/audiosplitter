@@ -29,39 +29,39 @@ int main() {
 	cout << "Complete Dataset Size: " << inputSet.size() << endl;
 
 	NeuralNetwork::standardTrainConfig newConfig = NeuralNetwork::standardTrainConfig();
-	newConfig.epochs = 5;
-
-	newConfig.population = 10;
-	newConfig.parentCount = 2;
-
-	newConfig.fitnessFunctionType = ABSOLUTE_ERROR;
-	newConfig.parentSelectionMethod = TOP_PARENTS;
-
-	newConfig.breedingMethod = WEIGHTED_PARENTS;
-	newConfig.useChildMutation = true;
-
+	
+	newConfig.epochs = 10;
 	newConfig.learningRate = 0.25f;
 	newConfig.momentum = 0.0f;
 
-	newConfig.useStochasticDataset = true;
-	newConfig.stochasticDatasetSize = 1500;
-	newConfig.useThreading = true;
-
-	newConfig.selectionAllowedActivations = ACTIVATION_SIGMOID_ONLY;
-	newConfig.selectionConvergenceCounter = 5;
-	newConfig.selectionConvergenceValue = 10.0f;
-
-	newConfig.selectionMinLayers = 3;
-	newConfig.selectionMaxLayers = 18;
-	
-	newConfig.selectionMinNodes = 1;
-	newConfig.selectionMaxNodes = 640;
-
-	newConfig.selectionMinBias = 1;
-	newConfig.selectionMaxBias = 5;
-
 	newConfig.trainInputs = inputSet;
 	newConfig.trainOutputs = outputSet;
+
+	newConfig.naturalSelection.population = 10;
+	newConfig.naturalSelection.parentCount = 2;
+
+	newConfig.naturalSelection.fitnessFunctionType = ABSOLUTE_ERROR;
+	newConfig.naturalSelection.parentSelectionMethod = TOP_PARENTS;
+
+	newConfig.naturalSelection.breedingMethod = WEIGHTED_PARENTS;
+	newConfig.naturalSelection.useChildMutation = true;
+
+	newConfig.naturalSelection.useStochasticDataset = true;
+	newConfig.naturalSelection.stochasticDatasetSize = 1500;
+	newConfig.naturalSelection.useThreading = true;
+
+	newConfig.naturalSelection.selectionAllowedActivations = ACTIVATION_SIGMOID_ONLY;
+	newConfig.naturalSelection.selectionConvergenceCounter = 5;
+	newConfig.naturalSelection.selectionConvergenceValue = 10.0f;
+
+	newConfig.naturalSelection.selectionMinLayers = 3;
+	newConfig.naturalSelection.selectionMaxLayers = 18;
+	
+	newConfig.naturalSelection.selectionMinNodes = 1;
+	newConfig.naturalSelection.selectionMaxNodes = 640;
+
+	newConfig.naturalSelection.selectionMinBias = 1;
+	newConfig.naturalSelection.selectionMaxBias = 5;
 
 	NeuralNetwork newNetwork = NeuralNetwork::architechtureNaturalSelection(newConfig);
 	createOutputTestTrack(newNetwork, audioConfig);	
