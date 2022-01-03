@@ -12,8 +12,12 @@ using namespace std;
 
 extern GLFWwindow* window;
 extern int display_x, display_y;
+extern double aspect_x, aspect_y;
 
 bool startOpenGL(GLFWwindow*& used_window, int width, int height);
+
+GLuint readyVertices(GLuint * VAO, GLuint * VBO, vector<float> vertices, int floatsPerPoint);
+GLuint readyTexture(const char* filePath);
 
 struct Character {
 	GLuint TextureID;   // ID handle of the glyph texture

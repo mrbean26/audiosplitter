@@ -33,6 +33,9 @@
     <ClCompile Include="tabs.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="notation.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Headers\audio.h">
@@ -54,6 +57,9 @@
       <Filter>Source Files\Headers</Filter>
     </ClInclude>
     <ClInclude Include="Headers\tabs.h">
+      <Filter>Source Files\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Headers\notation.h">
       <Filter>Source Files\Headers</Filter>
     </ClInclude>
   </ItemGroup>

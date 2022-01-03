@@ -2,6 +2,7 @@
 #include "Headers/graphics.h"
 
 #include "Headers/tabs.h"
+#include "Headers/notation.h"
 
 int main() {
 	int frequencyResolution = 8192;
@@ -30,13 +31,16 @@ int main() {
 	if (!startOpenGL(window, 640, 360)) {
 		return -1;
 	}
+
 	textsBegin();
+	notationBegin();
 	tabsBegin({ 6 });
 
 	while (!glfwWindowShouldClose(window)) {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		drawTab(noteFrets);
+		//drawTab(noteFrets);
+		drawNotation(loadedNotes);
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();

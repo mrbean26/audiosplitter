@@ -164,6 +164,7 @@
     <ClCompile Include="filesShaders.cpp" />
     <ClCompile Include="graphics.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="notation.cpp" />
     <ClCompile Include="tabs.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -173,6 +174,7 @@
     <ClInclude Include="Headers\graphics.h" />
     <ClInclude Include="Headers\minimp3.h" />
     <ClInclude Include="Headers\minimp3_ex.h" />
+    <ClInclude Include="Headers\notation.h" />
     <ClInclude Include="Headers\tabs.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -1,8 +1,35 @@
 #include "Headers/graphics.h"
 
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+
 GLFWwindow* window;
 int display_x, display_y;
+double aspect_x, aspect_y;
 
+int aspectDivider(int x, int y) {
+	// make UI suitable for widescreen displays, clamp values to 16:9, probably a bad way to do it when I look back at this
+	if (ceil(y * 1.777777777777777) != x) {
+		x = (int)(y * 1.777777777777777);
+	}
+	// return values
+	int max = x;
+	if (y > x) {
+		max = y;
+	}
+	for (int i = max; i > 0; i--) {//get highest common factor
+		float width = x / (float)i;
+		float height = y / (float)i;
+		if (width == ceil(width)) {
+			if (height == ceil(height)) {
+				aspect_x = x / i;
+				aspect_y = y / i;
+				return i;
+			}
+		}
+	}
+	return 1;
+}
 bool startOpenGL(GLFWwindow*& used_window, int width, int height) {
 	if (!glfwInit()) {
 		return false;
@@ -39,7 +66,47 @@ bool startOpenGL(GLFWwindow*& used_window, int width, int height) {
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_DEPTH_TEST);
 
+	stbi_set_flip_vertically_on_load(true);
+
+	aspect_x = width / aspectDivider(width, height); //gives 16:10
+	aspect_y = height / aspectDivider(width, height);
+
 	return true;
+}
+
+GLuint readyVertices(GLuint * VAO, GLuint * VBO, vector<float> vertices, int floatsPerPoint) {
+	glGenVertexArrays(1, VAO);
+	glGenBuffers(1, VBO);
+
+	glBindVertexArray(*VAO);
+	glBindBuffer(GL_ARRAY_BUFFER, *VBO);
+
+	glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
+
+	glEnableVertexAttribArray(0);
+	return vertices.size() / 2; // (Size)
+}
+GLuint readyTexture(const char* filePath) {
+	GLuint textureID;
+	glGenTextures(1, &textureID);
+	
+	int width; int height; int channels;
+	unsigned char* data = stbi_load(filePath, &width, &height, &channels, 4);
+	
+	if (!data) {
+		return -1;
+	}
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glBindTexture(GL_TEXTURE_2D, textureID);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+	glGenerateMipmap(GL_TEXTURE_2D);
+
+	return textureID;
 }
 
 map<GLchar, Character> fontCharacters;

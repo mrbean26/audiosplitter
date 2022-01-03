@@ -310,6 +310,6 @@ vector<vector<int>> loadNoteFormat(const char* fileName) {
 
 		currentCharacter = inputFile.get();
 	}
-	cout << resultantFormat.size() << endl;
+
 	return resultantFormat;
 }

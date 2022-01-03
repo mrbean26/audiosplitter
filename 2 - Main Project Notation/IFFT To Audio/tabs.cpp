@@ -29,17 +29,8 @@ void tabsBegin(vector<int> stringCounts) {
 		}
 
 		// Ready OpenGL Attributes
-		glGenVertexArrays(1, &tabVAOs[i]);
-		glGenBuffers(1, &tabVBOs[i]);
-
-		glBindVertexArray(tabVAOs[i]);
-		glBindBuffer(GL_ARRAY_BUFFER, tabVBOs[i]);
-
-		glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
-		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
-		
-		glEnableVertexAttribArray(0);
-		tabSizes.push_back(vertices.size() / 2);
+		GLuint tabSize = readyVertices(&tabVAOs[i], &tabVBOs[i], vertices, 2);
+		tabSizes.push_back(tabSize);
 	}
 
 	glLineWidth(10.0f);
