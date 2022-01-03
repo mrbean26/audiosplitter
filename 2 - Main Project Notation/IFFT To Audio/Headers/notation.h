@@ -12,12 +12,22 @@ using namespace std;
 #define NOTATION_CLEF_SIZE 0.05f // On a 1000px width screen
 #define NOTATION_CHUNKS_PER_LINE 40.0 // On a 1000px width screen
 
+#define NOTATION_SHARP_DISTANCE 0.015f
+#define NOTATION_SHARP_SIZE 1.75f // On a 1000px height screen
+
 extern vector<GLuint> notationVAOs;
 extern vector<GLuint> notationVBOs;
 
 void notationBegin();
 
+// Returned vector is length 5 - a true represents the note is a sharp - eg index 1 = C#
+vector<bool> findKey(vector<vector<int>> notes);
+void drawKeySignature(vector<bool> keySignature, float yOffset);
+
+void drawTrebleClef(float yOffset);
+void drawBarLine(float xOffset, float yOffset);
+
 void drawStaveLines(float yOffset);
-void drawNotation(vector<vector<int>> notes);
+void drawNotation(vector<vector<int>> notes, vector<bool> keySignature);
 
 #endif // !NOTATION_H

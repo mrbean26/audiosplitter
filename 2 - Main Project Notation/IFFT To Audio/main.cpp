@@ -15,7 +15,7 @@ int main() {
 	vector<int> maxFrets = { 21, 21, 21, 21, 21, 21 };
 
 	// Load Fully Correct NeuralNet Output
-	pair<vector<vector<float>>, float> correctOutput = spectrogramOutput("330hz.mp3", samplesPerChunk, samplesPerChunk, frequencyResolution);
+	pair<vector<vector<float>>, float> correctOutput = spectrogramOutput("420hz.mp3", samplesPerChunk, samplesPerChunk, frequencyResolution);
 	correctOutput = addSpectrogramError(correctOutput, addedOutputError);
 
 	// Filter Output and Turn to Custom Note Format
@@ -24,7 +24,8 @@ int main() {
 
 	saveNoteFormat(filteredNotes, 6, "outputNotes.audio");
 	vector<vector<int>> loadedNotes = loadNoteFormat("outputNotes.audio");
-
+	vector<bool> keySignature = findKey(loadedNotes);
+	
 	vector<vector<int>> noteFrets = notesToFrets(loadedNotes, tunings, maxFrets);
 
 	// Graphics Rendering
@@ -32,15 +33,15 @@ int main() {
 		return -1;
 	}
 
-	textsBegin();
 	notationBegin();
+	textsBegin();
 	tabsBegin({ 6 });
 
 	while (!glfwWindowShouldClose(window)) {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		//drawTab(noteFrets);
-		drawNotation(loadedNotes);
+		drawNotation(loadedNotes, keySignature);
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
