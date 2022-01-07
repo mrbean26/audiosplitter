@@ -64,8 +64,8 @@ bool startOpenGL(GLFWwindow*& used_window, int width, int height) {
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	
 	glEnable(GL_DEPTH_TEST);
-
 	stbi_set_flip_vertically_on_load(true);
 
 	aspect_x = width / aspectDivider(width, height); //gives 16:10

@@ -32,8 +32,6 @@ void tabsBegin(vector<int> stringCounts) {
 		GLuint tabSize = readyVertices(&tabVAOs[i], &tabVBOs[i], vertices, 2);
 		tabSizes.push_back(tabSize);
 	}
-
-	glLineWidth(10.0f);
 }
 void drawTabLines(int index, float yOffset) {
 	glUseProgram(tabShader);

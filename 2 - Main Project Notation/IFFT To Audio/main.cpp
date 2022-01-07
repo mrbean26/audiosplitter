@@ -15,7 +15,7 @@ int main() {
 	vector<int> maxFrets = { 21, 21, 21, 21, 21, 21 };
 
 	// Load Fully Correct NeuralNet Output
-	pair<vector<vector<float>>, float> correctOutput = spectrogramOutput("420hz.mp3", samplesPerChunk, samplesPerChunk, frequencyResolution);
+	pair<vector<vector<float>>, float> correctOutput = spectrogramOutput("147hzD.mp3", samplesPerChunk, samplesPerChunk, frequencyResolution);
 	correctOutput = addSpectrogramError(correctOutput, addedOutputError);
 
 	// Filter Output and Turn to Custom Note Format
@@ -29,7 +29,7 @@ int main() {
 	vector<vector<int>> noteFrets = notesToFrets(loadedNotes, tunings, maxFrets);
 
 	// Graphics Rendering
-	if (!startOpenGL(window, 640, 360)) {
+	if (!startOpenGL(window, 1280, 720)) {
 		return -1;
 	}
 
