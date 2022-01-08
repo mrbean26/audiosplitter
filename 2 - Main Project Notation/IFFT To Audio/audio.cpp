@@ -7,6 +7,8 @@
 #include "Headers/minimp3_ex.h"
 
 int sampleRate = 0;
+float audioDuration = 0.0f;
+
 mp3dec_file_info_t loadAudioData(const char* mp3Filename) {
 	mp3dec_t mp3Decoder;
 	mp3dec_file_info_t fileInfo;
@@ -15,8 +17,10 @@ mp3dec_file_info_t loadAudioData(const char* mp3Filename) {
 		cout << "MP3 Load Error" << endl;
 		return mp3dec_file_info_t();
 	}
-
+	
 	sampleRate = fileInfo.hz;
+	audioDuration = (1.0f / float(sampleRate)) * fileInfo.samples;
+
 	return fileInfo;
 }
 vector<int> loadAudioSamples(mp3d_sample_t* buffer, int sampleCount, int channels) {

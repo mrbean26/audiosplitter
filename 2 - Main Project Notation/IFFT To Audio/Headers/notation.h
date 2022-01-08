@@ -16,6 +16,8 @@ using namespace std;
 
 #define NOTATION_NOTE_LINE_WIDTH 0.002f
 
+#define NOTATION_BPM_TEXT_SIZE 1.25f // On a 1000px height screen
+
 extern vector<GLuint> notationVAOs;
 extern vector<GLuint> notationVBOs;
 
@@ -25,13 +27,18 @@ void notationBegin();
 vector<bool> findKey(vector<vector<int>> notes);
 void drawKeySignature(vector<bool> keySignature, float yOffset);
 
+bool compareNoteChunks(vector<int> chunkOne, vector<int> chunkTwo);
+vector<vector<int>> removeNoteRepetitions(vector<vector<int>> originalChunks);
+
+vector<vector<pair<int, int>>> findNoteLengths(vector<vector<int>> noteChunks);
+
 void drawTrebleClef(float yOffset);
 void drawBarLine(float xOffset, float yOffset);
 
-void drawSingularNote(vec2 noteRootPosition, float staveCenter);
-void drawNotes(vector<vector<int>> notes, vector<bool> keySignature);
+void drawSingularNote(vec2 noteRootPosition, float staveCenter, int noteDuration);
+void drawNotes(vector<vector<pair<int, int>>> notes, vector<bool> keySignature);
 
 void drawStaveLines(float yOffset);
-void drawNotation(vector<vector<int>> notes, vector<bool> keySignature);
+void drawNotation(vector<vector<pair<int, int>>> notes, vector<bool> keySignature);
 
 #endif // !NOTATION_H

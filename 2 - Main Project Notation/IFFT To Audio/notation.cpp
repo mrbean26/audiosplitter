@@ -1,10 +1,11 @@
 #include "Headers/notation.h"
+#include "Headers/audio.h"
 
 unsigned int notationShader;
 unsigned int imageShader;
 
 GLuint trebleClefTexture;
-GLuint quarterNoteTexture;
+vector<GLuint> noteTextures; // Duration 1 -> 4
 
 vector<GLuint> notationSizes;
 vector<GLuint> notationVAOs;
@@ -88,8 +89,13 @@ void notationBegin() {
 	GLuint barLineSize = readyVertices(&notationVAOs[2], &notationVBOs[2], vertices, 2);
 	notationSizes.push_back(barLineSize);
 
-	// Quarter Note Texture & Coordinates
-	quarterNoteTexture = readyTexture("Assets/quarterNote.png");
+	// Note Texture
+	noteTextures.push_back(readyTexture("Assets/quarterNote.png"));
+	noteTextures.push_back(readyTexture("Assets/halfNote.png"));
+	noteTextures.push_back(readyTexture("Assets/threeQuarterNote.png"));
+	noteTextures.push_back(readyTexture("Assets/halfNote.png"));
+
+	// Note Coordinates
 	float noteSize = NOTATION_LINE_GAP;
 
 	startX = 0.0f;
@@ -243,6 +249,113 @@ void drawKeySignature(vector<bool> keySignature, float yOffset) {
 	drawBarLine(trebleClefWidth + (count + 1) * NOTATION_SHARP_DISTANCE * display_x, yOffset * display_y);
 }
 
+bool compareNoteChunks(vector<int> chunkOne, vector<int> chunkTwo) {
+	int size = chunkOne.size();
+	int sizeTwo = chunkTwo.size();
+
+	if (size != sizeTwo) {
+		return false;
+	}
+
+	for (int i = 0; i < sizeTwo; i++) {
+		if (chunkOne[i] != chunkTwo[i]) {
+			return false;
+		}
+	}
+
+	return true;
+}
+vector<vector<int>> removeNoteRepetitions(vector<vector<int>> originalChunks) {
+	// Find Minimum Number of Consecutive Repetitions
+	vector<int> currentChunk = originalChunks[0];
+	int chunkCount = originalChunks.size();
+
+	int currentCount = 0;
+	int lowestCount = INT_MAX;
+
+	for (int i = 1; i < chunkCount; i++) {
+		if (compareNoteChunks(originalChunks[i], currentChunk)) {
+			currentCount = currentCount + 1;
+		}
+		else {
+			if (currentCount < lowestCount) {
+				lowestCount = currentCount;
+				currentCount = 0;
+				currentChunk = originalChunks[i];
+			}
+		}
+	}
+	
+	// Remove unneccesary repetitions
+	vector<vector<int>> resultantChunks = { };
+	currentChunk = originalChunks[0];
+
+	for (int i = lowestCount; i < chunkCount; i++) {
+		resultantChunks.push_back(originalChunks[i]);
+
+		if (!compareNoteChunks(originalChunks[i], currentChunk)) {
+			currentChunk = originalChunks[i];
+			i = i + lowestCount; // Skip repeated chunks			
+		}
+	}
+
+	return resultantChunks;
+}
+
+vector<vector<pair<int, int>>> findNoteLengths(vector<vector<int>> noteChunks) {
+	vector<vector<int>> currentChunks = noteChunks;
+	vector<vector<pair<int, int>>> resultantChunks;
+	int chunkCount = noteChunks.size();
+
+	for (int i = 0; i < chunkCount; i++) {
+		// Calculate maximum "look forward distance" for chunks to ensure notes stay within the same bar
+		int remainder = (i + 1) % 4;
+		int distance = 4 - remainder;
+		cout << distance << endl;
+		if (remainder == 0) {
+			distance = 0;
+		}
+
+		// Ensure not out of bounds error
+		if (i + distance >= chunkCount) {
+			distance = chunkCount - 1 - i;
+		}
+
+		// Check if notes occur consecutively across the next bar
+		vector<pair<int, int>> newChunk;
+		int noteCount = currentChunks[i].size();
+
+		for (int j = 0; j < noteCount; j++) {
+			pair<int, int> newNote = make_pair(currentChunks[i][j], 1);
+
+			for (int k = 1; k < distance + 1; k++) {
+				vector<int> nextChunk = currentChunks[i + k];
+
+				// Check if vector contains note
+				vector<int>::const_iterator containsNote = find(nextChunk.begin(), nextChunk.end(), newNote.first);
+				if (containsNote != nextChunk.end()) {
+					newNote.second += 1;
+					
+					// Remove note from that future chunk
+					int index = containsNote - nextChunk.begin();
+					nextChunk.erase(nextChunk.begin() + index);
+
+					currentChunks[i + k] = nextChunk;
+				}
+				else {
+					break; // Notes are not consecutive anymore
+				}
+			}
+
+			newChunk.push_back(newNote);
+		}
+
+		resultantChunks.push_back(newChunk);
+	}
+
+	return resultantChunks;
+}
+
 void drawTrebleClef(float yOffset) {
 	glUseProgram(imageShader);
 
@@ -266,18 +379,22 @@ void drawBarLine(float xOffset, float yOffset) {
 	glDrawArrays(GL_LINES, 0, notationSizes[2]);
 }
 
-void drawSingularNote(vec2 noteRootPosition, float staveCenter) {
+void drawSingularNote(vec2 noteRootPosition, float staveCenter, int noteDuration) {
 	// Note Circle
 	glUseProgram(imageShader);
 	mat4 projectionMatrix = ortho(0.0f, static_cast<GLfloat>(display_x), 0.0f, static_cast<GLfloat>(display_y));
 
 	glBindVertexArray(notationVAOs[3]);
-	glBindTexture(GL_TEXTURE_2D, quarterNoteTexture);
+	glBindTexture(GL_TEXTURE_2D, noteTextures[noteDuration - 1]);
 
 	mat4 scalePositionMatrix = translate(projectionMatrix, vec3(noteRootPosition.x * display_x, noteRootPosition.y * display_y, 0.0f));
 	setMat4(imageShader, "scalePositionMatrix", scalePositionMatrix);
 
 	glDrawArrays(GL_TRIANGLES, 0, notationSizes[3]);
+
+	if (noteDuration == 4) {
+		return; // No line for full length note
+	}
 
 	// Draw Line
 	glUseProgram(notationShader);
@@ -301,7 +418,7 @@ void drawSingularNote(vec2 noteRootPosition, float staveCenter) {
 	glBindVertexArray(notationVAOs[4]);
 	glDrawArrays(GL_TRIANGLES, 0, notationSizes[4]);
 }
-void drawNotes(vector<vector<int>> notes, vector<bool> keySignature) {
+void drawNotes(vector<vector<pair<int, int>>> notes, vector<bool> keySignature) {
 	// Calculate Distance Up To First Note
 	float fdisplay_x = float(display_x);
 	float fdisplay_y = float(display_y);
@@ -340,22 +457,17 @@ void drawNotes(vector<vector<int>> notes, vector<bool> keySignature) {
 			// Current Y Position is Top E (Top Stave Line) - Note 31
 			// Shift Accordingly to note
 
-			int noteDistance = notes[i][j] - 31; // 31 is the start position note ("E")
+			int noteDistance = notes[i][j].first - 31; // 31 is the start position note ("E")
 			float shiftedYPosition = noteDistance * 0.25f * NOTATION_LINE_GAP;
 			float finalYPosition = currentYPosition + shiftedYPosition;
-			
-			drawSingularNote(vec2(currentXPosition, finalYPosition), currentYPosition - NOTATION_LINE_GAP * 2.0f);
+
+			drawSingularNote(vec2(currentXPosition, finalYPosition), currentYPosition - NOTATION_LINE_GAP * 2.0f, notes[i][j].second);
 		}
 
 		// Draw Bar Lines
 		if (i % 4 == 0 && i > 0) {
 			float barLineXPosition = currentXPosition;
 			drawBarLine(barLineXPosition * display_x, currentYPosition * display_y);
-
-			glUseProgram(imageShader);
-
-			glBindVertexArray(notationVAOs[3]);
-			glBindTexture(GL_TEXTURE_2D, quarterNoteTexture);
 		}
 
 		if (noteStaveIndex == notesPerLine - 1) {
@@ -375,10 +487,13 @@ void drawStaveLines(float yOffset) {
 	glBindVertexArray(notationVAOs[0]);
 	glDrawArrays(GL_LINES, 0, notationSizes[0]);
 }
-void drawNotation(vector<vector<int>> notes, vector<bool> keySignature) {
+void drawNotation(vector<vector<pair<int, int>>> notes, vector<bool> keySignature) {
 	int chunkCount = notes.size();
 	int chunksPerLine = NOTATION_CHUNKS_PER_LINE * (double(display_x) / 1000.0);
 	int requiredStaves = ceil(double(chunkCount) / chunksPerLine);
+
+	float beatsPerMinute = float(chunkCount) / audioDuration;
+	string bpmText = "BPM: " + to_string(beatsPerMinute).substr(0, 4); // Only 2 decimal places
 
 	// Draw Staves
 	for (int i = 0; i < requiredStaves; i++) {
@@ -398,4 +513,9 @@ void drawNotation(vector<vector<int>> notes, vector<bool> keySignature) {
 
 	// Draw Notes
 	drawNotes(notes, keySignature);
+
+	// Draw BPM Text
+	vec2 bpmTextPosition = vec2(NOTATION_EDGE_DISTANCE * display_x, display_y - NOTATION_EDGE_DISTANCE * display_y);
+	float bpmTextSize = NOTATION_BPM_TEXT_SIZE * (float(display_y) / 1000.0f);
+	renderText(bpmText, bpmTextPosition, 1.0f, bpmTextSize, vec3(0.0f), fontCharacters);
 }
