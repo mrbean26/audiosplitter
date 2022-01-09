@@ -273,7 +273,7 @@ vector<vector<int>> removeNoteRepetitions(vector<vector<int>> originalChunks) {
 	int currentCount = 0;
 	int lowestCount = INT_MAX;
 
-	for (int i = 1; i < chunkCount; i++) {
+	for (int i = 0; i < chunkCount; i++) {
 		if (compareNoteChunks(originalChunks[i], currentChunk)) {
 			currentCount = currentCount + 1;
 		}
@@ -287,7 +287,7 @@ vector<vector<int>> removeNoteRepetitions(vector<vector<int>> originalChunks) {
 	}
 	
 	// Remove unneccesary repetitions
-	vector<vector<int>> resultantChunks = { };
+	vector<vector<int>> resultantChunks = { originalChunks[0] };
 	currentChunk = originalChunks[0];
 
 	for (int i = lowestCount; i < chunkCount; i++) {
@@ -311,7 +311,7 @@ vector<vector<pair<int, int>>> findNoteLengths(vector<vector<int>> noteChunks) {
 		// Calculate maximum "look forward distance" for chunks to ensure notes stay within the same bar
 		int remainder = (i + 1) % 4;
 		int distance = 4 - remainder;
-		cout << distance << endl;
+		
 		if (remainder == 0) {
 			distance = 0;
 		}
@@ -379,7 +379,7 @@ void drawBarLine(float xOffset, float yOffset) {
 	glDrawArrays(GL_LINES, 0, notationSizes[2]);
 }
 
-void drawSingularNote(vec2 noteRootPosition, float staveCenter, int noteDuration) {
+void drawSingularNote(vec2 noteRootPosition, float staveCenter, int noteDuration, bool sharpSign) {
 	// Note Circle
 	glUseProgram(imageShader);
 	mat4 projectionMatrix = ortho(0.0f, static_cast<GLfloat>(display_x), 0.0f, static_cast<GLfloat>(display_y));
@@ -417,6 +417,14 @@ void drawSingularNote(vec2 noteRootPosition, float staveCenter, int noteDuration
 
 	glBindVertexArray(notationVAOs[4]);
 	glDrawArrays(GL_TRIANGLES, 0, notationSizes[4]);
+
+	// Draw Sharp Sign
+	if (sharpSign) {
+		float textSize = NOTATION_SHARP_SIZE * (double(display_y) / 1000.0);
+		
+		noteRootPosition = vec2(noteRootPosition.x * display_x, display_y + noteRootPosition.y * display_y);
+		renderText("#", noteRootPosition, 1.0f, textSize, vec3(0.0f), fontCharacters);
+	}
 }
 void drawNotes(vector<vector<pair<int, int>>> notes, vector<bool> keySignature) {
 	// Calculate Distance Up To First Note
@@ -448,6 +456,9 @@ void drawNotes(vector<vector<pair<int, int>>> notes, vector<bool> keySignature) 
 	int notesPerLine = NOTATION_CHUNKS_PER_LINE * (fdisplay_x / 1000.0f);
 	float noteGapDistance = (1.0f - NOTATION_EDGE_DISTANCE - initialNoteXPosition) / float(notesPerLine);
 
+	vector<int> naturalNoteIndex = { 0, 0, 1, 2, 2, 3, 3, 4, 5, 5, 6, 6 };
+	vector<bool> isNaturalNote = { true, false, true, true, false, true, false, true, true, false, true, false };
+
 	for (int i = 0; i < noteCount; i++) {
 		int noteStaveIndex = i % notesPerLine;
 		float currentXPosition = initialNoteXPosition + noteGapDistance * noteStaveIndex;
@@ -457,11 +468,18 @@ void drawNotes(vector<vector<pair<int, int>>> notes, vector<bool> keySignature) 
 			// Current Y Position is Top E (Top Stave Line) - Note 31
 			// Shift Accordingly to note
 
-			int noteDistance = notes[i][j].first - 31; // 31 is the start position note ("E")
-			float shiftedYPosition = noteDistance * 0.25f * NOTATION_LINE_GAP;
-			float finalYPosition = currentYPosition + shiftedYPosition;
+			int distanceFromE = 31 - notes[i][j].first;
+			int octaveCount = floor(double(distanceFromE) / 12.0);
 
-			drawSingularNote(vec2(currentXPosition, finalYPosition), currentYPosition - NOTATION_LINE_GAP * 2.0f, notes[i][j].second);
+			int noteDistance = octaveCount * 7.0f + naturalNoteIndex[distanceFromE % 12];
+			float finalYPosition = currentYPosition - noteDistance * NOTATION_LINE_GAP * 0.5f;
+
+			bool requiresSharp = false;
+			if (isNaturalNote[notes[i][j].first % 12] && !keySignature[naturalNoteIndex[distanceFromE % 12]]) {
+				requiresSharp = true;
+			}
+
+			drawSingularNote(vec2(currentXPosition, finalYPosition), currentYPosition - NOTATION_LINE_GAP * 2.0f, notes[i][j].second, requiresSharp);
 		}
 
 		// Draw Bar Lines
@@ -494,7 +512,7 @@ void drawNotation(vector<vector<pair<int, int>>> notes, vector<bool> keySignatur
 
 	float beatsPerMinute = float(chunkCount) / audioDuration;
 	string bpmText = "BPM: " + to_string(beatsPerMinute).substr(0, 4); // Only 2 decimal places
-
+	
 	// Draw Staves
 	for (int i = 0; i < requiredStaves; i++) {
 		float yOffset = -NOTATION_EDGE_DISTANCE;

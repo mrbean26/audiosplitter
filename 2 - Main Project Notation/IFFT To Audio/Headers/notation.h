@@ -35,7 +35,7 @@ vector<vector<pair<int, int>>> findNoteLengths(vector<vector<int>> noteChunks);
 void drawTrebleClef(float yOffset);
 void drawBarLine(float xOffset, float yOffset);
 
-void drawSingularNote(vec2 noteRootPosition, float staveCenter, int noteDuration);
+void drawSingularNote(vec2 noteRootPosition, float staveCenter, int noteDuration, bool sharpSign);
 void drawNotes(vector<vector<pair<int, int>>> notes, vector<bool> keySignature);
 
 void drawStaveLines(float yOffset);

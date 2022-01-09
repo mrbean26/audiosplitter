@@ -24,7 +24,7 @@ int main() {
 
 	saveNoteFormat(filteredNotes, 6, "outputNotes.audio");
 	vector<vector<int>> loadedNotes = loadNoteFormat("outputNotes.audio");
-	
+
 	loadedNotes = removeNoteRepetitions(loadedNotes);
 	vector<vector<pair<int, int>>> noteLengths = findNoteLengths(loadedNotes);
 
