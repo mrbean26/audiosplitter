@@ -1,19 +1,16 @@
 #include "Headers/notation.h"
 #include "Headers/audio.h"
 
-unsigned int notationShader;
-unsigned int imageShader;
+notationViewer::notationViewer(vector<vector<int>> notes) {
+	notationBegin();
 
-GLuint trebleClefTexture;
-vector<GLuint> noteTextures; // Duration 1 -> 4
+	vector<vector<int>> newNotes = removeNoteRepetitions(notes);
+	this->noteLengths = findNoteLengths(newNotes);
 
-vector<GLuint> notationSizes;
-vector<GLuint> notationVAOs;
-vector<GLuint> notationVBOs;
+	this->keySignature = findKey(notes);
+}
 
-vec2 notationNoteSize;
-
-void startNotationShaders() {
+void notationViewer::startNotationShaders() {
 	// Tab Shaders
 	int vertShader = createShader("Assets/Shaders/tabVert.txt", GL_VERTEX_SHADER);
 	int fragShader = createShader("Assets/Shaders/tabFrag.txt", GL_FRAGMENT_SHADER);
@@ -24,7 +21,7 @@ void startNotationShaders() {
 	fragShader = createShader("Assets/Shaders/textureFrag.txt", GL_FRAGMENT_SHADER);
 	imageShader = createProgram({ vertShader, fragShader });
 }
-void notationBegin() {
+void notationViewer::notationBegin() {
 	// Load & Initialise Shaders
 	startNotationShaders();
 
@@ -42,7 +39,7 @@ void notationBegin() {
 	startNoteLine();
 }
 
-void startTrebleClef() {
+void notationViewer::startTrebleClef() {
 	// Treble Clef Texture
 	trebleClefTexture = readyTexture("Assets/trebleClef.png");
 
@@ -84,7 +81,7 @@ void startTrebleClef() {
 	glEnableVertexAttribArray(0);
 	glEnableVertexAttribArray(1);
 }
-void drawTrebleClef(float yOffset) {
+void notationViewer::drawTrebleClef(float yOffset) {
 	glUseProgram(imageShader);
 
 	glBindVertexArray(notationVAOs[1]);
@@ -97,7 +94,7 @@ void drawTrebleClef(float yOffset) {
 	glDrawArrays(GL_TRIANGLES, 0, notationSizes[1]);
 }
 
-void startStaveLines() {
+void notationViewer::startStaveLines() {
 	notationVAOs.push_back(0); notationVBOs.push_back(0);
 	vector<float> vertices = {};
 
@@ -112,7 +109,7 @@ void startStaveLines() {
 	GLuint staveSize = readyVertices(&notationVAOs[0], &notationVBOs[0], vertices, 2);
 	notationSizes.push_back(staveSize);
 }
-void drawStaveLines(float yOffset) {
+void notationViewer::drawStaveLines(float yOffset) {
 	glUseProgram(notationShader);
 
 	mat4 projectionMatrix = ortho(0.0f, static_cast<GLfloat>(display_x), 0.0f, static_cast<GLfloat>(display_y));
@@ -123,7 +120,7 @@ void drawStaveLines(float yOffset) {
 	glDrawArrays(GL_LINES, 0, notationSizes[0]);
 }
 
-void startBarLine() {
+void notationViewer::startBarLine() {
 	notationVAOs.push_back(0); notationVBOs.push_back(0);
 	float fdisplay_x = float(display_x);
 	float fdisplay_y = float(display_y);
@@ -136,7 +133,7 @@ void startBarLine() {
 	GLuint barLineSize = readyVertices(&notationVAOs[2], &notationVBOs[2], vertices, 2);
 	notationSizes.push_back(barLineSize);
 }
-void drawBarLine(float xOffset, float yOffset) {
+void notationViewer::drawBarLine(float xOffset, float yOffset) {
 	glUseProgram(notationShader);
 
 	mat4 projectionMatrix = ortho(0.0f, static_cast<GLfloat>(display_x), 0.0f, static_cast<GLfloat>(display_y));
@@ -147,7 +144,7 @@ void drawBarLine(float xOffset, float yOffset) {
 	glDrawArrays(GL_LINES, 0, notationSizes[2]);
 }
 
-void startNotes() {
+void notationViewer::startNotes() {
 	noteTextures.push_back(readyTexture("Assets/quarterNote.png"));
 	noteTextures.push_back(readyTexture("Assets/halfNote.png"));
 	noteTextures.push_back(readyTexture("Assets/threeQuarterNote.png"));
@@ -193,7 +190,7 @@ void startNotes() {
 	glEnableVertexAttribArray(0);
 	glEnableVertexAttribArray(1);
 }
-void startNoteLine() {
+void notationViewer::startNoteLine() {
 	float staveHeight = 4.0f * NOTATION_LINE_GAP;
 
 	// Create line the height of the stave
@@ -220,7 +217,7 @@ void startNoteLine() {
 
 	notationSizes.push_back(noteLineSize);
 }
-void drawSingularNote(vec2 noteRootPosition, float staveCenter, int noteDuration, bool sharpSign) {
+void notationViewer::drawSingularNote(vec2 noteRootPosition, float staveCenter, int noteDuration, bool sharpSign) {
 	// Draw Note Circle
 	// Set Shader Details
 	mat4 projectionMatrix = ortho(0.0f, static_cast<GLfloat>(display_x), 0.0f, static_cast<GLfloat>(display_y));
@@ -273,7 +270,7 @@ void drawSingularNote(vec2 noteRootPosition, float staveCenter, int noteDuration
 	}
 }
 
-vector<bool> findKey(vector<vector<int>> notes) {
+vector<bool> notationViewer::findKey(vector<vector<int>> notes) {
 	vector<int> resultantNotes(5); // 0 = not found, 1 = not sharp, 2 = sharp
 
 	// Look through notes
@@ -339,7 +336,7 @@ vector<bool> findKey(vector<vector<int>> notes) {
 	}
 	return result;
 }
-void drawKeySignature(vector<bool> keySignature, float yOffset) {
+void notationViewer::drawKeySignature(vector<bool> keySignature, float yOffset) {
 	vector<int> keyDistances = { 0, 2, 3, 5, 6 };
 
 	float staveHeight = 4.0f * NOTATION_LINE_GAP;
@@ -365,7 +362,7 @@ void drawKeySignature(vector<bool> keySignature, float yOffset) {
 	drawBarLine(trebleClefWidth + (count + 1) * NOTATION_SHARP_DISTANCE * display_x, yOffset * display_y);
 }
 
-bool compareNoteChunks(vector<int> chunkOne, vector<int> chunkTwo) {
+bool notationViewer::compareNoteChunks(vector<int> chunkOne, vector<int> chunkTwo) {
 	int size = chunkOne.size();
 	int sizeTwo = chunkTwo.size();
 
@@ -381,7 +378,7 @@ bool compareNoteChunks(vector<int> chunkOne, vector<int> chunkTwo) {
 
 	return true;
 }
-vector<vector<int>> removeNoteRepetitions(vector<vector<int>> originalChunks) {
+vector<vector<int>> notationViewer::removeNoteRepetitions(vector<vector<int>> originalChunks) {
 	// Find Minimum Number of Consecutive Repetitions
 	vector<int> currentChunk = originalChunks[0];
 	int chunkCount = originalChunks.size();
@@ -417,7 +414,7 @@ vector<vector<int>> removeNoteRepetitions(vector<vector<int>> originalChunks) {
 
 	return resultantChunks;
 }
-vector<vector<pair<int, int>>> findNoteLengths(vector<vector<int>> noteChunks) {
+vector<vector<pair<int, int>>> notationViewer::findNoteLengths(vector<vector<int>> noteChunks) {
 	vector<vector<int>> currentChunks = noteChunks;
 	vector<vector<pair<int, int>>> resultantChunks;
 	int chunkCount = noteChunks.size();
@@ -471,7 +468,7 @@ vector<vector<pair<int, int>>> findNoteLengths(vector<vector<int>> noteChunks) {
 	return resultantChunks;
 }
 
-void drawNotes(vector<vector<pair<int, int>>> notes, vector<bool> keySignature) {
+void notationViewer::drawNotes(vector<vector<pair<int, int>>> notes, vector<bool> keySignature) {
 	// Calculate Distance Up To First Note
 	// Treble Clef Width
 	float staveHeight = 4.0f * NOTATION_LINE_GAP;
@@ -547,8 +544,8 @@ void drawNotes(vector<vector<pair<int, int>>> notes, vector<bool> keySignature) 
 		}
 	}
 }
-void drawNotation(vector<vector<pair<int, int>>> notes, vector<bool> keySignature) {
-	int chunkCount = notes.size();
+void notationViewer::drawNotation() {
+	int chunkCount = noteLengths.size();
 	int chunksPerLine = NOTATION_CHUNKS_PER_LINE * (double(display_x) / 1000.0);
 	int requiredStaves = ceil(double(chunkCount) / chunksPerLine);
 
@@ -572,7 +569,7 @@ void drawNotation(vector<vector<pair<int, int>>> notes, vector<bool> keySignatur
 	}
 
 	// Draw Notes
-	drawNotes(notes, keySignature);
+	drawNotes(noteLengths, keySignature);
 
 	// Draw BPM Text
 	vec2 bpmTextPosition = vec2(NOTATION_EDGE_DISTANCE * display_x, display_y - NOTATION_EDGE_DISTANCE * display_y);

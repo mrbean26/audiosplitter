@@ -1,23 +1,10 @@
 ﻿  0 File(s) copied
   main.cpp
-  notation.cpp
-D:\Projects\Audio Splitter App\2 - Main Project Notation\IFFT To Audio\notation.cpp(54,15): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project Notation\IFFT To Audio\notation.cpp(56,15): warning C4244: 'initializing': conversion from 'int' to 'float', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project Notation\IFFT To Audio\notation.cpp(163,15): warning C4244: 'initializing': conversion from 'int' to 'float', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project Notation\IFFT To Audio\notation.cpp(200,15): warning C4244: 'initializing': conversion from 'int' to 'float', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project Notation\IFFT To Audio\notation.cpp(269,18): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project Notation\IFFT To Audio\notation.cpp(347,24): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project Notation\IFFT To Audio\notation.cpp(480,25): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project Notation\IFFT To Audio\notation.cpp(500,19): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project Notation\IFFT To Audio\notation.cpp(522,20): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project Notation\IFFT To Audio\notation.cpp(524,21): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project Notation\IFFT To Audio\notation.cpp(552,20): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project Notation\IFFT To Audio\notation.cpp(553,21): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
 LINK : warning LNK4098: defaultlib 'LIBCMT' conflicts with use of other libs; use /NODEFAULTLIB:library
   Generating code
-  0 of 1555 functions ( 0.0%) were compiled, the rest were copied from previous compilation.
+  445 of 1560 functions (28.5%) were compiled, the rest were copied from previous compilation.
     0 functions were new in current compilation
-    0 functions had inline decision re-evaluated but remain unchanged
+    126 functions had inline decision re-evaluated but remain unchanged
   Finished generating code
 glew32s.lib(glew.obj) : warning LNK4099: PDB 'vc120.pdb' was not found with 'glew32s.lib(glew.obj)' or at 'D:\Projects\Audio Splitter App\2 - Main Project Notation\Release\vc120.pdb'; linking object as if no debug info
   IFFT To Audio.vcxproj -> D:\Projects\Audio Splitter App\2 - Main Project Notation\Release\Main Project Notation.exe

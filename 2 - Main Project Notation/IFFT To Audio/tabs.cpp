@@ -1,13 +1,13 @@
 #include "Headers/tabs.h"
+#include "Headers/audio.h"
 #include "Headers/graphics.h"
 
-vector<GLuint> tabVAOs;
-vector<GLuint> tabVBOs;
-vector<GLuint> tabSizes;
+tabViewer::tabViewer(vector<vector<int>> notes, vector<int> tunings, vector<int> maxFrets, vector<int> stringCounts) {
+	noteFrets = notesToFrets(notes, tunings, maxFrets);
+	tabsBegin(stringCounts);
+}
 
-unsigned int tabShader;
-
-void tabsBegin(vector<int> stringCounts) {
+void tabViewer::tabsBegin(vector<int> stringCounts) {
 	// Begin Shader
 	int vertShader = createShader("Assets/Shaders/tabVert.txt", GL_VERTEX_SHADER);
 	int fragShader = createShader("Assets/Shaders/tabFrag.txt", GL_FRAGMENT_SHADER);
@@ -33,7 +33,7 @@ void tabsBegin(vector<int> stringCounts) {
 		tabSizes.push_back(tabSize);
 	}
 }
-void drawTabLines(int index, float yOffset) {
+void tabViewer::drawTabLines(int index, float yOffset) {
 	glUseProgram(tabShader);
 
 	mat4 projectionMatrix = ortho(0.0f, static_cast<GLfloat>(display_x), 0.0f, static_cast<GLfloat>(display_y));
@@ -44,10 +44,7 @@ void drawTabLines(int index, float yOffset) {
 	glDrawArrays(GL_LINES, 0, tabSizes[index]);
 }
 
-float averageYCharacterSize = 0.0f;
-bool foundSize = false;
-
-void drawTab(vector<vector<int>> noteFrets) {
+void tabViewer::drawTab() {
 	int chunkCount = noteFrets.size();
 	int stringCount = noteFrets[0].size();
 

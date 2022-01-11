@@ -18,34 +18,51 @@ using namespace std;
 
 #define NOTATION_BPM_TEXT_SIZE 1.25f // On a 1000px height screen
 
-extern vector<GLuint> notationVAOs;
-extern vector<GLuint> notationVBOs;
+class notationViewer {
+public:
+	notationViewer(vector<vector<int>> notes);
 
-void startNotationShaders();
-void notationBegin();
+	vector<bool> keySignature;
+	vector<vector<pair<int, int>>> noteLengths;
 
-void startTrebleClef();
-void drawTrebleClef(float yOffset);
+	vector<GLuint> notationVAOs;
+	vector<GLuint> notationVBOs;
+	vector<GLuint> notationSizes;
 
-void startStaveLines();
-void drawStaveLines(float yOffset);
+	vector<GLuint> noteTextures;
+	GLuint trebleClefTexture;
 
-void startBarLine();
-void drawBarLine(float xOffset, float yOffset);
+	vec2 notationNoteSize;
 
-void startNotes();
-void startNoteLine();
-void drawSingularNote(vec2 noteRootPosition, float staveCenter, int noteDuration, bool sharpSign);
+	unsigned int notationShader;
+	unsigned int imageShader;
 
-// Returned vector is length 5 - a true represents the note is a sharp - eg index 1 = C#
-vector<bool> findKey(vector<vector<int>> notes);
-void drawKeySignature(vector<bool> keySignature, float yOffset);
+	void startNotationShaders();
+	void notationBegin();
 
-bool compareNoteChunks(vector<int> chunkOne, vector<int> chunkTwo);
-vector<vector<int>> removeNoteRepetitions(vector<vector<int>> originalChunks);
-vector<vector<pair<int, int>>> findNoteLengths(vector<vector<int>> noteChunks);
+	void startTrebleClef();
+	void drawTrebleClef(float yOffset);
 
-void drawNotes(vector<vector<pair<int, int>>> notes, vector<bool> keySignature);
-void drawNotation(vector<vector<pair<int, int>>> notes, vector<bool> keySignature);
+	void startStaveLines();
+	void drawStaveLines(float yOffset);
+
+	void startBarLine();
+	void drawBarLine(float xOffset, float yOffset);
+
+	void startNotes();
+	void startNoteLine();
+	void drawSingularNote(vec2 noteRootPosition, float staveCenter, int noteDuration, bool sharpSign);
+
+	// Returned vector is length 5 - a true represents the note is a sharp - eg index 1 = C#
+	static vector<bool> findKey(vector<vector<int>> notes);
+	void drawKeySignature(vector<bool> keySignature, float yOffset);
+
+	static bool compareNoteChunks(vector<int> chunkOne, vector<int> chunkTwo);
+	static vector<vector<int>> removeNoteRepetitions(vector<vector<int>> originalChunks);
+	static vector<vector<pair<int, int>>> findNoteLengths(vector<vector<int>> noteChunks);
+
+	void drawNotes(vector<vector<pair<int, int>>> notes, vector<bool> keySignature);
+	void drawNotation();
+};
 
 #endif // !NOTATION_H

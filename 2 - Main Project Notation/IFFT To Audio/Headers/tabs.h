@@ -11,12 +11,25 @@ using namespace std;
 #define TAB_TEXT_SIZE 1.75f // On an 1000px height screen
 #define TAB_CHUNKS_PER_LINE 40 // On an 1000px width screen
 
-extern vector<GLuint> tabVAOs;
-extern vector<GLuint> tabVBOs;
+class tabViewer {
+public:
+	tabViewer(vector<vector<int>> notes, vector<int> tunings, vector<int> maxFrets, vector<int> stringCounts);
 
-void tabsBegin(vector<int> stringCounts);
-void drawTabLines(int index, float yOffset);
+	vector<GLuint> tabVAOs;
+	vector<GLuint> tabVBOs;
+	vector<GLuint> tabSizes;
 
-void drawTab(vector<vector<int>> noteFrets);
+	unsigned int tabShader;
+
+	vector<vector<int>> noteFrets;
+
+	float averageYCharacterSize = 0.0f;
+	bool foundSize = false;
+
+	void tabsBegin(vector<int> stringCounts);
+	void drawTabLines(int index, float yOffset);
+
+	void drawTab();
+};
 
 #endif // !TABS_H

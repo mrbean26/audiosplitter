@@ -25,26 +25,20 @@ int main() {
 	saveNoteFormat(filteredNotes, 6, "outputNotes.audio");
 	vector<vector<int>> loadedNotes = loadNoteFormat("outputNotes.audio");
 
-	loadedNotes = removeNoteRepetitions(loadedNotes);
-	vector<vector<pair<int, int>>> noteLengths = findNoteLengths(loadedNotes);
-
-	vector<bool> keySignature = findKey(loadedNotes);	
-	vector<vector<int>> noteFrets = notesToFrets(loadedNotes, tunings, maxFrets);
-
 	// Graphics Rendering
 	if (!startOpenGL(window, 1280, 720)) {
 		return -1;
 	}
+	notationViewer newNotationViewer = notationViewer(loadedNotes);
+	tabViewer newTabViewer = tabViewer(loadedNotes, tunings, maxFrets, { 6 });
 
-	notationBegin();
 	textsBegin();
-	tabsBegin({ 6 });
 
 	while (!glfwWindowShouldClose(window)) {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		//drawTab(noteFrets);
-		drawNotation(noteLengths, keySignature);
+		//newTabViewer.drawTab();
+		newNotationViewer.drawNotation();
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
