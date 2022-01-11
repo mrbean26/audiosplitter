@@ -21,7 +21,21 @@ using namespace std;
 extern vector<GLuint> notationVAOs;
 extern vector<GLuint> notationVBOs;
 
+void startNotationShaders();
 void notationBegin();
+
+void startTrebleClef();
+void drawTrebleClef(float yOffset);
+
+void startStaveLines();
+void drawStaveLines(float yOffset);
+
+void startBarLine();
+void drawBarLine(float xOffset, float yOffset);
+
+void startNotes();
+void startNoteLine();
+void drawSingularNote(vec2 noteRootPosition, float staveCenter, int noteDuration, bool sharpSign);
 
 // Returned vector is length 5 - a true represents the note is a sharp - eg index 1 = C#
 vector<bool> findKey(vector<vector<int>> notes);
@@ -29,16 +43,9 @@ void drawKeySignature(vector<bool> keySignature, float yOffset);
 
 bool compareNoteChunks(vector<int> chunkOne, vector<int> chunkTwo);
 vector<vector<int>> removeNoteRepetitions(vector<vector<int>> originalChunks);
-
 vector<vector<pair<int, int>>> findNoteLengths(vector<vector<int>> noteChunks);
 
-void drawTrebleClef(float yOffset);
-void drawBarLine(float xOffset, float yOffset);
-
-void drawSingularNote(vec2 noteRootPosition, float staveCenter, int noteDuration, bool sharpSign);
 void drawNotes(vector<vector<pair<int, int>>> notes, vector<bool> keySignature);
-
-void drawStaveLines(float yOffset);
 void drawNotation(vector<vector<pair<int, int>>> notes, vector<bool> keySignature);
 
 #endif // !NOTATION_H

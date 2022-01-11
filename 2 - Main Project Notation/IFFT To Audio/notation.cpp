@@ -13,41 +13,48 @@ vector<GLuint> notationVBOs;
 
 vec2 notationNoteSize;
 
-void notationBegin() {
-	// Begin Shader
+void startNotationShaders() {
+	// Tab Shaders
 	int vertShader = createShader("Assets/Shaders/tabVert.txt", GL_VERTEX_SHADER);
 	int fragShader = createShader("Assets/Shaders/tabFrag.txt", GL_FRAGMENT_SHADER);
 	notationShader = createProgram({ vertShader, fragShader });
 
-	// Create Stave
-	notationVAOs.push_back(0); notationVBOs.push_back(0);
-	vector<float> vertices = {};
+	// Image Shader
+	vertShader = createShader("Assets/Shaders/textureVert.txt", GL_VERTEX_SHADER);
+	fragShader = createShader("Assets/Shaders/textureFrag.txt", GL_FRAGMENT_SHADER);
+	imageShader = createProgram({ vertShader, fragShader });
+}
+void notationBegin() {
+	// Load & Initialise Shaders
+	startNotationShaders();
 
-	for (int i = 0; i < 5; i++) { // 5 lines due to 5 lines on a stave
-		vertices.push_back(display_x * NOTATION_EDGE_DISTANCE);
-		vertices.push_back(display_y - (i * NOTATION_LINE_GAP * display_y));
+	// Load Stave Lines into Memory
+	startStaveLines();
 
-		vertices.push_back(display_x - display_x * NOTATION_EDGE_DISTANCE);
-		vertices.push_back(display_y - (i * NOTATION_LINE_GAP * display_y));
-	}
+	// Load Treble Clef into Memory
+	startTrebleClef();
 
-	GLuint staveSize = readyVertices(&notationVAOs[0], &notationVBOs[0], vertices, 2);
-	notationSizes.push_back(staveSize);
+	// Load Bar Line into Memory
+	startBarLine();
 
-	// Treble Clef
+	// Load Notes & Each Texture into Memory
+	startNotes();
+	startNoteLine();
+}
+
+void startTrebleClef() {
+	// Treble Clef Texture
 	trebleClefTexture = readyTexture("Assets/trebleClef.png");
 
-	float fdisplay_x = float(display_x);
-	float fdisplay_y = float(display_y);
-
-	// Treble Clef Coordinates
+	// Find Coordinates
 	float staveHeight = 4.0f * NOTATION_LINE_GAP;
+	float aspectRatioMultiplier = (float(display_y) / float(display_x));
 
-	float startX = NOTATION_EDGE_DISTANCE * display_x;
-	float finalX = (NOTATION_EDGE_DISTANCE + staveHeight * 0.587f * 0.587f * (fdisplay_y / fdisplay_x)) * display_x;
+	float startX = NOTATION_EDGE_DISTANCE * display_x; // Start of Stave X Coordinate
+	float finalX = (NOTATION_EDGE_DISTANCE + staveHeight * 0.3672 * aspectRatioMultiplier) * display_x; // 0.3672 comes from image aspect ratio
 
-	float startY = display_y;
-	float finalY = display_y - staveHeight * display_y;
+	float startY = display_y; // Starts from the top (ready to be transformed)
+	float finalY = display_y - staveHeight * display_y; // Height of the stave
 
 	vector<float> trebleClefVertices = {
 		finalX, startY, 1.0f, 1.0f, // Triangle Tex Coords
@@ -59,6 +66,7 @@ void notationBegin() {
 		startX, startY, 0.0f, 1.0f
 	};
 
+	// Create OpenGL Attributes & Add to Vector
 	notationVAOs.push_back(0); notationVBOs.push_back(0);
 	notationSizes.push_back(trebleClefVertices.size() / 4);
 
@@ -68,46 +76,97 @@ void notationBegin() {
 	glBindVertexArray(notationVAOs[1]);
 	glBindBuffer(GL_ARRAY_BUFFER, notationVBOs[1]);
 
+	// Add data to buffer
 	glBufferData(GL_ARRAY_BUFFER, trebleClefVertices.size() * sizeof(float), trebleClefVertices.data(), GL_STATIC_DRAW);
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
-	
+
 	glEnableVertexAttribArray(0);
 	glEnableVertexAttribArray(1);
+}
+void drawTrebleClef(float yOffset) {
+	glUseProgram(imageShader);
 
-	vertShader = createShader("Assets/Shaders/textureVert.txt", GL_VERTEX_SHADER);
-	fragShader = createShader("Assets/Shaders/textureFrag.txt", GL_FRAGMENT_SHADER);
-	imageShader = createProgram({ vertShader, fragShader });
+	glBindVertexArray(notationVAOs[1]);
+	glBindTexture(GL_TEXTURE_2D, trebleClefTexture);
 
-	// Bar Line
+	mat4 scalePositionMatrix = ortho(0.0f, static_cast<GLfloat>(display_x), 0.0f, static_cast<GLfloat>(display_y));
+	scalePositionMatrix = translate(scalePositionMatrix, vec3(0.0f, yOffset, 0.0f));
+
+	setMat4(imageShader, "scalePositionMatrix", scalePositionMatrix);
+	glDrawArrays(GL_TRIANGLES, 0, notationSizes[1]);
+}
+
+void startStaveLines() {
 	notationVAOs.push_back(0); notationVBOs.push_back(0);
-	vertices = {
+	vector<float> vertices = {};
+
+	for (int i = 0; i < 5; i++) { // 5 lines due to 5 lines on a stave
+		vertices.push_back(display_x * NOTATION_EDGE_DISTANCE); // Starts from the left
+		vertices.push_back(display_y - (i * NOTATION_LINE_GAP * display_y));
+
+		vertices.push_back(display_x - display_x * NOTATION_EDGE_DISTANCE); // ends on the right
+		vertices.push_back(display_y - (i * NOTATION_LINE_GAP * display_y));
+	}
+
+	GLuint staveSize = readyVertices(&notationVAOs[0], &notationVBOs[0], vertices, 2);
+	notationSizes.push_back(staveSize);
+}
+void drawStaveLines(float yOffset) {
+	glUseProgram(notationShader);
+
+	mat4 projectionMatrix = ortho(0.0f, static_cast<GLfloat>(display_x), 0.0f, static_cast<GLfloat>(display_y));
+	projectionMatrix = translate(projectionMatrix, vec3(0.0f, yOffset, 0.0f));
+	setMat4(notationShader, "projection", projectionMatrix);
+
+	glBindVertexArray(notationVAOs[0]);
+	glDrawArrays(GL_LINES, 0, notationSizes[0]);
+}
+
+void startBarLine() {
+	notationVAOs.push_back(0); notationVBOs.push_back(0);
+	float fdisplay_x = float(display_x);
+	float fdisplay_y = float(display_y);
+
+	vector<float> vertices = {
 		0.0f, fdisplay_y,
 		0.0f, display_y - 4.0f * NOTATION_LINE_GAP * display_y // Stave Height 
 	};
 
 	GLuint barLineSize = readyVertices(&notationVAOs[2], &notationVBOs[2], vertices, 2);
 	notationSizes.push_back(barLineSize);
+}
+void drawBarLine(float xOffset, float yOffset) {
+	glUseProgram(notationShader);
 
-	// Note Texture
+	mat4 projectionMatrix = ortho(0.0f, static_cast<GLfloat>(display_x), 0.0f, static_cast<GLfloat>(display_y));
+	projectionMatrix = translate(projectionMatrix, vec3(xOffset, yOffset, 0.0f));
+	setMat4(notationShader, "projection", projectionMatrix);
+
+	glBindVertexArray(notationVAOs[2]);
+	glDrawArrays(GL_LINES, 0, notationSizes[2]);
+}
+
+void startNotes() {
 	noteTextures.push_back(readyTexture("Assets/quarterNote.png"));
 	noteTextures.push_back(readyTexture("Assets/halfNote.png"));
 	noteTextures.push_back(readyTexture("Assets/threeQuarterNote.png"));
 	noteTextures.push_back(readyTexture("Assets/halfNote.png"));
 
 	// Note Coordinates
-	float noteSize = NOTATION_LINE_GAP;
+	float noteSize = NOTATION_LINE_GAP; // Note fills up gap between 2 stave lines
+	float aspectRatioMultiplier = float(display_y) / float(display_x);
 
-	startX = 0.0f;
-	finalX = (1.294f * (fdisplay_y / fdisplay_x) * noteSize) * display_x;
+	float startX = 0.0f;
+	float finalX = (1.294f * aspectRatioMultiplier * noteSize) * display_x; // 1.294 comes from image resolution ratio
 
-	startY = display_y;
-	finalY = display_y - noteSize * display_y;
+	float startY = display_y;
+	float finalY = display_y - noteSize * display_y;
 
+	// Declare Coordinates
 	notationNoteSize = vec2(finalX, noteSize * display_y);
-
 	vector<float> noteVertices = {
-		finalX, startY, 1.0f, 1.0f, // Triangle Tex Coords
+		finalX, startY, 1.0f, 1.0f, // Triangle Coordinates: X, Y, TexX, TexY
 		finalX, finalY, 1.0f, 0.0f,
 		startX, startY, 0.0f, 1.0f,
 
@@ -116,6 +175,7 @@ void notationBegin() {
 		startX, startY, 0.0f, 1.0f
 	};
 
+	// Start OpenGL Attributes
 	notationVAOs.push_back(0); notationVBOs.push_back(0);
 	notationSizes.push_back(noteVertices.size() / 4);
 
@@ -125,20 +185,25 @@ void notationBegin() {
 	glBindVertexArray(notationVAOs[3]);
 	glBindBuffer(GL_ARRAY_BUFFER, notationVBOs[3]);
 
+	// Load Data into Buffer
 	glBufferData(GL_ARRAY_BUFFER, noteVertices.size() * sizeof(float), noteVertices.data(), GL_STATIC_DRAW);
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
 
 	glEnableVertexAttribArray(0);
 	glEnableVertexAttribArray(1);
+}
+void startNoteLine() {
+	float staveHeight = 4.0f * NOTATION_LINE_GAP;
 
-	// Note Line
-	startX = display_y;
-	finalY = display_y - staveHeight * display_y;
+	// Create line the height of the stave
+	float startY = display_y;
+	float finalY = display_y - staveHeight * display_y;
 
-	startX = 0.0f;
-	finalX = NOTATION_NOTE_LINE_WIDTH * display_x;
+	float startX = 0.0f;
+	float finalX = NOTATION_NOTE_LINE_WIDTH * display_x;
 
+	// Declare Coordinates
 	vector<float> noteLineVertices = {
 		finalX, startY,
 		finalX, finalY,
@@ -149,10 +214,63 @@ void notationBegin() {
 		startX, startY
 	};
 
+	// Declare OpenGL Attributes
 	notationVAOs.push_back(0); notationVBOs.push_back(0);
 	GLuint noteLineSize = readyVertices(&notationVAOs[4], &notationVBOs[0], noteLineVertices, 2);
 
 	notationSizes.push_back(noteLineSize);
+}
+void drawSingularNote(vec2 noteRootPosition, float staveCenter, int noteDuration, bool sharpSign) {
+	// Draw Note Circle
+	// Set Shader Details
+	mat4 projectionMatrix = ortho(0.0f, static_cast<GLfloat>(display_x), 0.0f, static_cast<GLfloat>(display_y));
+	mat4 scalePositionMatrix = translate(projectionMatrix, vec3(noteRootPosition.x * display_x, noteRootPosition.y * display_y, 0.0f));
+
+	glUseProgram(imageShader);
+	setMat4(imageShader, "scalePositionMatrix", scalePositionMatrix);
+
+	// Draw Note
+	glBindVertexArray(notationVAOs[3]);
+	glBindTexture(GL_TEXTURE_2D, noteTextures[noteDuration - 1]);
+	glDrawArrays(GL_TRIANGLES, 0, notationSizes[3]);
+
+	if (noteDuration == 4) {
+		return; // No line for full length note
+	}
+
+	// Draw Line
+	glUseProgram(notationShader);
+	
+	float staveHeight = 4.0f * NOTATION_LINE_GAP;
+	vec2 linePosition = vec2(noteRootPosition.x * display_x, noteRootPosition.y * display_y);
+
+	// Put Line Upwards if Note Center is Low Down, if not then do the oppposite
+	if (noteRootPosition.y <= staveCenter) {
+		// Put Line Upwards
+		linePosition.x += notationNoteSize.x - NOTATION_NOTE_LINE_WIDTH * display_x;
+		linePosition.y += staveHeight * display_y - notationNoteSize.y / 2.0f;
+	}
+	else {
+		// Put Line Downwards
+		linePosition.x += NOTATION_NOTE_LINE_WIDTH * display_x;
+		linePosition.y -= notationNoteSize.y / 2.0f;
+	}
+
+	// Set Shader Details
+	projectionMatrix = translate(projectionMatrix, vec3(linePosition, 0.0f));
+	setMat4(notationShader, "projection", projectionMatrix);
+
+	// Draw
+	glBindVertexArray(notationVAOs[4]);
+	glDrawArrays(GL_TRIANGLES, 0, notationSizes[4]);
+
+	// Draw Sharp Sign
+	if (sharpSign) {
+		float textSize = NOTATION_SHARP_SIZE * (double(display_y) / 1000.0);
+
+		noteRootPosition = vec2(noteRootPosition.x * display_x, display_y + noteRootPosition.y * display_y);
+		renderText("#", noteRootPosition, 1.0f, textSize, vec3(0.0f), fontCharacters);
+	}
 }
 
 vector<bool> findKey(vector<vector<int>> notes) {
@@ -225,18 +343,16 @@ void drawKeySignature(vector<bool> keySignature, float yOffset) {
 	vector<int> keyDistances = { 0, 2, 3, 5, 6 };
 
 	float staveHeight = 4.0f * NOTATION_LINE_GAP;
-	float fdisplay_x = float(display_x);
-	float fdisplay_y = float(display_y);
+	float aspectRatioMultiplier = (float(display_y) / float(display_x));
+	float trebleClefWidth = (NOTATION_EDGE_DISTANCE + staveHeight * 0.3672 * aspectRatioMultiplier) * display_x; // 0.3672 comes from image aspect ratio
 
-	float trebleClefWidth = (NOTATION_EDGE_DISTANCE + staveHeight * 0.587f * 0.587f * (fdisplay_y / fdisplay_x)) * display_x;
 	int count = 1;
+	float textSize = NOTATION_SHARP_SIZE * (float(display_y) / 1000.0f); // Size comes from a proportion of heights
 
-	float textSize = NOTATION_SHARP_SIZE * (fdisplay_y / 1000.0f);
-
-	renderText("", vec2(320.0f, 180.0f), 1.0f, textSize, vec3(0.0f), fontCharacters); // For some reason they only render when this is here
 	for (int i = 0; i < 5; i++) {
 		if (keySignature[i]) {
-			float xPosition = trebleClefWidth + count * NOTATION_SHARP_DISTANCE * display_x;
+			float xPosition = trebleClefWidth + count * NOTATION_SHARP_DISTANCE * display_x; // Shift along by how many sharps already present
+
 			float yPosition = (1.0f + yOffset) * display_y - (3.0f * NOTATION_LINE_GAP * display_y); // Position of "A" Note
 			yPosition = yPosition + display_y * keyDistances[i] * NOTATION_LINE_GAP * 0.5f;
 			
@@ -301,7 +417,6 @@ vector<vector<int>> removeNoteRepetitions(vector<vector<int>> originalChunks) {
 
 	return resultantChunks;
 }
-
 vector<vector<pair<int, int>>> findNoteLengths(vector<vector<int>> noteChunks) {
 	vector<vector<int>> currentChunks = noteChunks;
 	vector<vector<pair<int, int>>> resultantChunks;
@@ -356,87 +471,16 @@ vector<vector<pair<int, int>>> findNoteLengths(vector<vector<int>> noteChunks) {
 	return resultantChunks;
 }
 
-void drawTrebleClef(float yOffset) {
-	glUseProgram(imageShader);
-
-	glBindVertexArray(notationVAOs[1]);
-	glBindTexture(GL_TEXTURE_2D, trebleClefTexture);
-
-	mat4 scalePositionMatrix = ortho(0.0f, static_cast<GLfloat>(display_x), 0.0f, static_cast<GLfloat>(display_y));
-	scalePositionMatrix = translate(scalePositionMatrix, vec3(0.0f, yOffset, 0.0f));
-
-	setMat4(imageShader, "scalePositionMatrix", scalePositionMatrix);
-	glDrawArrays(GL_TRIANGLES, 0, notationSizes[1]);
-}
-void drawBarLine(float xOffset, float yOffset) {
-	glUseProgram(notationShader);
-
-	mat4 projectionMatrix = ortho(0.0f, static_cast<GLfloat>(display_x), 0.0f, static_cast<GLfloat>(display_y));
-	projectionMatrix = translate(projectionMatrix, vec3(xOffset, yOffset, 0.0f));
-	setMat4(notationShader, "projection", projectionMatrix);
-
-	glBindVertexArray(notationVAOs[2]);
-	glDrawArrays(GL_LINES, 0, notationSizes[2]);
-}
-
-void drawSingularNote(vec2 noteRootPosition, float staveCenter, int noteDuration, bool sharpSign) {
-	// Note Circle
-	glUseProgram(imageShader);
-	mat4 projectionMatrix = ortho(0.0f, static_cast<GLfloat>(display_x), 0.0f, static_cast<GLfloat>(display_y));
-
-	glBindVertexArray(notationVAOs[3]);
-	glBindTexture(GL_TEXTURE_2D, noteTextures[noteDuration - 1]);
-
-	mat4 scalePositionMatrix = translate(projectionMatrix, vec3(noteRootPosition.x * display_x, noteRootPosition.y * display_y, 0.0f));
-	setMat4(imageShader, "scalePositionMatrix", scalePositionMatrix);
-
-	glDrawArrays(GL_TRIANGLES, 0, notationSizes[3]);
-
-	if (noteDuration == 4) {
-		return; // No line for full length note
-	}
-
-	// Draw Line
-	glUseProgram(notationShader);
-	float staveHeight = 4.0f * NOTATION_LINE_GAP;
-	vec2 linePosition = vec2(noteRootPosition.x * display_x, noteRootPosition.y * display_y);
-
-	if (noteRootPosition.y * display_y <= staveCenter * display_y) {
-		// Put Line Upwards
-		linePosition.x += notationNoteSize.x - NOTATION_NOTE_LINE_WIDTH * display_x;
-		linePosition.y += staveHeight * display_y - notationNoteSize.y / 2.0f;
-	}
-	else {
-		// Put Line Downwards
-		linePosition.x += NOTATION_NOTE_LINE_WIDTH * display_x;
-		linePosition.y -= notationNoteSize.y / 2.0f;
-	}
-	
-	projectionMatrix = translate(projectionMatrix, vec3(linePosition, 0.0f));
-	setMat4(notationShader, "projection", projectionMatrix);
-
-	glBindVertexArray(notationVAOs[4]);
-	glDrawArrays(GL_TRIANGLES, 0, notationSizes[4]);
-
-	// Draw Sharp Sign
-	if (sharpSign) {
-		float textSize = NOTATION_SHARP_SIZE * (double(display_y) / 1000.0);
-		
-		noteRootPosition = vec2(noteRootPosition.x * display_x, display_y + noteRootPosition.y * display_y);
-		renderText("#", noteRootPosition, 1.0f, textSize, vec3(0.0f), fontCharacters);
-	}
-}
 void drawNotes(vector<vector<pair<int, int>>> notes, vector<bool> keySignature) {
 	// Calculate Distance Up To First Note
-	float fdisplay_x = float(display_x);
-	float fdisplay_y = float(display_y);
-
 	// Treble Clef Width
 	float staveHeight = 4.0f * NOTATION_LINE_GAP;
-	float trebleClefWidth = staveHeight * 0.587f * 0.587f * (fdisplay_y / fdisplay_x);
+	float aspectRatioMultiplier = float(display_y) / float(display_x);
+
+	float edgeOfTrebleClef = NOTATION_EDGE_DISTANCE + staveHeight * 0.3672 * aspectRatioMultiplier; // 0.3672 comes from image aspect ratio
 
 	// Key Signature Width
-	int signatureCount = 2;
+	int signatureCount = 2; // 2 Due to Edge Gaps
 
 	int signatureSize = keySignature.size();
 	for (int i = 0; i < signatureSize; i++) {
@@ -449,61 +493,59 @@ void drawNotes(vector<vector<pair<int, int>>> notes, vector<bool> keySignature) 
 
 	// Draw Notes
 	int currentStave = 0;
+
 	float currentYPosition = -NOTATION_EDGE_DISTANCE - NOTATION_MAX_LEDGER_LINES * NOTATION_LINE_GAP;
-	float initialNoteXPosition = NOTATION_EDGE_DISTANCE + trebleClefWidth + keySignatureWidth;
+	float initialNoteXPosition = edgeOfTrebleClef + keySignatureWidth;
 
-	int noteCount = notes.size();
-	int notesPerLine = NOTATION_CHUNKS_PER_LINE * (fdisplay_x / 1000.0f);
-	float noteGapDistance = (1.0f - NOTATION_EDGE_DISTANCE - initialNoteXPosition) / float(notesPerLine);
+	int notesPerLine = NOTATION_CHUNKS_PER_LINE * (float(display_x) / 1000.0f); // Notes per line is proportional to screen width
+	float noteGapDistance = (1.0f - NOTATION_EDGE_DISTANCE - initialNoteXPosition) / float(notesPerLine); // Line Length / notes per line
 
+	// Shift only by natural note distance (because c# for example is no higher on the stave than c)
 	vector<int> naturalNoteIndex = { 0, 0, 1, 2, 2, 3, 3, 4, 5, 5, 6, 6 };
 	vector<bool> isNaturalNote = { true, false, true, true, false, true, false, true, true, false, true, false };
 
+	// Iterate over note chunks
+	int noteCount = notes.size();
+
 	for (int i = 0; i < noteCount; i++) {
+		// Calculate x Position of notes on the stave line
 		int noteStaveIndex = i % notesPerLine;
 		float currentXPosition = initialNoteXPosition + noteGapDistance * noteStaveIndex;
 		
+		// Iterate over individual notes
 		int subNoteCount = notes[i].size();
-		for (int j = 0; j < subNoteCount; j++) {
-			// Current Y Position is Top E (Top Stave Line) - Note 31
-			// Shift Accordingly to note
 
+		for (int j = 0; j < subNoteCount; j++) {
+			// Current Y Position is Top E (Top Stave Line) - Note 31 
+			// Calculate Y Position of Note
 			int distanceFromE = 31 - notes[i][j].first;
 			int octaveCount = floor(double(distanceFromE) / 12.0);
 
 			int noteDistance = octaveCount * 7.0f + naturalNoteIndex[distanceFromE % 12];
 			float finalYPosition = currentYPosition - noteDistance * NOTATION_LINE_GAP * 0.5f;
 
+			// Check if key signature applies to this note
 			bool requiresSharp = false;
 			if (isNaturalNote[notes[i][j].first % 12] && !keySignature[naturalNoteIndex[distanceFromE % 12]]) {
 				requiresSharp = true;
 			}
 
+			 // Render
 			drawSingularNote(vec2(currentXPosition, finalYPosition), currentYPosition - NOTATION_LINE_GAP * 2.0f, notes[i][j].second, requiresSharp);
 		}
 
-		// Draw Bar Lines
+		// Draw Bar Lines if 4 notes have occured (4 beats per bar)
 		if (i % 4 == 0 && i > 0) {
 			float barLineXPosition = currentXPosition;
 			drawBarLine(barLineXPosition * display_x, currentYPosition * display_y);
 		}
 
+		// Check if note is the last of the line, if so calculate new base y position
 		if (noteStaveIndex == notesPerLine - 1) {
 			currentStave = currentStave + 1;
 			currentYPosition = currentYPosition - (5 * NOTATION_LINE_GAP + NOTATION_EDGE_DISTANCE + 2 * NOTATION_MAX_LEDGER_LINES * NOTATION_LINE_GAP);
 		}
 	}
-}
-
-void drawStaveLines(float yOffset) {
-	glUseProgram(notationShader);
-
-	mat4 projectionMatrix = ortho(0.0f, static_cast<GLfloat>(display_x), 0.0f, static_cast<GLfloat>(display_y));
-	projectionMatrix = translate(projectionMatrix, vec3(0.0f, yOffset, 0.0f));
-	setMat4(notationShader, "projection", projectionMatrix);
-
-	glBindVertexArray(notationVAOs[0]);
-	glDrawArrays(GL_LINES, 0, notationSizes[0]);
 }
 void drawNotation(vector<vector<pair<int, int>>> notes, vector<bool> keySignature) {
 	int chunkCount = notes.size();
