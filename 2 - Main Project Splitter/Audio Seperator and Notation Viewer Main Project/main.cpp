@@ -23,49 +23,31 @@ int main() {
 		false, // use binary mask for output
 		0.025f, // binary mask threshold
 	};
-
-	vector<vector<float>> inputSet = generateInputs(audioConfig);
-	vector<vector<float>> outputSet = generateOutputs(audioConfig);
-	cout << "Complete Dataset Size: " << inputSet.size() << endl;
-
+	
+	// Train Config
 	NeuralNetwork::standardTrainConfig newConfig = NeuralNetwork::standardTrainConfig();
 	
-	newConfig.epochs = 10;
-	newConfig.learningRate = 0.25f;
-	newConfig.momentum = 0.0f;
-
-	newConfig.trainInputs = inputSet;
-	newConfig.trainOutputs = outputSet;
-
-	newConfig.naturalSelection.population = 10;
-	newConfig.naturalSelection.parentCount = 2;
-
-	newConfig.naturalSelection.fitnessFunctionType = ABSOLUTE_ERROR;
-	newConfig.naturalSelection.parentSelectionMethod = TOP_PARENTS;
-
-	newConfig.naturalSelection.breedingMethod = WEIGHTED_PARENTS;
-	newConfig.naturalSelection.useChildMutation = true;
-
-	newConfig.naturalSelection.useStochasticDataset = true;
-	newConfig.naturalSelection.stochasticDatasetSize = 1500;
-	newConfig.naturalSelection.useThreading = true;
-
-	newConfig.naturalSelection.selectionAllowedActivations = ACTIVATION_SIGMOID_ONLY;
-	newConfig.naturalSelection.selectionConvergenceCounter = 5;
-	newConfig.naturalSelection.selectionConvergenceValue = 10.0f;
-
-	newConfig.naturalSelection.selectionMinLayers = 3;
-	newConfig.naturalSelection.selectionMaxLayers = 18;
+	newConfig.trainType = STOCHASTIC_GRADIENT_DESCENT;
+	newConfig.epochs = 200;
 	
-	newConfig.naturalSelection.selectionMinNodes = 1;
-	newConfig.naturalSelection.selectionMaxNodes = 640;
+	newConfig.gradientDescent.learningRateType = CYCLICAL_LEARNING_RATE;
+	newConfig.learningRate = 1.0f;
+	newConfig.momentum = 0.25f;
 
-	newConfig.naturalSelection.selectionMinBias = 1;
-	newConfig.naturalSelection.selectionMaxBias = 5;
+	newConfig.gradientDescent.useAllSongDataset = true;
+	newConfig.gradientDescent.batchSize = 100 * 200; // 100 songs * 200 per song
+	newConfig.gradientDescent.datasetAudioConfig = audioConfig;
 
-	NeuralNetwork newNetwork = NeuralNetwork::architechtureNaturalSelection(newConfig);
-	createOutputTestTrack(newNetwork, audioConfig);	
+	// Train Network
+	vector<int> nodes = { 256, 384, 128, 128, 128, 512, 640, 384, 384, 384, 32 };
+	vector<int> bias = { 2, 1, 3, 1, 3, 3, 3, 2, 2, 4, 0 };
+	vector<int> activations = { SIGMOID, SIGMOID, SIGMOID, SIGMOID, SIGMOID, SIGMOID, SIGMOID, SIGMOID, SIGMOID, SIGMOID, SIGMOID };
+	
+	NeuralNetwork vocalNetwork = NeuralNetwork(nodes, bias, activations);
+	vocalNetwork.train(newConfig);
 
+	createOutputTestTrack(vocalNetwork, audioConfig);	
 	system("pause");
+
 	return 0;
 }

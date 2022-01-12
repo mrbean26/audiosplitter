@@ -13,21 +13,6 @@ vector<string> readFile(const char* fileName);
 vector<string> splitStringByCharacter(string used, char splitter);
 
 // Classes
-struct audioFileConfig {
-	int samplesPerChunk = 2048;
-	int samplesPerOverlap = 2048;
-
-	int frequencyResolution = 128;
-	int chunkBorder = 4;
-
-	int startFileIndex = 1;
-	int songCount = 1;
-
-	float spectrogramEmphasis = 2.0f; // "No emphasis" = 1.0f
-
-	bool useOutputBinaryMask = false;
-	float binaryMaskThreshold = 0.025f;
-};
 struct outputImageConfig {
 	vector<float> errors;
 
@@ -47,6 +32,8 @@ struct outputImageConfig {
 vector<vector<float>> generateInputs(audioFileConfig config);
 vector<vector<float>> generateOutputs(audioFileConfig config);
 void createOutputTestTrack(NeuralNetwork network, audioFileConfig config);
+
+pair<vector<vector<float>>, vector<vector<float>>> generateAllSongDataSet(audioFileConfig config, int chunksPerSong);
 
 // Image
 vector<vector<float>> addCharacterToImage(vector<vector<float>> data, int character, int xMidpoint, int yMidpoint);

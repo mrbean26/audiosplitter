@@ -5,7 +5,21 @@
 #include <iostream>
 using namespace std;
 
-#include "files.h"
+struct audioFileConfig {
+	int samplesPerChunk = 2048;
+	int samplesPerOverlap = 2048;
+
+	int frequencyResolution = 128;
+	int chunkBorder = 4;
+
+	int startFileIndex = 1;
+	int songCount = 1;
+
+	float spectrogramEmphasis = 2.0f; // "No emphasis" = 1.0f
+
+	bool useOutputBinaryMask = false;
+	float binaryMaskThreshold = 0.025f;
+};
 
 pair<vector<vector<float>>, float> spectrogramOutput(const char* mp3Filename, audioFileConfig audioConfig);
 vector<int16_t> vocalSamples(const char* fullFileNameMP3, vector<vector<float>> networkOutput, audioFileConfig audioConfig);

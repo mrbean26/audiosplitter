@@ -6,6 +6,7 @@
 #include "Headers/minimp3.h"
 #include "Headers/minimp3_ex.h"
 
+#include "Headers/files.h"
 #include "Headers/fftw3.h"
 
 // General

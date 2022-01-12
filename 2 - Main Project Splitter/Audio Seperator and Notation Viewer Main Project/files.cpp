@@ -165,6 +165,37 @@ void createOutputTestTrack(NeuralNetwork network, audioFileConfig config) {
 	writeToWAV("testTrackOutput.wav", testTrackOutputSamples);
 }
 
+pair<vector<vector<float>>, vector<vector<float>>> generateAllSongDataSet(audioFileConfig config, int chunksPerSong) {
+	vector<vector<float>> resultantInputs;
+	vector<vector<float>> resultantOutputs;
+
+	config.startFileIndex = 0;
+	config.songCount = 1;
+
+	cout << "Loaded Song: ";
+	for (int i = 0; i < 100; i++) { // 100 song count
+		config.startFileIndex = config.startFileIndex + 1; // Go onto next file
+
+		vector<vector<float>> songInputs = generateInputs(config);
+		vector<vector<float>> songOutputs = generateOutputs(config);
+
+		// Make sure randomly taken samples are regularly distributed across the song
+		int miniBatchSize = songInputs.size() / chunksPerSong;
+
+		for (int j = 0; j < chunksPerSong; j++) {
+			int currentIndex = (i * miniBatchSize) + (rand() % miniBatchSize);
+
+			resultantInputs.push_back(songInputs[currentIndex]);
+			resultantOutputs.push_back(songOutputs[currentIndex]);
+		}
+		cout << i + 1 << ", ";
+	}
+	cout << endl;
+	
+	pair<vector<vector<float>>, vector<vector<float>>> resultantDataset = make_pair(resultantInputs, resultantOutputs);
+	return resultantDataset;
+}
+
 // Image
 vector<vector<float>> addCharacterToImage(vector<vector<float>> data, int character, int xMidpoint, int yMidpoint) {
 	vector<vector<float>> characterPixels; // 5 x 5

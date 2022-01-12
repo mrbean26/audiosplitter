@@ -12,10 +12,10 @@
 #include <math.h>
 #include <stdlib.h>
 
+#include "audio.h"
 using namespace std;
 
 string vectorToString(vector<float> used);
-struct audioFileConfig;
 
 #define SIGMOIDAL_STEP_FUNCTION_MULTIPLIER 5
 
@@ -76,6 +76,9 @@ public:
         // Stochastic Gradient Descent
         int entireBatchEpochIntervals = 500; // Every x epochs, the entire dataset is run
         int batchSize = 50;
+
+        audioFileConfig datasetAudioConfig; // Used for generating dataset
+        bool useAllSongDataset = false;
     } gradientDescent;
     static struct resistantPropagationConfig {
         float rpropWeightDecreaseMultiplier = 0.5f;

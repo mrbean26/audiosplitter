@@ -235,7 +235,7 @@ void NeuralNetwork::setupNetworkForTraining(standardTrainConfig trainConfig) {
 vector<float> NeuralNetwork::train(standardTrainConfig trainConfig) {
     vector<float> result;
     setupNetworkForTraining(trainConfig);
-
+    
     if (trainConfig.trainType == STOCHASTIC_GRADIENT_DESCENT) {
         result = trainStochasticGradientDescent(trainConfig);
     }
@@ -685,32 +685,38 @@ vector<float> NeuralNetwork::trainGradientDescent(standardTrainConfig trainConfi
 // Stochastic Gradient Descent (select a few random train inputs)
 vector<float> NeuralNetwork::trainStochasticGradientDescent(standardTrainConfig trainConfig) {
     // Useful Integers Calculated Before Iteration
-    int trainDataCount = trainConfig.trainInputs.size();
-    int miniBatchSize = trainConfig.trainInputs.size() / trainConfig.gradientDescent.batchSize;
-    int outputCount = trainConfig.trainOutputs[0].size();
-
-    vector<float> result;
+    vector<vector<float>> usedInputs;
+    vector<vector<float>> usedOutputs;
+    
+    vector<float> resultantErrors;
     for (int epoch = 0; epoch < trainConfig.epochs; epoch++) {
         // Create Random Sectional Indexes for Stochastic Training Unless Epoch is Divisible by Full Dataset Test Parameter
-        vector<int> trainIndexes;
-        int currentBatchSize = 0;
-
         // Create Mini Dataset
-        if ((epoch + 1) % trainConfig.gradientDescent.entireBatchEpochIntervals == 0) {
-            for (int i = 0; i < trainDataCount; i++) {
-                trainIndexes.push_back(i);
-            }
+        if (!trainConfig.gradientDescent.useAllSongDataset) {
+            int miniBatchSize = trainConfig.trainInputs.size() / trainConfig.gradientDescent.batchSize;
 
-            currentBatchSize = trainDataCount;
-        }
-        else {
-            for (int i = 0; i < trainConfig.gradientDescent.batchSize; i++) {
-                int newIndex = (i * miniBatchSize) + (rand() % miniBatchSize);
-                trainIndexes.push_back(newIndex);
+            if ((epoch + 1) % trainConfig.gradientDescent.entireBatchEpochIntervals == 0) {
+                usedInputs = trainConfig.trainInputs;
+                usedOutputs = trainConfig.trainOutputs;
             }
+            else {
+                for (int i = 0; i < trainConfig.gradientDescent.batchSize; i++) {
+                    int newIndex = (i * miniBatchSize) + (rand() % miniBatchSize);
 
-            currentBatchSize = trainConfig.gradientDescent.batchSize;
+                    usedInputs.push_back(trainConfig.trainInputs[newIndex]);
+                    usedOutputs.push_back(trainConfig.trainOutputs[newIndex]);
+                }
+            }
         }
+        if (trainConfig.gradientDescent.useAllSongDataset) {
+            int chunksPerSong = trainConfig.gradientDescent.batchSize / 100; // / song count
+            pair<vector<vector<float>>, vector<vector<float>>> allSongMiniDataset = generateAllSongDataSet(trainConfig.gradientDescent.datasetAudioConfig, chunksPerSong);
+            
+            usedInputs = allSongMiniDataset.first;
+            usedOutputs = allSongMiniDataset.second;
+        }
+
+        int outputCount = usedOutputs[0].size();
 
         // Calculate Current Learning Rate
         float currentLearningRate = trainConfig.learningRate;
@@ -738,15 +744,14 @@ vector<float> NeuralNetwork::trainStochasticGradientDescent(standardTrainConfig 
 
         // Adjust Parameters
         float totalError = 0.0f;
-        for (int t = 0; t < trainIndexes.size(); t++) {
-            int currentIndex = trainIndexes[t];
-            vector<float> result = predict(trainConfig.trainInputs[currentIndex]);
+        for (int t = 0; t < usedInputs.size(); t++) {
+            vector<float> result = predict(usedInputs[t]);
 
             // Calculate Differences In Actual Output
             vector<float> errors;
             for (int e = 0; e < outputCount; e++) {
-                totalError += abs(trainConfig.trainOutputs[currentIndex][e] - result[e]);
-                errors.push_back(trainConfig.trainOutputs[currentIndex][e] - result[e]);
+                totalError += abs(usedOutputs[t][e] - result[e]);
+                errors.push_back(usedOutputs[t][e] - result[e]);
             }
 
             calculateDerivatives(errors);
@@ -768,13 +773,11 @@ vector<float> NeuralNetwork::trainStochasticGradientDescent(standardTrainConfig 
         // Reset Network
         reactivateNodes();
 
-        float approximateTotalDatasetError = totalError * (float(trainDataCount) / float(currentBatchSize));
-        cout << "Epoch: " << epoch + 1 << " / " << trainConfig.epochs << ", Approximate total error from epoch: " << approximateTotalDatasetError << ", Layers: " << layerCount << ", LR:" << currentLearningRate << endl;
-
-        result.push_back(approximateTotalDatasetError);
+        cout << "Epoch: " << epoch + 1 << " / " << trainConfig.epochs << ", Approximate total error from epoch: " << totalError << ", Layers: " << layerCount << ", LR:" << currentLearningRate << endl;
+        resultantErrors.push_back(totalError);
     }
 
-    return result;
+    return resultantErrors;
 }
 
 // Resistant Propagation
@@ -2018,7 +2021,6 @@ float NeuralNetwork::measureArchitechtureFitness(standardTrainConfig trainConfig
         }
 
         previousError = totalError;
-        cout << previousError << endl;
     }
 
     cout << "Network finished, final error: " << previousError << endl;
