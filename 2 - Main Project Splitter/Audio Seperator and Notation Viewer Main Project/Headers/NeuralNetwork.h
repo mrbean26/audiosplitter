@@ -77,6 +77,7 @@ public:
         int entireBatchEpochIntervals = 500; // Every x epochs, the entire dataset is run
         int batchSize = 50;
 
+        int datasetRefreshInterval = 5; // Refresh dataset every x epochs
         audioFileConfig datasetAudioConfig; // Used for generating dataset
         bool useAllSongDataset = false;
     } gradientDescent;

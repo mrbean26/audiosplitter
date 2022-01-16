@@ -190,7 +190,7 @@ pair<vector<vector<float>>, vector<vector<float>>> generateAllSongDataSet(audioF
 		}
 		cout << i + 1 << ", ";
 	}
-	cout << endl;
+	cout << "Dataset Size: " << resultantInputs.size() << endl;
 	
 	pair<vector<vector<float>>, vector<vector<float>>> resultantDataset = make_pair(resultantInputs, resultantOutputs);
 	return resultantDataset;

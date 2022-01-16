@@ -709,11 +709,13 @@ vector<float> NeuralNetwork::trainStochasticGradientDescent(standardTrainConfig 
             }
         }
         if (trainConfig.gradientDescent.useAllSongDataset) {
-            int chunksPerSong = trainConfig.gradientDescent.batchSize / 100; // / song count
-            pair<vector<vector<float>>, vector<vector<float>>> allSongMiniDataset = generateAllSongDataSet(trainConfig.gradientDescent.datasetAudioConfig, chunksPerSong);
-            
-            usedInputs = allSongMiniDataset.first;
-            usedOutputs = allSongMiniDataset.second;
+            if (epoch % trainConfig.gradientDescent.datasetRefreshInterval == 0) { // Time to refresh dataset
+                int chunksPerSong = trainConfig.gradientDescent.batchSize / 100; // / song count
+                pair<vector<vector<float>>, vector<vector<float>>> allSongMiniDataset = generateAllSongDataSet(trainConfig.gradientDescent.datasetAudioConfig, chunksPerSong);
+
+                usedInputs = allSongMiniDataset.first;
+                usedOutputs = allSongMiniDataset.second;
+            }
         }
 
         int outputCount = usedOutputs[0].size();

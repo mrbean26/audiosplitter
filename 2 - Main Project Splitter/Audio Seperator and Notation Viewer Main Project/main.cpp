@@ -30,24 +30,26 @@ int main() {
 	newConfig.trainType = STOCHASTIC_GRADIENT_DESCENT;
 	newConfig.epochs = 200;
 	
-	newConfig.gradientDescent.learningRateType = CYCLICAL_LEARNING_RATE;
+	newConfig.gradientDescent.learningRateType = DECREASING_LEARNING_RATE;
 	newConfig.learningRate = 1.0f;
 	newConfig.momentum = 0.25f;
 
+	newConfig.gradientDescent.datasetRefreshInterval = 5;
 	newConfig.gradientDescent.useAllSongDataset = true;
 	newConfig.gradientDescent.batchSize = 100 * 200; // 100 songs * 200 per song
 	newConfig.gradientDescent.datasetAudioConfig = audioConfig;
 
 	// Train Network
-	vector<int> nodes = { 256, 384, 128, 128, 128, 512, 640, 384, 384, 384, 32 };
-	vector<int> bias = { 2, 1, 3, 1, 3, 3, 3, 2, 2, 4, 0 };
+	vector<int> nodes = { 256, 448, 256, 64, 768, 448, 384, 256, 256, 448, 32 };
+	vector<int> bias = { 3, 5, 3, 5, 5, 1, 2, 3, 1, 5, 0 };
 	vector<int> activations = { SIGMOID, SIGMOID, SIGMOID, SIGMOID, SIGMOID, SIGMOID, SIGMOID, SIGMOID, SIGMOID, SIGMOID, SIGMOID };
 	
-	NeuralNetwork vocalNetwork = NeuralNetwork(nodes, bias, activations);
-	vocalNetwork.train(newConfig);
+	NeuralNetwork bassNetwork = NeuralNetwork(nodes, bias, activations);
+	bassNetwork.train(newConfig);
 
-	createOutputTestTrack(vocalNetwork, audioConfig);	
+	bassNetwork.saveWeightsToFile("bassOutputWeights.dat");
+	createOutputTestTrack(bassNetwork, audioConfig);	
+
 	system("pause");
-
 	return 0;
 }
