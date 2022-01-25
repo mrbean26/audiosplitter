@@ -11,9 +11,6 @@ int main() {
 	float addedOutputError = 0.005f; // Make output not as perfect to make it more realistic
 	float percentageFilter = 0.75f; // Filter bottom 10%
 
-	vector<int> tunings = { 7, 12, 17, 22, 26, 31 }; // Guitar Standard Tuning
-	vector<int> maxFrets = { 21, 21, 21, 21, 21, 21 };
-
 	// Load Fully Correct NeuralNet Output
 	pair<vector<vector<float>>, float> correctOutput = spectrogramOutput("ascendingStrings.mp3", samplesPerChunk, samplesPerChunk, frequencyResolution);
 	correctOutput = addSpectrogramError(correctOutput, addedOutputError);
@@ -22,23 +19,27 @@ int main() {
 	vector<vector<float>> filteredOutput = percentageFiltering(correctOutput.first, percentageFilter);
 	vector<vector<int>> filteredNotes = returnNoteFormat(filteredOutput);
 
-	saveNoteFormat(filteredNotes, 6, "outputNotes.audio");
-	vector<vector<int>> loadedNotes = loadNoteFormat("outputNotes.audio");
+	instrumentConfig newInstrumentConfig;
+	newInstrumentConfig.tunings = { 7, 12, 17, 22, 26, 31 }; // Guitar Standard Tuning
+	newInstrumentConfig.maxFrets = { 21, 21, 21, 21, 21, 21 };
+	newInstrumentConfig.stringCount = 6;
+
+	saveNoteFormat({ make_pair(newInstrumentConfig, filteredNotes) }, "outputNotes.audio");
+	vector<pair<instrumentConfig, vector<vector<int>>>> loadedNotes = loadNoteFormat("outputNotes.audio");
 
 	// Graphics Rendering
 	if (!startOpenGL(window, 1280, 720)) {
 		return -1;
 	}
-	notationViewer newNotationViewer = notationViewer(loadedNotes);
-	tabViewer newTabViewer = tabViewer(loadedNotes, tunings, maxFrets, { 6 });
+	notationViewer newNotationViewer = notationViewer(loadedNotes[0].second);
+	tabViewer newTabViewer = tabViewer(loadedNotes[0].second, loadedNotes[0].first.tunings, loadedNotes[0].first.maxFrets, { loadedNotes[0].first.stringCount });
 
 	textsBegin();
-
 	while (!glfwWindowShouldClose(window)) {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		//newTabViewer.drawTab();
-		newNotationViewer.drawNotation();
+		newTabViewer.drawTab();
+		//newNotationViewer.drawNotation();
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();

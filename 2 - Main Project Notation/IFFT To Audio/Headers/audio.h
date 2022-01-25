@@ -15,7 +15,14 @@ vector<vector<float>> percentageFiltering(vector<vector<float>> inputSpectrogram
 vector<vector<int>> returnNoteFormat(vector<vector<float>> filteredSpectrogram);
 vector<vector<int>> notesToFrets(vector<vector<int>> notes, vector<int> tunings, vector<int> maxFrets);
 
-void saveNoteFormat(vector<vector<int>> format, int stringCount, const char * fileName);
-vector<vector<int>> loadNoteFormat(const char* fileName);
+// Note format is vector (of instruments), then vector (of chunks), then vector (of notes)
+struct instrumentConfig {
+	int stringCount;
+	vector<int> tunings;
+	vector<int> maxFrets;
+};
+
+void saveNoteFormat(vector<pair<instrumentConfig, vector<vector<int>>>> format, const char* fileName);
+vector<pair<instrumentConfig, vector<vector<int>>>> loadNoteFormat(const char* fileName);
 
 #endif // !AUDIO_H

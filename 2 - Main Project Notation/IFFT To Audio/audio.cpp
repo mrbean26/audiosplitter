@@ -271,48 +271,97 @@ vector<vector<int>> notesToFrets(vector<vector<int>> notes, vector<int> tunings,
 	return result;
 }
 
-void saveNoteFormat(vector<vector<int>> format, int stringCount, const char* fileName) {
+// Note format is vector (of instruments), then vector (of chunks), then vector (of notes)
+void saveNoteFormat(vector<pair<instrumentConfig, vector<vector<int>>>> format, const char* fileName) {
 	ofstream outputFile(fileName, ios::out | ios::binary);
 
-	int8_t oneByteStringCount = stringCount;
-	outputFile.write((char*)&oneByteStringCount, sizeof(oneByteStringCount));
+	char chunkSplitCharacter = 255;
+	char instrumentSplitCharacter = 254;
+	
+	int instrumentCount = format.size();
+	for (int i = 0; i < instrumentCount; i++) {
+		// Convert instrument data to one byte integers
+		int8_t stringCount = format[i].first.stringCount;
+		vector<int8_t> stringTunings(format[i].first.tunings.begin(), format[i].first.tunings.end());
+		vector<int8_t> maxFrets(format[i].first.maxFrets.begin(), format[i].first.maxFrets.end());
 
-	char splitCharacter = 255;
-	int chunkCount = format.size();
+		// Write one byte integers to file
+		outputFile.write((char*)&stringCount, sizeof(stringCount));
 
-	for (int i = 0; i < chunkCount; i++) {
-		int noteCount = format[i].size();
-
-		for (int j = 0; j < noteCount; j++) {
-			int8_t currentNote = format[i][j];
-			outputFile.write((char*)&currentNote, sizeof(currentNote));
+		for (int j = 0; j < stringCount; j++) {
+			outputFile.write((char*)&stringTunings[j], sizeof(stringTunings[j]));
+		}
+		for (int j = 0; j < stringCount; j++) {
+			outputFile.write((char*)&maxFrets[j], sizeof(maxFrets[j]));
 		}
 
-		outputFile << splitCharacter;
+		// Write note chunks to file
+		int chunkCount = format[i].second.size();
+		for (int j = 0; j < chunkCount; j++) {
+			int noteCount = format[i].second[j].size();
+
+			for (int k = 0; k < noteCount; k++) {
+				int8_t currentNote = format[i].second[j][k];
+				outputFile.write((char*)&currentNote, sizeof(currentNote));
+			}
+
+			outputFile << chunkSplitCharacter;
+		}
+
+		// split file to new instrument
+		outputFile << instrumentSplitCharacter;
 	}
 
 	outputFile.close();
 }
-vector<vector<int>> loadNoteFormat(const char* fileName) {
+vector<pair<instrumentConfig, vector<vector<int>>>> loadNoteFormat(const char* fileName) {
 	ifstream inputFile(fileName, ios::in | ios::binary);
-	
-	char currentCharacter = inputFile.get();
-	int stringCount = (int)currentCharacter;
-	currentCharacter = inputFile.get();
+	char currentCharacter;
 
-	vector<vector<int>> resultantFormat;
+	//int stringCount = (int)currentCharacter;
+	//currentCharacter = inputFile.get();
+
+	vector<pair<instrumentConfig, vector<vector<int>>>> resultantFormat;
+	pair<instrumentConfig, vector<vector<int>>> currentInstrument;
+	currentInstrument.first.stringCount = -1; // Used as a check if instrument config has been decoded already, starts with false
+
 	vector<int> currentChunk;
 
 	while (inputFile.good()) {
-		if ((int)currentCharacter == -1) {
-			resultantFormat.push_back(currentChunk);
+		currentCharacter = inputFile.get();
+
+		if ((int)currentCharacter == -1) { // chunk split character
+			currentInstrument.second.push_back(currentChunk);
 			currentChunk.clear();
 		}
-		else {
+		if ((int)currentCharacter == -2) { // Instrument split character
+			resultantFormat.push_back(currentInstrument);
+			currentInstrument.second.clear();
+
+			currentInstrument.first.maxFrets.clear();
+			currentInstrument.first.tunings.clear();
+			currentInstrument.first.stringCount = -1;
+
+			currentChunk.clear();
+		}
+		
+		// Load notes
+		if ((int)currentCharacter >= 0 && currentInstrument.first.stringCount > -1) {
 			currentChunk.push_back((int)currentCharacter);
 		}
+		// load instrument config
+		if ((int)currentCharacter >= 0 && currentInstrument.first.stringCount == -1) {
+			currentInstrument.first.stringCount = (int)currentCharacter;
 
-		currentCharacter = inputFile.get();
+			// Tunings are stored first
+			for (int i = 0; i < currentInstrument.first.stringCount; i++) {
+				currentInstrument.first.tunings.push_back((int)inputFile.get());
+			}
+			// max frets are stored first
+			for (int i = 0; i < currentInstrument.first.stringCount; i++) {
+				currentInstrument.first.maxFrets.push_back((int)inputFile.get());
+			}
+		}
 	}
 
 	return resultantFormat;
