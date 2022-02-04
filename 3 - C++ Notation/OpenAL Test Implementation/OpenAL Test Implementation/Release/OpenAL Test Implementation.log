@@ -1,6 +1,6 @@
 ﻿  main.cpp
-D:\Projects\Audio Splitter App\3 - C++ Notation\OpenAL Test Implementation\OpenAL Test Implementation\main.cpp(31,68): warning C4244: '=': conversion from 'double' to 'ALshort', possible loss of data
-D:\Projects\Audio Splitter App\3 - C++ Notation\OpenAL Test Implementation\OpenAL Test Implementation\main.cpp(32,77): warning C4244: '=': conversion from 'double' to 'ALshort', possible loss of data
+D:\Projects\Audio Splitter App\3 - C++ Notation\OpenAL Test Implementation\OpenAL Test Implementation\main.cpp(31,82): warning C4244: '=': conversion from 'double' to 'ALshort', possible loss of data
+D:\Projects\Audio Splitter App\3 - C++ Notation\OpenAL Test Implementation\OpenAL Test Implementation\main.cpp(32,91): warning C4244: '=': conversion from 'double' to 'ALshort', possible loss of data
   Generating code
   1 of 4 functions (25.0%) were compiled, the rest were copied from previous compilation.
     0 functions were new in current compilation

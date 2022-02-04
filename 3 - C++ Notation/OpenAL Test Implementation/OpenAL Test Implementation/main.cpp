@@ -7,16 +7,16 @@
 // Example page - https://ffainelli.github.io/openal-example/
 // Page i found this code - https://github.com/hideyuki/openal-sine-wave
 
-#define SECOND 1
+#define SECOND 2.0f
 #define SAMPLING_HZ 44100
 #define BUFFER_LENGTH (SECOND * SAMPLING_HZ)
-#define SOUND_HZ 440
+#define SOUND_HZ 1000.0f
 #define M_PI 3.14159265359
 
 int main() {
     ALCdevice* device;
     ALCcontext* context;
-    ALshort data[BUFFER_LENGTH * 2];
+    ALshort data[int(BUFFER_LENGTH) * 2];
     ALuint buffer, source;
     int i;
 
@@ -28,12 +28,12 @@ int main() {
 
     // Generate sine wave data
     for (i = 0; i < BUFFER_LENGTH; ++i) {
-        data[i * 2] = sin(2 * M_PI * SOUND_HZ * i / BUFFER_LENGTH) * SHRT_MAX;
-        data[i * 2 + 1] = -1 * sin(2 * M_PI * SOUND_HZ * i / BUFFER_LENGTH) * SHRT_MAX; // antiphase
+        data[i * 2] = sin(2 * M_PI * SOUND_HZ * (float(i) / float(SAMPLING_HZ))) * SHRT_MAX;
+        data[i * 2 + 1] = -1 * sin(2 * M_PI * SOUND_HZ * (float(i) / float(SAMPLING_HZ))) * SHRT_MAX; // antiphase
     }
 
     // Output looping sine wave
-    alBufferData(buffer, AL_FORMAT_STEREO16, data, sizeof(data), BUFFER_LENGTH * 2);
+    alBufferData(buffer, AL_FORMAT_STEREO16, data, sizeof(data), SAMPLING_HZ);
     alGenSources(1, &source);
     alSourcei(source, AL_BUFFER, buffer);
     alSourcei(source, AL_LOOPING, AL_FALSE);
