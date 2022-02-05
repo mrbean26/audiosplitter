@@ -12,12 +12,35 @@ int main() {
 	float percentageFilter = 0.75f; // Filter bottom 10%
 
 	// Load Fully Correct NeuralNet Output
-	pair<vector<vector<float>>, float> correctOutput = spectrogramOutput("ascendingStrings.mp3", samplesPerChunk, samplesPerChunk, frequencyResolution);
+	pair<vector<vector<float>>, float> correctOutput = spectrogramOutput("5sLow5sHigh.mp3", samplesPerChunk, samplesPerChunk, frequencyResolution);
 	correctOutput = addSpectrogramError(correctOutput, addedOutputError);
 
 	// Filter Output and Turn to Custom Note Format
 	vector<vector<float>> filteredOutput = percentageFiltering(correctOutput.first, percentageFilter);
 	vector<vector<int>> filteredNotes = returnNoteFormat(filteredOutput);
+	vector<ALshort> noteSineWave = notesToWave(filteredNotes, samplesPerChunk, 44100);
+
+
+
+
+	ALCdevice* device;
+	ALCcontext* context;
+	ALuint buffer, source;
+
+	// Initialization
+	device = alcOpenDevice(NULL);
+	context = alcCreateContext(device, NULL);
+	alcMakeContextCurrent(context);
+	alGenBuffers(1, &buffer);
+
+	alBufferData(buffer, AL_FORMAT_STEREO16, &noteSineWave[0], noteSineWave.size() * sizeof(ALshort), SAMPLING_HZ);
+	alGenSources(1, &source);
+	alSourcei(source, AL_BUFFER, buffer);
+	alSourcei(source, AL_LOOPING, AL_FALSE);
+	alSourcePlay(source);
+
+
+
 
 	instrumentConfig newInstrumentConfig;
 	newInstrumentConfig.tunings = { 7, 12, 17, 22, 26, 31 }; // Guitar Standard Tuning
@@ -44,6 +67,19 @@ int main() {
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
+
+
+
+
+	alSourceStop(source);
+	alDeleteSources(1, &source);
+	alDeleteBuffers(1, &buffer);
+	alcMakeContextCurrent(NULL);
+	alcDestroyContext(context);
+	alcCloseDevice(device);
+
+
+
 
 	return 0;
 }

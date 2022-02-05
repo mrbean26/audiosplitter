@@ -1,9 +1,8 @@
 ﻿  0 File(s) copied
   main.cpp
-D:\Projects\Audio Splitter App\2 - Main Project Notation\IFFT To Audio\main.cpp(11,13): warning C4101: 'device': unreferenced local variable
 LINK : warning LNK4098: defaultlib 'LIBCMT' conflicts with use of other libs; use /NODEFAULTLIB:library
   Generating code
-  1 of 1599 functions (<0.1%) were compiled, the rest were copied from previous compilation.
+  5 of 1736 functions ( 0.3%) were compiled, the rest were copied from previous compilation.
     0 functions were new in current compilation
     9 functions had inline decision re-evaluated but remain unchanged
   Finished generating code

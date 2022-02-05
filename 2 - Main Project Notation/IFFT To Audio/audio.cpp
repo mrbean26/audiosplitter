@@ -366,3 +366,111 @@ vector<pair<instrumentConfig, vector<vector<int>>>> loadNoteFormat(const char* f
 
 	return resultantFormat;
 }
+
+vector<ALshort> generateSinWave(float frequency, float volume, float length, int sampleRate) {
+	vector<ALshort> resultantWave;
+
+	int sampleCount = length * sampleRate;
+	for (int i = 0; i < sampleCount; i++) {
+		float multiplier = float(i) / float(sampleRate);
+
+		ALshort sinValue = sin(2 * M_PI * frequency * multiplier) * SHRT_MAX * volume;
+		ALshort antiphaseValue = -1 * sin(2 * M_PI * frequency * multiplier) * SHRT_MAX * volume;
+
+		resultantWave.push_back(sinValue);
+		resultantWave.push_back(antiphaseValue);
+	}
+
+	return resultantWave;
+}
+vector<ALshort> accumulativeSinWave(vector<float> frequencies, vector<float> volumes, vector<float> lengths, vector<float> offsets) {
+	vector<vector<ALshort>> waves;
+
+	// Get waves
+	int waveCount = frequencies.size();
+	for (int i = 0; i < waveCount; i++) {
+		vector<ALshort> offsetWave = generateSinWave(0.0f, 0.0f, offsets[i], SAMPLING_HZ);
+		vector<ALshort> currentWave = generateSinWave(frequencies[i], volumes[i], lengths[i], SAMPLING_HZ);
+
+		offsetWave.insert(offsetWave.end(), currentWave.begin(), currentWave.end());
+		waves.push_back(offsetWave);
+	}
+
+	// Average waves
+	vector<ALshort> resultantWave;
+
+	for (int i = 0; i < waveCount; i++) {
+		int sampleCount = waves[i].size();
+		int currentWaveSize = resultantWave.size();
+
+		if (sampleCount > currentWaveSize) {
+			resultantWave.resize(sampleCount, 0);
+		}
+
+		// Average wave
+		for (int j = 0; j < sampleCount; j++) {
+			if (waves[i][j] == 0) {
+				continue;
+			}
+
+			int activeWaveCount = 0;
+			for (int k = 0; k < waveCount; k++) {
+				if (waves[k][j] != 0) {
+					activeWaveCount = activeWaveCount + 1;
+				}
+			}
+
+			// Sum
+			resultantWave[j] = resultantWave[j] + waves[i][j] / activeWaveCount;
+		}
+
+
+	}
+
+	return resultantWave;
+}
+
+vector<ALshort> notesToWave(vector<vector<int>> unRepeatedNotes, int samplesPerChunk, int audioFileSampleRate) {
+	float chunkDuration = float(samplesPerChunk) / float(audioFileSampleRate);
+	vector<ALshort> resultantWave;
+
+	int chunkCount = unRepeatedNotes.size();
+	for (int i = 0; i < chunkCount; i++) {
+		vector<float> frequencies;
+		vector<float> volumes;
+		vector<float> lengths;
+		vector<float> offsets;
+
+		int noteCount = unRepeatedNotes[i].size();
+		for (int j = 0; j < noteCount; j++) {
+			// Note Gap Is Distance from Note A0 (frequency = 55.0f)
+			float noteGapMultiplier = float(unRepeatedNotes[i][j]) / 12.0f;
+			float noteFrequency = 55.0f * powf(2.0f, noteGapMultiplier);
+			
+			// Check if wave has already been created from other chunks
+			if (i > 0) {
+				if (find(unRepeatedNotes[i - 1].begin(), unRepeatedNotes[i - 1].end(), unRepeatedNotes[i][j]) != unRepeatedNotes[i - 1].end()) {
+					break;
+				}
+			}
+
+			// Generate new wave
+			int chunksWithFrequency = 1;
+			for (int k = i + 1; k < chunkCount; k++) {
+				if (find(unRepeatedNotes[k].begin(), unRepeatedNotes[k].end(), unRepeatedNotes[i][j]) != unRepeatedNotes[k].end()) {
+					chunksWithFrequency += 1;
+				}
+			}
+			cout << chunksWithFrequency << endl;
+			frequencies.push_back(noteFrequency);
+			volumes.push_back(1.0f);
+			lengths.push_back(chunkDuration * chunksWithFrequency);
+			offsets.push_back(0.0f);
+		}
+
+		vector<ALshort> currentChunkWave = accumulativeSinWave(frequencies, volumes, lengths, offsets);
+		resultantWave.insert(resultantWave.end(), currentChunkWave.begin(), currentChunkWave.end());
+	}
+
+	return resultantWave;
+}

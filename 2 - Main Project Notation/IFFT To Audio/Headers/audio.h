@@ -7,6 +7,12 @@ using namespace std;
 
 #include "Headers/fftw3.h"
 
+#define SAMPLING_HZ 44100
+#define M_PI 3.14159265359
+
+#include "AL/al.h"
+#include "AL/alc.h"
+
 extern float audioDuration;
 pair<vector<vector<float>>, float> spectrogramOutput(const char* mp3Filename, int samplesPerChunk, int samplesPerStride, int frequencyResolution);
 pair<vector<vector<float>>, float> addSpectrogramError(pair<vector<vector<float>>, float> original, float error);
@@ -24,5 +30,10 @@ struct instrumentConfig {
 
 void saveNoteFormat(vector<pair<instrumentConfig, vector<vector<int>>>> format, const char* fileName);
 vector<pair<instrumentConfig, vector<vector<int>>>> loadNoteFormat(const char* fileName);
+
+vector<ALshort> generateSinWave(float frequency, float volume, float length, int sampleRate);
+vector<ALshort> accumulativeSinWave(vector<float> frequencies, vector<float> volumes, vector<float> lengths, vector<float> offsets);
+
+vector<ALshort> notesToWave(vector<vector<int>> unRepeatedNotes, int samplesPerChunk, int audioFileSampleRate);
 
 #endif // !AUDIO_H
