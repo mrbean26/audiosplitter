@@ -367,6 +367,33 @@ vector<pair<instrumentConfig, vector<vector<int>>>> loadNoteFormat(const char* f
 	return resultantFormat;
 }
 
+// Audio
+ALCdevice* device;
+ALCcontext* context;
+
+void startOpenAL() {
+	device = alcOpenDevice(NULL);
+	context = alcCreateContext(device, NULL);
+	alcMakeContextCurrent(context);
+}
+audioObject::audioObject(vector<vector<int>> unRepeatedNotes, int samplesPerChunk, int audioFileSampleRate) {
+	vector<ALshort> noteSineWave = notesToWave(unRepeatedNotes, samplesPerChunk, 44100);
+
+	alGenBuffers(1, &buffer);
+	alBufferData(buffer, AL_FORMAT_STEREO16, &noteSineWave[0], noteSineWave.size() * sizeof(ALshort), SAMPLING_HZ);
+
+	alGenSources(1, &source);
+	alSourcei(source, AL_BUFFER, buffer);
+	//alSourcei(source, AL_LOOPING, AL_FALSE);
+}
+
+void audioObject::play() {
+	alSourcePlay(source);
+}
+void audioObject::pause() {
+	alSourcePause(source);
+}
+
 vector<ALshort> generateSinWave(float frequency, float volume, float length, int sampleRate) {
 	vector<ALshort> resultantWave;
 
@@ -461,7 +488,7 @@ vector<ALshort> notesToWave(vector<vector<int>> unRepeatedNotes, int samplesPerC
 					chunksWithFrequency += 1;
 				}
 			}
-			cout << chunksWithFrequency << endl;
+
 			frequencies.push_back(noteFrequency);
 			volumes.push_back(1.0f);
 			lengths.push_back(chunkDuration * chunksWithFrequency);

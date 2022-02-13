@@ -31,6 +31,20 @@ struct instrumentConfig {
 void saveNoteFormat(vector<pair<instrumentConfig, vector<vector<int>>>> format, const char* fileName);
 vector<pair<instrumentConfig, vector<vector<int>>>> loadNoteFormat(const char* fileName);
 
+// Audio
+extern ALCdevice* device;
+extern ALCcontext* context;
+
+void startOpenAL();
+class audioObject {
+public:
+	ALuint buffer, source;
+	audioObject(vector<vector<int>> unRepeatedNotes, int samplesPerChunk, int audioFileSampleRate);
+
+	void play();
+	void pause();
+};
+
 vector<ALshort> generateSinWave(float frequency, float volume, float length, int sampleRate);
 vector<ALshort> accumulativeSinWave(vector<float> frequencies, vector<float> volumes, vector<float> lengths, vector<float> offsets);
 
