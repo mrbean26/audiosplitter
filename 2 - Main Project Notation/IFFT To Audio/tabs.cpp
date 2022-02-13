@@ -2,9 +2,10 @@
 #include "Headers/audio.h"
 #include "Headers/graphics.h"
 
-tabViewer::tabViewer(vector<vector<int>> notes, vector<int> tunings, vector<int> maxFrets, vector<int> stringCounts, int samplesPerChunk, int sampleRate, audioObject* trackAudio) {
+tabViewer::tabViewer(vector<vector<int>> notes, vector<int> tunings, vector<int> maxFrets, int stringCount, int samplesPerChunk, int sampleRate, audioObject* trackAudio) {
 	noteFrets = notesToFrets(notes, tunings, maxFrets);
-	tabsBegin(stringCounts);
+	tabStringCount = stringCount;
+	tabsBegin(stringCount);
 
 	samplesPerChunkProgress = samplesPerChunk;
 	sampleRateProgress = sampleRate;
@@ -12,7 +13,7 @@ tabViewer::tabViewer(vector<vector<int>> notes, vector<int> tunings, vector<int>
 	trackObjectPointer = trackAudio;
 }
 
-void tabViewer::tabsBegin(vector<int> stringCounts) {
+void tabViewer::tabsBegin(int stringCount) {
 	// Begin Shader
 	int vertShader = createShader("Assets/Shaders/tabVert.txt", GL_VERTEX_SHADER);
 	int fragShader = createShader("Assets/Shaders/tabFrag.txt", GL_FRAGMENT_SHADER);
@@ -24,39 +25,34 @@ void tabViewer::tabsBegin(vector<int> stringCounts) {
 	imageShader = createProgram({ vertShader, fragShader });
 
 	// Begin Coordinates
-	int stringTypes = stringCounts.size();
-	int minStringCount = stringCounts[0];
+	//int minStringCount = stringCounts[0];
 
-	for (int i = 0; i < stringTypes; i++) {
-		tabVAOs.push_back(0); tabVBOs.push_back(0);
-		vector<float> vertices = {};
+	tabVAOs.push_back(0); tabVBOs.push_back(0);
+	vector<float> vertices = {};
 
-		for (int j = 0; j < stringCounts[i]; j++) {
-			vertices.push_back(display_x * TAB_EDGE_DISTANCE); // Start of Line
-			vertices.push_back(display_y - (j * TAB_LINE_GAP * display_y));
+	for (int j = 0; j < stringCount; j++) {
+		vertices.push_back(display_x * TAB_EDGE_DISTANCE); // Start of Line
+		vertices.push_back(display_y - (j * TAB_LINE_GAP * display_y));
 
-			vertices.push_back(display_x - display_x * TAB_EDGE_DISTANCE);
-			vertices.push_back(display_y - (j * TAB_LINE_GAP * display_y));
-		}
-
-		// Ready OpenGL Attributes
-		GLuint tabSize = readyVertices(&tabVAOs[i], &tabVBOs[i], vertices, 2);
-		tabSizes.push_back(tabSize);
-
-		minStringCount = std::min(stringCounts[i], minStringCount); // For progress bar size
+		vertices.push_back(display_x - display_x * TAB_EDGE_DISTANCE);
+		vertices.push_back(display_y - (j * TAB_LINE_GAP * display_y));
 	}
+
+	// Ready OpenGL Attributes
+	GLuint tabSize = readyVertices(&tabVAOs[0], &tabVBOs[0], vertices, 2);
+	tabSizes.push_back(tabSize);
 
 	// Begin progress bar
 	progressBarTexture = readyTexture("Assets/progressBar.png");
 
-	float tabHeight = (minStringCount - 1) * TAB_LINE_GAP;
+	float tabHeight = (stringCount - 1) * TAB_LINE_GAP;
 	float aspectRatioMultiplier = (float(display_y) / float(display_x));
 
 	float x = 0.22f * aspectRatioMultiplier * tabHeight * display_x; // 0.22f from image resolution
 	float y1 = display_y;
 	float y2 = display_y - tabHeight * display_y;
 
-	vector<float> vertices = {
+	vertices = {
 		x, y1, 1.0f, 1.0f,
 		x, y2, 1.0f, 0.0f,
 		0.0f, y1, 0.0f, 1.0f,
@@ -104,7 +100,7 @@ void tabViewer::resumeTrack() {
 mat4 tabViewer::getViewMatrix() {
 	mat4 resultantMatrix = mat4(1.0f);
 	
-	float tapGapDistance = currentLineNumber * (6 * TAB_LINE_GAP + TAB_EDGE_DISTANCE) * display_y;
+	float tapGapDistance = currentLineNumber * (tabStringCount * TAB_LINE_GAP + TAB_EDGE_DISTANCE) * display_y;
 	vec3 translation = vec3(0.0f, tapGapDistance, 0.0f);
 
 	resultantMatrix = translate(resultantMatrix, translation);
@@ -124,7 +120,7 @@ void tabViewer::drawTab() {
 	int tabLinesCount = ceil(float(chunkCount) / float(chunksPerLine));
 	for (int i = 0; i < tabLinesCount; i++) {
 		float yCoordinate = -TAB_EDGE_DISTANCE;
-		yCoordinate = yCoordinate - i * (6 * TAB_LINE_GAP + TAB_EDGE_DISTANCE);
+		yCoordinate = yCoordinate - i * (tabStringCount * TAB_LINE_GAP + TAB_EDGE_DISTANCE);
 
 		drawTabLines(0, yCoordinate * display_y);
 	}
@@ -152,14 +148,14 @@ void tabViewer::drawTab() {
 
 	// Calculate limits for when track is finished playing
 	int lineCount = ceilf(floor(chunkCount) / float(chunksPerLine));
-	float maxYPosition = -TAB_EDGE_DISTANCE - (lineCount - 1) * (6 * TAB_LINE_GAP + TAB_EDGE_DISTANCE);
+	float maxYPosition = -TAB_EDGE_DISTANCE - (lineCount - 1) * (tabStringCount * TAB_LINE_GAP + TAB_EDGE_DISTANCE);
 
 	int finalLineChunkCount = chunkCount % (chunksPerLine + 1);
 	float maxXOffset = (float(finalLineChunkCount) / float(chunksPerLine)) * lineLength;
 
 	// Calculate final positions and draw
 	float xPosition = TAB_EDGE_DISTANCE + xOffset;
-	float yPosition = -TAB_EDGE_DISTANCE - currentLineNumber * (6 * TAB_LINE_GAP + TAB_EDGE_DISTANCE);
+	float yPosition = -TAB_EDGE_DISTANCE - currentLineNumber * (tabStringCount * TAB_LINE_GAP + TAB_EDGE_DISTANCE);
 
 	if (yPosition <= maxYPosition) {
 		if (xOffset >= maxXOffset) {
@@ -191,7 +187,7 @@ void tabViewer::drawTab() {
 				position = position + vec2(0.0f, averageYCharacterSize / 2.0f); // Center Text
 			}
 			// shift text for scrolling
-			position.y += currentLineNumber * (6 * TAB_LINE_GAP + TAB_EDGE_DISTANCE) * display_y;
+			position.y += currentLineNumber * (tabStringCount * TAB_LINE_GAP + TAB_EDGE_DISTANCE) * display_y;
 
 			vec2 textWidthHeight = renderText(to_string(noteFrets[i][j]), position, 1.0f, tabTextSize, vec3(0.0f), fontCharacters);
 			if (!foundSize) {

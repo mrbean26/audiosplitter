@@ -36,7 +36,7 @@ int main() {
 
 	audioObject newAudioObject = audioObject(filteredNotes, samplesPerChunk, 44100);
 	notationViewer newNotationViewer = notationViewer(loadedNotes[0].second);
-	tabViewer newTabViewer = tabViewer(loadedNotes[0].second, loadedNotes[0].first.tunings, loadedNotes[0].first.maxFrets, { loadedNotes[0].first.stringCount }, samplesPerChunk, 44100, &newAudioObject);
+	tabViewer newTabViewer = tabViewer(loadedNotes[0].second, loadedNotes[0].first.tunings, loadedNotes[0].first.maxFrets, loadedNotes[0].first.stringCount, samplesPerChunk, 44100, &newAudioObject);
 
 	textsBegin();
 	//newAudioObject.play();

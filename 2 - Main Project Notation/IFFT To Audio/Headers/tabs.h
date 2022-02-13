@@ -15,7 +15,7 @@ using namespace std;
 class tabViewer {
 public:
 	audioObject* trackObjectPointer;
-	tabViewer(vector<vector<int>> notes, vector<int> tunings, vector<int> maxFrets, vector<int> stringCounts, int samplesPerChunk, int sampleRate, audioObject * trackAudio);
+	tabViewer(vector<vector<int>> notes, vector<int> tunings, vector<int> maxFrets, int stringCount, int samplesPerChunk, int sampleRate, audioObject * trackAudio);
 
 	vector<GLuint> tabVAOs;
 	vector<GLuint> tabVBOs;
@@ -31,12 +31,13 @@ public:
 	GLuint progressBarVBO;
 	GLuint progressBarTexture;
 
+	int tabStringCount = 0;
 	vector<vector<int>> noteFrets;
 
 	float averageYCharacterSize = 0.0f;
 	bool foundSize = false;
 
-	void tabsBegin(vector<int> stringCounts);
+	void tabsBegin(int stringCount);
 	void drawTabLines(int index, float yOffset);
 	
 	float previousRuntime = 0.0f;
