@@ -13,6 +13,23 @@ tabViewer::tabViewer(vector<vector<int>> notes, vector<int> tunings, vector<int>
 	trackObjectPointer = trackAudio;
 }
 
+bool tabViewer::checkIfScroll() {
+	// Check if tab viewer is more than screen
+	float tabHeight = tabStringCount * TAB_LINE_GAP + TAB_EDGE_DISTANCE;
+	int chunksPerLine = TAB_CHUNKS_PER_LINE * (float(display_x) / 1000.0f);
+
+	int chunkCount = noteFrets.size();
+	int requiredLines = ceilf(float(chunkCount) / float(chunksPerLine));
+
+	float maxHeight = tabHeight * requiredLines;
+
+	if (maxHeight > 1.0f) {
+		// Longer than screen
+		return true;
+	}
+	return false;
+}
+
 void tabViewer::tabsBegin(int stringCount) {
 	// Begin Shader
 	int vertShader = createShader("Assets/Shaders/tabVert.txt", GL_VERTEX_SHADER);
@@ -100,10 +117,20 @@ void tabViewer::resumeTrack() {
 mat4 tabViewer::getViewMatrix() {
 	mat4 resultantMatrix = mat4(1.0f);
 	
-	float tapGapDistance = currentLineNumber * (tabStringCount * TAB_LINE_GAP + TAB_EDGE_DISTANCE) * display_y;
-	vec3 translation = vec3(0.0f, tapGapDistance, 0.0f);
+	if (checkIfScroll()) {
+		float tapGapDistance = currentLineNumber * (tabStringCount * TAB_LINE_GAP + TAB_EDGE_DISTANCE) * display_y;
+		float deltaTime = glfwGetTime() - previousRuntime;
 
-	resultantMatrix = translate(resultantMatrix, translation);
+		currentOffset = currentOffset + display_y * deltaTime * TAB_SCROLL_RATE;
+		if (currentOffset > tapGapDistance) {
+			currentOffset = tapGapDistance;
+		}
+
+		vec3 translation = vec3(0.0f, currentOffset, 0.0f);
+
+		resultantMatrix = translate(resultantMatrix, translation);
+	}
+
 	return resultantMatrix;
 }
 void tabViewer::drawTab() {
@@ -187,7 +214,9 @@ void tabViewer::drawTab() {
 				position = position + vec2(0.0f, averageYCharacterSize / 2.0f); // Center Text
 			}
 			// shift text for scrolling
-			position.y += currentLineNumber * (tabStringCount * TAB_LINE_GAP + TAB_EDGE_DISTANCE) * display_y;
+			if (checkIfScroll()) {
+				position.y += currentOffset;
+			}
 
 			vec2 textWidthHeight = renderText(to_string(noteFrets[i][j]), position, 1.0f, tabTextSize, vec3(0.0f), fontCharacters);
 			if (!foundSize) {

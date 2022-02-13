@@ -11,6 +11,7 @@ using namespace std;
 
 #define TAB_TEXT_SIZE 1.75f // On an 1000px height screen
 #define TAB_CHUNKS_PER_LINE 25 // On an 1000px width screen
+#define TAB_SCROLL_RATE 0.025
 
 class tabViewer {
 public:
@@ -31,6 +32,8 @@ public:
 	GLuint progressBarVBO;
 	GLuint progressBarTexture;
 
+	bool checkIfScroll();
+
 	int tabStringCount = 0;
 	vector<vector<int>> noteFrets;
 
@@ -47,8 +50,10 @@ public:
 	void pauseTrack();
 	void resumeTrack();
 
+	float currentOffset = 0.0f;
 	int currentLineNumber = 0;
 	mat4 getViewMatrix();
+
 	void drawTab();
 
 	void drawProgressBar(float xOffset, float yOffset);
