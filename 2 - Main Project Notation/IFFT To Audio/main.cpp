@@ -41,14 +41,22 @@ int main() {
 	textsBegin();
 	//newAudioObject.play();
 
+	int frame = 0;
+
 	while (!glfwWindowShouldClose(window)) {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		//newTabViewer.drawTab();
-		newNotationViewer.drawNotation();
+		if (frame == 0) {
+			newTabViewer.pausedTime = glfwGetTime();
+			newNotationViewer.pausedTime = glfwGetTime();
+		}
+
+		newTabViewer.drawTab();
+		//newNotationViewer.drawNotation();
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
+		frame++;
 	}
 
 	return 0;
