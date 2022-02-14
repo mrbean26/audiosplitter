@@ -1,13 +1,16 @@
 #include "Headers/notation.h"
 #include "Headers/audio.h"
 
-notationViewer::notationViewer(vector<vector<int>> notes) {
+notationViewer::notationViewer(vector<vector<int>> notes, int samplesPerChunk, int sampleRate, audioObject* trackAudio) {
 	notationBegin();
 
 	vector<vector<int>> newNotes = removeNoteRepetitions(notes);
 	this->noteLengths = findNoteLengths(newNotes);
 
 	this->keySignature = findKey(notes);
+
+	samplesPerChunkProgress = samplesPerChunk;
+	sampleRateProgress = sampleRate;
 }
 
 void notationViewer::startNotationShaders() {
@@ -90,7 +93,7 @@ void notationViewer::drawTrebleClef(float yOffset) {
 	mat4 scalePositionMatrix = ortho(0.0f, static_cast<GLfloat>(display_x), 0.0f, static_cast<GLfloat>(display_y));
 	scalePositionMatrix = translate(scalePositionMatrix, vec3(0.0f, yOffset, 0.0f));
 
-	setMat4(imageShader, "scalePositionMatrix", scalePositionMatrix);
+	setMat4(imageShader, "scalePositionMatrix", scalePositionMatrix * getViewMatrix());
 	glDrawArrays(GL_TRIANGLES, 0, notationSizes[1]);
 }
 
@@ -114,7 +117,7 @@ void notationViewer::drawStaveLines(float yOffset) {
 
 	mat4 projectionMatrix = ortho(0.0f, static_cast<GLfloat>(display_x), 0.0f, static_cast<GLfloat>(display_y));
 	projectionMatrix = translate(projectionMatrix, vec3(0.0f, yOffset, 0.0f));
-	setMat4(notationShader, "projection", projectionMatrix);
+	setMat4(notationShader, "projection", projectionMatrix * getViewMatrix());
 
 	glBindVertexArray(notationVAOs[0]);
 	glDrawArrays(GL_LINES, 0, notationSizes[0]);
@@ -138,7 +141,7 @@ void notationViewer::drawBarLine(float xOffset, float yOffset) {
 
 	mat4 projectionMatrix = ortho(0.0f, static_cast<GLfloat>(display_x), 0.0f, static_cast<GLfloat>(display_y));
 	projectionMatrix = translate(projectionMatrix, vec3(xOffset, yOffset, 0.0f));
-	setMat4(notationShader, "projection", projectionMatrix);
+	setMat4(notationShader, "projection", projectionMatrix * getViewMatrix());
 
 	glBindVertexArray(notationVAOs[2]);
 	glDrawArrays(GL_LINES, 0, notationSizes[2]);
@@ -224,7 +227,7 @@ void notationViewer::drawSingularNote(vec2 noteRootPosition, float staveCenter, 
 	mat4 scalePositionMatrix = translate(projectionMatrix, vec3(noteRootPosition.x * display_x, noteRootPosition.y * display_y, 0.0f));
 
 	glUseProgram(imageShader);
-	setMat4(imageShader, "scalePositionMatrix", scalePositionMatrix);
+	setMat4(imageShader, "scalePositionMatrix", scalePositionMatrix * getViewMatrix());
 
 	// Draw Note
 	glBindVertexArray(notationVAOs[3]);
@@ -255,7 +258,7 @@ void notationViewer::drawSingularNote(vec2 noteRootPosition, float staveCenter, 
 
 	// Set Shader Details
 	projectionMatrix = translate(projectionMatrix, vec3(linePosition, 0.0f));
-	setMat4(notationShader, "projection", projectionMatrix);
+	setMat4(notationShader, "projection", projectionMatrix * getViewMatrix());
 
 	// Draw
 	glBindVertexArray(notationVAOs[4]);
@@ -266,6 +269,9 @@ void notationViewer::drawSingularNote(vec2 noteRootPosition, float staveCenter, 
 		float textSize = NOTATION_SHARP_SIZE * (double(display_y) / 1000.0);
 
 		noteRootPosition = vec2(noteRootPosition.x * display_x, display_y + noteRootPosition.y * display_y);
+		// shift text for scrolling
+		noteRootPosition.y += currentOffset;
+
 		renderText("#", noteRootPosition, 1.0f, textSize, vec3(0.0f), fontCharacters);
 	}
 }
@@ -353,6 +359,9 @@ void notationViewer::drawKeySignature(vector<bool> keySignature, float yOffset) 
 			float yPosition = (1.0f + yOffset) * display_y - (3.0f * NOTATION_LINE_GAP * display_y); // Position of "A" Note
 			yPosition = yPosition + display_y * keyDistances[i] * NOTATION_LINE_GAP * 0.5f;
 			
+			// shift text for scrolling
+			yPosition += currentOffset;
+
 			renderText("#", vec2(xPosition, yPosition), 1.0f, textSize, vec3(0.0f), fontCharacters);
 			count = count + 1;
 		}
@@ -468,6 +477,44 @@ vector<vector<pair<int, int>>> notationViewer::findNoteLengths(vector<vector<int
 	return resultantChunks;
 }
 
+bool notationViewer::checkIfScroll() {
+	float notationHeight = 5 * NOTATION_LINE_GAP + NOTATION_EDGE_DISTANCE;
+	notationHeight = notationHeight + 2 * NOTATION_MAX_LEDGER_LINES * NOTATION_LINE_GAP; // Add ledger line height
+
+	int chunkCount = noteLengths.size();
+	int chunksPerLine = NOTATION_CHUNKS_PER_LINE * (double(display_x) / 1000.0);
+	int requiredStaves = ceilf(float(chunkCount) / float(chunksPerLine));
+
+	float maxHeight = notationHeight * requiredStaves;
+
+	if (maxHeight > 1.0f) {
+		return true;
+	}
+	return false;
+}
+mat4 notationViewer::getViewMatrix() {
+	mat4 resultantMatrix = mat4(1.0f);
+
+	float notationHeight = 5 * NOTATION_LINE_GAP + NOTATION_EDGE_DISTANCE;
+	notationHeight = notationHeight + 2 * NOTATION_MAX_LEDGER_LINES * NOTATION_LINE_GAP; // Add ledger line height
+
+	if (checkIfScroll()) {
+		float notationGapDistance = currentLineNumber * notationHeight * display_y;
+		float deltaTime = glfwGetTime() - previousRuntime;
+
+		currentOffset = currentOffset + display_y * deltaTime * NOTATION_SCROLL_RATE;
+		if (currentOffset > notationGapDistance) {
+			currentOffset = notationGapDistance;
+		}
+
+		vec3 translation = vec3(0.0f, currentOffset, 0.0f);
+
+		resultantMatrix = translate(resultantMatrix, translation);
+	}
+
+	return resultantMatrix;
+}
+
 void notationViewer::drawNotes(vector<vector<pair<int, int>>> notes, vector<bool> keySignature) {
 	// Calculate Distance Up To First Note
 	// Treble Clef Width
@@ -575,4 +622,17 @@ void notationViewer::drawNotation() {
 	vec2 bpmTextPosition = vec2(NOTATION_EDGE_DISTANCE * display_x, display_y - NOTATION_EDGE_DISTANCE * display_y);
 	float bpmTextSize = NOTATION_BPM_TEXT_SIZE * (float(display_y) / 1000.0f);
 	renderText(bpmText, bpmTextPosition, 1.0f, bpmTextSize, vec3(0.0f), fontCharacters);
+
+	// Calculate progress bar position variables
+	float timePerChunk = float(samplesPerChunkProgress) / float(sampleRateProgress);
+	float timePerLine = chunksPerLine * timePerChunk;
+
+	float playingTime = glfwGetTime() - pausedTime;
+
+	int lineNumber = floorf(playingTime / timePerLine);
+	currentLineNumber = lineNumber;
+	float usedTime = playingTime - currentLineNumber * timePerLine;
+
+
+	previousRuntime = glfwGetTime();
 }

@@ -3,6 +3,7 @@
 
 #include <vector>
 #include "graphics.h"
+#include "audio.h"
 using namespace std;
 
 #define NOTATION_EDGE_DISTANCE 0.05f
@@ -18,9 +19,11 @@ using namespace std;
 
 #define NOTATION_BPM_TEXT_SIZE 1.25f // On a 1000px height screen
 
+#define NOTATION_SCROLL_RATE 0.025
+
 class notationViewer {
 public:
-	notationViewer(vector<vector<int>> notes);
+	notationViewer(vector<vector<int>> notes, int samplesPerChunk, int sampleRate, audioObject* trackAudio);
 
 	vector<bool> keySignature;
 	vector<vector<pair<int, int>>> noteLengths;
@@ -56,6 +59,19 @@ public:
 	// Returned vector is length 5 - a true represents the note is a sharp - eg index 1 = C#
 	static vector<bool> findKey(vector<vector<int>> notes);
 	void drawKeySignature(vector<bool> keySignature, float yOffset);
+
+	int samplesPerChunkProgress; // for progress bar calculations
+	int sampleRateProgress;
+
+	float previousRuntime = 0.0f;
+	float pausedTime = 0.0f;
+	bool trackPaused = false;
+
+	bool checkIfScroll();
+	float currentOffset = 0.0f;
+
+	int currentLineNumber = 0;
+	mat4 getViewMatrix();
 
 	static bool compareNoteChunks(vector<int> chunkOne, vector<int> chunkTwo);
 	static vector<vector<int>> removeNoteRepetitions(vector<vector<int>> originalChunks);

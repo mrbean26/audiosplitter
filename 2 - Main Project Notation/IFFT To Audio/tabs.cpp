@@ -13,23 +13,6 @@ tabViewer::tabViewer(vector<vector<int>> notes, vector<int> tunings, vector<int>
 	trackObjectPointer = trackAudio;
 }
 
-bool tabViewer::checkIfScroll() {
-	// Check if tab viewer is more than screen
-	float tabHeight = tabStringCount * TAB_LINE_GAP + TAB_EDGE_DISTANCE;
-	int chunksPerLine = TAB_CHUNKS_PER_LINE * (float(display_x) / 1000.0f);
-
-	int chunkCount = noteFrets.size();
-	int requiredLines = ceilf(float(chunkCount) / float(chunksPerLine));
-
-	float maxHeight = tabHeight * requiredLines;
-
-	if (maxHeight > 1.0f) {
-		// Longer than screen
-		return true;
-	}
-	return false;
-}
-
 void tabViewer::tabsBegin(int stringCount) {
 	// Begin Shader
 	int vertShader = createShader("Assets/Shaders/tabVert.txt", GL_VERTEX_SHADER);
@@ -114,6 +97,22 @@ void tabViewer::resumeTrack() {
 	trackPaused = false;
 }
 
+bool tabViewer::checkIfScroll() {
+	// Check if tab viewer is more than screen
+	float tabHeight = tabStringCount * TAB_LINE_GAP + TAB_EDGE_DISTANCE;
+	int chunksPerLine = TAB_CHUNKS_PER_LINE * (float(display_x) / 1000.0f);
+
+	int chunkCount = noteFrets.size();
+	int requiredLines = ceilf(float(chunkCount) / float(chunksPerLine));
+
+	float maxHeight = tabHeight * requiredLines;
+
+	if (maxHeight > 1.0f) {
+		// Longer than screen
+		return true;
+	}
+	return false;
+}
 mat4 tabViewer::getViewMatrix() {
 	mat4 resultantMatrix = mat4(1.0f);
 	

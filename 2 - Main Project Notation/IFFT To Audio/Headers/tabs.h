@@ -32,8 +32,6 @@ public:
 	GLuint progressBarVBO;
 	GLuint progressBarTexture;
 
-	bool checkIfScroll();
-
 	int tabStringCount = 0;
 	vector<vector<int>> noteFrets;
 
@@ -50,7 +48,9 @@ public:
 	void pauseTrack();
 	void resumeTrack();
 
+	bool checkIfScroll();
 	float currentOffset = 0.0f;
+
 	int currentLineNumber = 0;
 	mat4 getViewMatrix();
 

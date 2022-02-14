@@ -12,7 +12,7 @@ int main() {
 	float percentageFilter = 0.75f; // Filter bottom 10%
 
 	// Load Fully Correct NeuralNet Output
-	pair<vector<vector<float>>, float> correctOutput = spectrogramOutput("330hzE_oneMinute.mp3", samplesPerChunk, samplesPerChunk, frequencyResolution);
+	pair<vector<vector<float>>, float> correctOutput = spectrogramOutput("ascendingStrings.mp3", samplesPerChunk, samplesPerChunk, frequencyResolution);
 	correctOutput = addSpectrogramError(correctOutput, addedOutputError);
 
 	// Filter Output and Turn to Custom Note Format
@@ -35,7 +35,7 @@ int main() {
 	}
 
 	audioObject newAudioObject = audioObject(filteredNotes, samplesPerChunk, 44100);
-	notationViewer newNotationViewer = notationViewer(loadedNotes[0].second);
+	notationViewer newNotationViewer = notationViewer(loadedNotes[0].second, samplesPerChunk, 44100, &newAudioObject);
 	tabViewer newTabViewer = tabViewer(loadedNotes[0].second, loadedNotes[0].first.tunings, loadedNotes[0].first.maxFrets, loadedNotes[0].first.stringCount, samplesPerChunk, 44100, &newAudioObject);
 
 	textsBegin();
@@ -44,8 +44,8 @@ int main() {
 	while (!glfwWindowShouldClose(window)) {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		newTabViewer.drawTab();
-		//newNotationViewer.drawNotation();
+		//newTabViewer.drawTab();
+		newNotationViewer.drawNotation();
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
