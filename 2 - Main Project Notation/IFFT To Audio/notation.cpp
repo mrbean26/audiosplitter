@@ -11,6 +11,8 @@ notationViewer::notationViewer(vector<vector<int>> notes, int samplesPerChunk, i
 
 	samplesPerChunkProgress = samplesPerChunk;
 	sampleRateProgress = sampleRate;
+
+	trackObjectPointer = trackAudio;
 }
 
 void notationViewer::startNotationShaders() {
@@ -40,6 +42,8 @@ void notationViewer::notationBegin() {
 	// Load Notes & Each Texture into Memory
 	startNotes();
 	startNoteLine();
+
+	startProgressBar();
 }
 
 void notationViewer::startTrebleClef() {
@@ -95,6 +99,22 @@ void notationViewer::drawTrebleClef(float yOffset) {
 
 	setMat4(imageShader, "scalePositionMatrix", scalePositionMatrix * getViewMatrix());
 	glDrawArrays(GL_TRIANGLES, 0, notationSizes[1]);
+}
+
+void notationViewer::drawLedgerLine(float xOffset, float yOffset) {
+	glUseProgram(notationShader);
+
+	// Find size to scale to note gap size (so that ledger line fits)
+	int chunksPerLine = NOTATION_CHUNKS_PER_LINE * (double(display_x) / 1000.0);
+	float length = 1.0f / float(chunksPerLine);
+
+	mat4 projectionMatrix = ortho(0.0f, static_cast<GLfloat>(display_x), 0.0f, static_cast<GLfloat>(display_y));
+	projectionMatrix = translate(projectionMatrix, vec3(xOffset, yOffset, 0.0f));
+	projectionMatrix = scale(projectionMatrix, vec3(length, 1.0f, 1.0f));
+
+	setMat4(notationShader, "projection", projectionMatrix * getViewMatrix());
+	glBindVertexArray(notationVAOs[0]);
+	glDrawArrays(GL_LINES, 0, 2);
 }
 
 void notationViewer::startStaveLines() {
@@ -477,6 +497,15 @@ vector<vector<pair<int, int>>> notationViewer::findNoteLengths(vector<vector<int
 	return resultantChunks;
 }
 
+void notationViewer::pauseTrack() {
+	trackObjectPointer->pause();
+	trackPaused = true;
+}
+void notationViewer::resumeTrack() {
+	trackObjectPointer->play();
+	trackPaused = false;
+}
+
 bool notationViewer::checkIfScroll() {
 	float notationHeight = 5 * NOTATION_LINE_GAP + NOTATION_EDGE_DISTANCE;
 	notationHeight = notationHeight + 2 * NOTATION_MAX_LEDGER_LINES * NOTATION_LINE_GAP; // Add ledger line height
@@ -562,11 +591,23 @@ void notationViewer::drawNotes(vector<vector<pair<int, int>>> notes, vector<bool
 		for (int j = 0; j < subNoteCount; j++) {
 			// Current Y Position is Top E (Top Stave Line) - Note 31 
 			// Calculate Y Position of Note
+			float finalYPosition = 0.0f;
 			int distanceFromE = 31 - notes[i][j].first;
-			int octaveCount = floor(double(distanceFromE) / 12.0);
+			
+			if (distanceFromE >= 0) {
+				int octaveCount = floor(double(distanceFromE) / 12.0);
 
-			int noteDistance = octaveCount * 7.0f + naturalNoteIndex[distanceFromE % 12];
-			float finalYPosition = currentYPosition - noteDistance * NOTATION_LINE_GAP * 0.5f;
+				int noteDistance = octaveCount * 7.0f + naturalNoteIndex[distanceFromE % 12];
+				finalYPosition = currentYPosition - noteDistance * NOTATION_LINE_GAP * 0.5f;
+			}
+			else {
+				distanceFromE = abs(distanceFromE);
+				int octaveCount = floor(double(distanceFromE) / 12.0);
+
+				int noteDistance = octaveCount * 7 + naturalNoteIndex[distanceFromE % 12];
+				finalYPosition = currentYPosition + noteDistance * NOTATION_LINE_GAP * 0.5f;
+
+			}
 
 			// Check if key signature applies to this note
 			bool requiresSharp = false;
@@ -576,6 +617,21 @@ void notationViewer::drawNotes(vector<vector<pair<int, int>>> notes, vector<bool
 
 			 // Render
 			drawSingularNote(vec2(currentXPosition, finalYPosition), currentYPosition - NOTATION_LINE_GAP * 2.0f, notes[i][j].second, requiresSharp);
+			
+			int requiredLedgerLinesUpper = (finalYPosition - currentYPosition) / NOTATION_LINE_GAP;
+			for (int k = 0; k < requiredLedgerLinesUpper; k++) {
+				float yPosition = currentYPosition + NOTATION_LINE_GAP * (k + 1);
+				drawLedgerLine(currentXPosition * display_x, yPosition * display_y);
+			}
+			
+			float bottomStave = currentYPosition - 4.0f * NOTATION_LINE_GAP;
+			int requiredLedgerLinesLower = (bottomStave - finalYPosition) / NOTATION_LINE_GAP;
+
+			for (int k = 0; k < requiredLedgerLinesLower; k++) {
+				float yPosition = bottomStave - NOTATION_LINE_GAP * (k + 1);
+				drawLedgerLine(currentXPosition * display_x, yPosition * display_y);
+			}
+			
 		}
 
 		// Draw Bar Lines if 4 notes have occured (4 beats per bar)
@@ -617,22 +673,112 @@ void notationViewer::drawNotation() {
 
 	// Draw Notes
 	drawNotes(noteLengths, keySignature);
-
 	// Draw BPM Text
 	vec2 bpmTextPosition = vec2(NOTATION_EDGE_DISTANCE * display_x, display_y - NOTATION_EDGE_DISTANCE * display_y);
 	float bpmTextSize = NOTATION_BPM_TEXT_SIZE * (float(display_y) / 1000.0f);
 	renderText(bpmText, bpmTextPosition, 1.0f, bpmTextSize, vec3(0.0f), fontCharacters);
 
 	// Calculate progress bar position variables
+	float staveHeight = 4.0f * NOTATION_LINE_GAP;
+	float aspectRatioMultiplier = (float(display_y) / float(display_x));
+	float trebleClefWidth = (staveHeight * 0.3672 * aspectRatioMultiplier); // 0.3672 comes from image aspect ratio
+
+	int count = 1;
+	for (int i = 0; i < 5; i++) {
+		if (keySignature[i]) {
+			count += 1;
+		}
+	}
+	float lineLength = 1.0f - 2 * NOTATION_EDGE_DISTANCE - trebleClefWidth - (count + 1) * NOTATION_SHARP_DISTANCE;
+
 	float timePerChunk = float(samplesPerChunkProgress) / float(sampleRateProgress);
 	float timePerLine = chunksPerLine * timePerChunk;
 
+	if (trackPaused) {
+		pausedTime = pausedTime + (glfwGetTime() - previousRuntime);
+	}
 	float playingTime = glfwGetTime() - pausedTime;
 
 	int lineNumber = floorf(playingTime / timePerLine);
 	currentLineNumber = lineNumber;
 	float usedTime = playingTime - currentLineNumber * timePerLine;
 
+	float lineProportion = usedTime / timePerLine;
+	float xOffset = lineProportion * lineLength;
+
+	float notationHeight = 5 * NOTATION_LINE_GAP + NOTATION_EDGE_DISTANCE;
+	notationHeight = notationHeight + 2 * NOTATION_MAX_LEDGER_LINES * NOTATION_LINE_GAP; // Add ledger line height
+
+	// Calculate limits for when track is finished playing
+	int lineCount = ceilf(floor(chunkCount) / float(chunksPerLine));
+	float maxYPosition = -NOTATION_EDGE_DISTANCE - NOTATION_MAX_LEDGER_LINES * NOTATION_LINE_GAP - (lineCount - 1) * notationHeight;
+
+	int finalLineChunkCount = chunkCount % (chunksPerLine + 1);
+	float maxXOffset = NOTATION_EDGE_DISTANCE + trebleClefWidth + (count + 1) * NOTATION_SHARP_DISTANCE + (float(finalLineChunkCount) / float(chunksPerLine)) * lineLength;
+
+	// Calculate final positions and draw
+	float xPosition = NOTATION_EDGE_DISTANCE + trebleClefWidth + (count + 1) * NOTATION_SHARP_DISTANCE + xOffset;
+	float yPosition = -NOTATION_EDGE_DISTANCE - NOTATION_MAX_LEDGER_LINES * NOTATION_LINE_GAP - currentLineNumber * notationHeight;
+
+	if (yPosition < maxYPosition) {
+		xPosition = maxXOffset;
+		yPosition = maxYPosition;
+	}
+	if (yPosition == maxYPosition) {
+		if (xPosition > maxXOffset) {
+			xPosition = maxXOffset;
+		}
+	}
+
+	drawProgressBar(xPosition * display_x, yPosition * display_y);
 
 	previousRuntime = glfwGetTime();
+}
+
+void notationViewer::startProgressBar() {
+	progressBarTexture = readyTexture("Assets/progressBar.png");
+
+	float notationHeight = 4 * NOTATION_LINE_GAP;
+	float aspectRatioMultiplier = (float(display_y) / float(display_x));
+
+	float x = 0.22f * aspectRatioMultiplier * notationHeight * display_x; // 0.22f from image resolution
+	float y1 = display_y;
+	float y2 = display_y - notationHeight * display_y;
+
+	vector<float> vertices = {
+		x, y1, 1.0f, 1.0f,
+		x, y2, 1.0f, 0.0f,
+		0.0f, y1, 0.0f, 1.0f,
+
+		x, y2, 1.0f, 0.0f,
+		0.0f, y2, 0.0f, 0.0f,
+		0.0f, y1, 0.0f, 1.0f
+	};
+
+	// Start OpenGL Attributes
+	glGenVertexArrays(1, &progressBarVAO);
+	glGenBuffers(1, &progressBarVBO);
+
+	glBindVertexArray(progressBarVAO);
+	glBindBuffer(GL_ARRAY_BUFFER, progressBarVBO);
+
+	// Load Data into Buffer
+	glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+
+	glEnableVertexAttribArray(0);
+	glEnableVertexAttribArray(1);
+}
+void notationViewer::drawProgressBar(float xOffset, float yOffset) {
+	glUseProgram(imageShader);
+
+	glBindVertexArray(progressBarVAO);
+	glBindTexture(GL_TEXTURE_2D, progressBarTexture);
+
+	mat4 scalePositionMatrix = ortho(0.0f, static_cast<GLfloat>(display_x), 0.0f, static_cast<GLfloat>(display_y));
+	scalePositionMatrix = translate(scalePositionMatrix, vec3(xOffset, yOffset, 0.0f));
+
+	setMat4(imageShader, "scalePositionMatrix", scalePositionMatrix * getViewMatrix());
+	glDrawArrays(GL_TRIANGLES, 0, 6);
 }

@@ -23,6 +23,7 @@ using namespace std;
 
 class notationViewer {
 public:
+	audioObject* trackObjectPointer;
 	notationViewer(vector<vector<int>> notes, int samplesPerChunk, int sampleRate, audioObject* trackAudio);
 
 	vector<bool> keySignature;
@@ -34,6 +35,10 @@ public:
 
 	vector<GLuint> noteTextures;
 	GLuint trebleClefTexture;
+
+	GLuint progressBarVAO;
+	GLuint progressBarVBO;
+	GLuint progressBarTexture;
 
 	vec2 notationNoteSize;
 
@@ -48,6 +53,12 @@ public:
 
 	void startStaveLines();
 	void drawStaveLines(float yOffset);
+
+	GLuint ledgerLineVAO;
+	GLuint ledgerLineVBO;
+	GLuint ledgerLineSize;
+
+	void drawLedgerLine(float xOffset, float yOffset);
 
 	void startBarLine();
 	void drawBarLine(float xOffset, float yOffset);
@@ -67,6 +78,9 @@ public:
 	float pausedTime = 0.0f;
 	bool trackPaused = false;
 
+	void pauseTrack();
+	void resumeTrack();
+
 	bool checkIfScroll();
 	float currentOffset = 0.0f;
 
@@ -79,6 +93,9 @@ public:
 
 	void drawNotes(vector<vector<pair<int, int>>> notes, vector<bool> keySignature);
 	void drawNotation();
+
+	void startProgressBar();
+	void drawProgressBar(float xOffset, float yOffset);
 };
 
 #endif // !NOTATION_H

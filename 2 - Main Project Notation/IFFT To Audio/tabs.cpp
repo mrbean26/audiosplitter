@@ -183,10 +183,13 @@ void tabViewer::drawTab() {
 	float xPosition = TAB_EDGE_DISTANCE + xOffset;
 	float yPosition = -TAB_EDGE_DISTANCE - currentLineNumber * (tabStringCount * TAB_LINE_GAP + TAB_EDGE_DISTANCE);
 
-	if (yPosition <= maxYPosition) {
-		if (xOffset >= maxXOffset) {
+	if (yPosition < maxYPosition) {
+		xPosition = TAB_EDGE_DISTANCE + maxXOffset;
+		yPosition = maxYPosition;
+	}
+	if (yPosition == maxYPosition) {
+		if (xOffset > maxXOffset) {
 			xPosition = TAB_EDGE_DISTANCE + maxXOffset;
-			yPosition = maxYPosition;
 		}
 	}
 
@@ -195,7 +198,7 @@ void tabViewer::drawTab() {
 	// Draw Text 
 	int characterCount = 0;
 	for (int i = 0; i < chunkCount; i++) {
-		int lineIndex = i % (chunksPerLine + 1);
+		int lineIndex = i % chunksPerLine;
 		int tabChunkIndex = floor(float(i) / float(chunksPerLine));
 
 		float relativeXPosition = TAB_EDGE_DISTANCE + lineIndex * tabTextDistance;
@@ -205,12 +208,12 @@ void tabViewer::drawTab() {
 				continue;
 			}
 
-			float relativeYPosition = 1.0f - TAB_EDGE_DISTANCE - TAB_EDGE_DISTANCE * tabChunkIndex - stringCount * TAB_LINE_GAP * tabChunkIndex;
-			relativeYPosition = relativeYPosition - TAB_LINE_GAP * (stringCount - j);
+			float relativeYPosition = 1.0f -TAB_EDGE_DISTANCE - TAB_EDGE_DISTANCE * tabChunkIndex - stringCount * TAB_LINE_GAP * tabChunkIndex;
+			relativeYPosition = relativeYPosition - TAB_LINE_GAP * (stringCount - j - 1);
 
 			vec2 position = vec2(relativeXPosition * display_x, relativeYPosition * display_y);
 			if (foundSize) {
-				position = position + vec2(0.0f, averageYCharacterSize / 2.0f); // Center Text
+				position = position - vec2(0.0f, averageYCharacterSize / 2.0f); // Center Text
 			}
 			// shift text for scrolling
 			if (checkIfScroll()) {
