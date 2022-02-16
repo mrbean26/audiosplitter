@@ -51,14 +51,11 @@ void notationViewer::startTrebleClef() {
 	trebleClefTexture = readyTexture("Assets/trebleClef.png");
 
 	// Find Coordinates
-	float staveHeight = 4.0f * NOTATION_LINE_GAP;
-	float aspectRatioMultiplier = (float(display_y) / float(display_x));
-
 	float startX = NOTATION_EDGE_DISTANCE * display_x; // Start of Stave X Coordinate
-	float finalX = (NOTATION_EDGE_DISTANCE + staveHeight * 0.3672 * aspectRatioMultiplier) * display_x; // 0.3672 comes from image aspect ratio
+	float finalX = (NOTATION_EDGE_DISTANCE + TREBLE_CLEF_WIDTH * aspectRatioMultiplier) * display_x; // 0.3672 comes from image aspect ratio
 
 	float startY = display_y; // Starts from the top (ready to be transformed)
-	float finalY = display_y - staveHeight * display_y; // Height of the stave
+	float finalY = display_y - STAVE_HEIGHT * display_y; // Height of the stave
 
 	vector<float> trebleClefVertices = {
 		finalX, startY, 1.0f, 1.0f, // Triangle Tex Coords
@@ -101,6 +98,20 @@ void notationViewer::drawTrebleClef(float yOffset) {
 	glDrawArrays(GL_TRIANGLES, 0, notationSizes[1]);
 }
 
+void notationViewer::drawLedgerLines(float noteY, float staveY, float noteX) {
+	int requiredLedgerLinesUpper = (noteY - staveY) / NOTATION_LINE_GAP;
+	for (int k = 0; k < requiredLedgerLinesUpper; k++) {
+		float yPosition = staveY + NOTATION_LINE_GAP * (k + 1);
+		drawLedgerLine(noteX * display_x, yPosition * display_y);
+	}
+
+	float bottomStave = staveY - 4.0f * NOTATION_LINE_GAP;
+	int requiredLedgerLinesLower = (bottomStave - noteY) / NOTATION_LINE_GAP;
+	for (int k = 0; k < requiredLedgerLinesLower; k++) {
+		float yPosition = bottomStave - NOTATION_LINE_GAP * (k + 1);
+		drawLedgerLine(noteX * display_x, yPosition * display_y);
+	}
+}
 void notationViewer::drawLedgerLine(float xOffset, float yOffset) {
 	glUseProgram(notationShader);
 
@@ -174,17 +185,14 @@ void notationViewer::startNotes() {
 	noteTextures.push_back(readyTexture("Assets/halfNote.png"));
 
 	// Note Coordinates
-	float noteSize = NOTATION_LINE_GAP; // Note fills up gap between 2 stave lines
-	float aspectRatioMultiplier = float(display_y) / float(display_x);
-
 	float startX = 0.0f;
-	float finalX = (1.294f * aspectRatioMultiplier * noteSize) * display_x; // 1.294 comes from image resolution ratio
+	float finalX = (NOTE_SIZE_WIDTH * aspectRatioMultiplier) * display_x; // 1.294 comes from image resolution ratio
 
 	float startY = display_y;
-	float finalY = display_y - noteSize * display_y;
+	float finalY = display_y - NOTE_SIZE * display_y;
 
 	// Declare Coordinates
-	notationNoteSize = vec2(finalX, noteSize * display_y);
+	notationNoteSize = vec2(finalX, NOTE_SIZE * display_y);
 	vector<float> noteVertices = {
 		finalX, startY, 1.0f, 1.0f, // Triangle Coordinates: X, Y, TexX, TexY
 		finalX, finalY, 1.0f, 0.0f,
@@ -214,11 +222,9 @@ void notationViewer::startNotes() {
 	glEnableVertexAttribArray(1);
 }
 void notationViewer::startNoteLine() {
-	float staveHeight = 4.0f * NOTATION_LINE_GAP;
-
 	// Create line the height of the stave
 	float startY = display_y;
-	float finalY = display_y - staveHeight * display_y;
+	float finalY = display_y - STAVE_HEIGHT * display_y;
 
 	float startX = 0.0f;
 	float finalX = NOTATION_NOTE_LINE_WIDTH * display_x;
@@ -259,16 +265,13 @@ void notationViewer::drawSingularNote(vec2 noteRootPosition, float staveCenter, 
 	}
 
 	// Draw Line
-	glUseProgram(notationShader);
-	
-	float staveHeight = 4.0f * NOTATION_LINE_GAP;
 	vec2 linePosition = vec2(noteRootPosition.x * display_x, noteRootPosition.y * display_y);
 
 	// Put Line Upwards if Note Center is Low Down, if not then do the oppposite
 	if (noteRootPosition.y <= staveCenter) {
 		// Put Line Upwards
 		linePosition.x += notationNoteSize.x - NOTATION_NOTE_LINE_WIDTH * display_x;
-		linePosition.y += staveHeight * display_y - notationNoteSize.y / 2.0f;
+		linePosition.y += STAVE_HEIGHT * display_y - notationNoteSize.y / 2.0f;
 	}
 	else {
 		// Put Line Downwards
@@ -277,6 +280,7 @@ void notationViewer::drawSingularNote(vec2 noteRootPosition, float staveCenter, 
 	}
 
 	// Set Shader Details
+	glUseProgram(notationShader);
 	projectionMatrix = translate(projectionMatrix, vec3(linePosition, 0.0f));
 	setMat4(notationShader, "projection", projectionMatrix * getViewMatrix());
 
@@ -309,43 +313,47 @@ vector<bool> notationViewer::findKey(vector<vector<int>> notes) {
 			int currentNote = notes[i][j];
 			int octaveNote = currentNote % 12;
 			
-			if (octaveNote == 0) {
-				resultantNotes[0] = 1; // A
-			}
-			if (octaveNote == 1 && resultantNotes[0] == 0) {
-				resultantNotes[0] = 2;
-			}
-
-			if (octaveNote == 3) {
-				resultantNotes[1] = 1; // C
-			}
-			if (octaveNote == 4 && resultantNotes[1] == 0) {
-				resultantNotes[1] = 2;
-			}
-
-			if (octaveNote == 5) {
-				resultantNotes[2] = 1; // D
-			}
-			if (octaveNote == 6 && resultantNotes[2] == 0) {
-				resultantNotes[2] = 2;
-			}
-
-			if (octaveNote == 8) {
-				resultantNotes[3] = 1; // F
-			}
-			if (octaveNote == 9 && resultantNotes[3] == 0) {
-				resultantNotes[3] = 2;
-			}
-
-			if (octaveNote == 10) {
-				resultantNotes[4] = 1; // G
-			}
-			if (octaveNote == 11 && resultantNotes[4] == 0) {
-				resultantNotes[4] = 2;
-			}
+			// Check if first note is sharp or natural
+			switch (octaveNote) {
+			case 0:
+				resultantNotes[0] = 1;
+			case 1:
+				if (resultantNotes[0] == 0) {
+					resultantNotes[0] = 2;
+				}
+				break;
+			case 3:
+				resultantNotes[1] = 1;
+			case 4:
+				if (resultantNotes[1] == 0) {
+					resultantNotes[1] = 2;
+				}
+				break;
+			case 5:
+				resultantNotes[2] = 1;
+			case 6:
+				if (resultantNotes[2] == 0) {
+					resultantNotes[2] = 2;
+				}
+				break;
+			case 8:
+				resultantNotes[3] = 1;
+			case 9:
+				if (resultantNotes[3] == 0) {
+					resultantNotes[3] = 2;
+				}
+				break;
+			case 10:
+				resultantNotes[4] = 1;
+			case 11:
+				if (resultantNotes[4] == 0) {
+					resultantNotes[4] = 2;
+				}
+				break;
+			}	
 		}
 	}
-
+	
 	// A true variable means that the natural note (eg A, C, D) is shifted (eg A#, C#, D#)
 	vector<bool> result(5);
 
@@ -356,28 +364,33 @@ vector<bool> notationViewer::findKey(vector<vector<int>> notes) {
 		else {
 			result[i] = false;
 		}
-		if (i > 3) {
-			result[i] = true;
-		}
 	}
 	return result;
 }
+float notationViewer::getKeySignatureWidth() {
+	int count = 2;
+
+	int signatureSize = keySignature.size();
+	for (int i = 0; i < signatureSize; i++) {
+		if (keySignature[i]) {
+			count = count + 1;
+		}
+	}
+
+	return count * NOTATION_SHARP_DISTANCE;
+}
 void notationViewer::drawKeySignature(vector<bool> keySignature, float yOffset) {
 	vector<int> keyDistances = { 0, 2, 3, 5, 6 };
+	float trebleClefOffset = (NOTATION_EDGE_DISTANCE + TREBLE_CLEF_WIDTH * aspectRatioMultiplier) * display_x; // 0.3672 comes from image aspect ratio
 
-	float staveHeight = 4.0f * NOTATION_LINE_GAP;
-	float aspectRatioMultiplier = (float(display_y) / float(display_x));
-	float trebleClefWidth = (NOTATION_EDGE_DISTANCE + staveHeight * 0.3672 * aspectRatioMultiplier) * display_x; // 0.3672 comes from image aspect ratio
-
-	int count = 1;
+	int count = 1; // initial offset away from treble clef
 	float textSize = NOTATION_SHARP_SIZE * (float(display_y) / 1000.0f); // Size comes from a proportion of heights
 
 	for (int i = 0; i < 5; i++) {
 		if (keySignature[i]) {
-			float xPosition = trebleClefWidth + count * NOTATION_SHARP_DISTANCE * display_x; // Shift along by how many sharps already present
-
-			float yPosition = (1.0f + yOffset) * display_y - (3.0f * NOTATION_LINE_GAP * display_y); // Position of "A" Note
-			yPosition = yPosition + display_y * keyDistances[i] * NOTATION_LINE_GAP * 0.5f;
+			float xPosition = trebleClefOffset + count * NOTATION_SHARP_DISTANCE * display_x; // Shift along by how many sharps already present
+			float yPosition = display_y + display_y * (yOffset - 3.0f * NOTATION_LINE_GAP); // shift to tab position then Position of "A" Note
+			yPosition = yPosition + display_y * keyDistances[i] * NOTATION_LINE_GAP * 0.5f; // shift  to note position
 			
 			// shift text for scrolling
 			yPosition += currentOffset;
@@ -388,7 +401,8 @@ void notationViewer::drawKeySignature(vector<bool> keySignature, float yOffset) 
 	}
 
 	// Bar Line After the clef & signature
-	drawBarLine(trebleClefWidth + (count + 1) * NOTATION_SHARP_DISTANCE * display_x, yOffset * display_y);
+	count = count + 1; // Offset distance from last sharp to the bar line
+	drawBarLine(trebleClefOffset + count * NOTATION_SHARP_DISTANCE * display_x, yOffset * display_y);
 }
 
 bool notationViewer::compareNoteChunks(vector<int> chunkOne, vector<int> chunkTwo) {
@@ -507,15 +521,11 @@ void notationViewer::resumeTrack() {
 }
 
 bool notationViewer::checkIfScroll() {
-	float notationHeight = 5 * NOTATION_LINE_GAP + NOTATION_EDGE_DISTANCE;
-	notationHeight = notationHeight + 2 * NOTATION_MAX_LEDGER_LINES * NOTATION_LINE_GAP; // Add ledger line height
-
 	int chunkCount = noteLengths.size();
 	int chunksPerLine = NOTATION_CHUNKS_PER_LINE * (double(display_x) / 1000.0);
 	int requiredStaves = ceilf(float(chunkCount) / float(chunksPerLine));
 
-	float maxHeight = notationHeight * requiredStaves;
-
+	float maxHeight = NOTATION_HEIGHT * requiredStaves;
 	if (maxHeight > 1.0f) {
 		return true;
 	}
@@ -524,11 +534,8 @@ bool notationViewer::checkIfScroll() {
 mat4 notationViewer::getViewMatrix() {
 	mat4 resultantMatrix = mat4(1.0f);
 
-	float notationHeight = 5 * NOTATION_LINE_GAP + NOTATION_EDGE_DISTANCE;
-	notationHeight = notationHeight + 2 * NOTATION_MAX_LEDGER_LINES * NOTATION_LINE_GAP; // Add ledger line height
-
 	if (checkIfScroll()) {
-		float notationGapDistance = currentLineNumber * notationHeight * display_y;
+		float notationGapDistance = currentLineNumber * NOTATION_HEIGHT * display_y;
 		float deltaTime = glfwGetTime() - previousRuntime;
 
 		currentOffset = currentOffset + display_y * deltaTime * NOTATION_SCROLL_RATE;
@@ -537,41 +544,29 @@ mat4 notationViewer::getViewMatrix() {
 		}
 
 		vec3 translation = vec3(0.0f, currentOffset, 0.0f);
-
 		resultantMatrix = translate(resultantMatrix, translation);
 	}
 
 	return resultantMatrix;
 }
 
+float notationViewer::getLineLength() {
+	float edgeOfTrebleClef = NOTATION_EDGE_DISTANCE + TREBLE_CLEF_WIDTH * aspectRatioMultiplier; // 0.3672 comes from image aspect ratio
+	float keySignatureWidth = getKeySignatureWidth(); 
+
+	float lineLength = 1.0f - edgeOfTrebleClef - keySignatureWidth - NOTATION_EDGE_DISTANCE;
+	return lineLength;
+}
 void notationViewer::drawNotes(vector<vector<pair<int, int>>> notes, vector<bool> keySignature) {
-	// Calculate Distance Up To First Note
-	// Treble Clef Width
-	float staveHeight = 4.0f * NOTATION_LINE_GAP;
-	float aspectRatioMultiplier = float(display_y) / float(display_x);
-
-	float edgeOfTrebleClef = NOTATION_EDGE_DISTANCE + staveHeight * 0.3672 * aspectRatioMultiplier; // 0.3672 comes from image aspect ratio
-
-	// Key Signature Width
-	int signatureCount = 2; // 2 Due to Edge Gaps
-
-	int signatureSize = keySignature.size();
-	for (int i = 0; i < signatureSize; i++) {
-		if (keySignature[i]) {
-			signatureCount = signatureCount + 1;
-		}
-	}
-
-	float keySignatureWidth = NOTATION_SHARP_DISTANCE * signatureCount;
-
-	// Draw Notes
+	// Prequisite Variables
 	int currentStave = 0;
-
 	float currentYPosition = -NOTATION_EDGE_DISTANCE - NOTATION_MAX_LEDGER_LINES * NOTATION_LINE_GAP;
-	float initialNoteXPosition = edgeOfTrebleClef + keySignatureWidth;
+
+	float edgeOfTrebleClef = NOTATION_EDGE_DISTANCE + TREBLE_CLEF_WIDTH * aspectRatioMultiplier; // 0.3672 comes from image aspect ratio
+	float initialNoteXPosition = edgeOfTrebleClef + getKeySignatureWidth();
 
 	int notesPerLine = NOTATION_CHUNKS_PER_LINE * (float(display_x) / 1000.0f); // Notes per line is proportional to screen width
-	float noteGapDistance = (1.0f - NOTATION_EDGE_DISTANCE - initialNoteXPosition) / float(notesPerLine); // Line Length / notes per line
+	float noteGapDistance = getLineLength() / float(notesPerLine); // Line Length / notes per line
 
 	// Shift only by natural note distance (because c# for example is no higher on the stave than c)
 	vector<int> naturalNoteIndex = { 0, 0, 1, 2, 2, 3, 3, 4, 5, 5, 6, 6 };
@@ -579,7 +574,6 @@ void notationViewer::drawNotes(vector<vector<pair<int, int>>> notes, vector<bool
 
 	// Iterate over note chunks
 	int noteCount = notes.size();
-
 	for (int i = 0; i < noteCount; i++) {
 		// Calculate x Position of notes on the stave line
 		int noteStaveIndex = i % notesPerLine;
@@ -587,51 +581,25 @@ void notationViewer::drawNotes(vector<vector<pair<int, int>>> notes, vector<bool
 		
 		// Iterate over individual notes
 		int subNoteCount = notes[i].size();
-
 		for (int j = 0; j < subNoteCount; j++) {
-			// Current Y Position is Top E (Top Stave Line) - Note 31 
 			// Calculate Y Position of Note
-			float finalYPosition = 0.0f;
-			int distanceFromE = 31 - notes[i][j].first;
+			int naturalNote = naturalNoteIndex[notes[i][j].first % 12];
+			int naturalNoteBaseNote = naturalNoteIndex[31 % 12]; // 31 is base note E (the current position of Y)
+
+			int octaveDifference = floorf(float(35 - notes[i][j].first) / 12.0f); // 35 is note to the nearest full octave
+			int dist = octaveDifference * 7 + (naturalNoteBaseNote - naturalNote);
+			float yPosition = currentYPosition - dist * NOTATION_LINE_GAP * 0.5f;
 			
-			if (distanceFromE >= 0) {
-				int octaveCount = floor(double(distanceFromE) / 12.0);
-
-				int noteDistance = octaveCount * 7.0f + naturalNoteIndex[distanceFromE % 12];
-				finalYPosition = currentYPosition - noteDistance * NOTATION_LINE_GAP * 0.5f;
-			}
-			else {
-				distanceFromE = abs(distanceFromE);
-				int octaveCount = floor(double(distanceFromE) / 12.0);
-
-				int noteDistance = octaveCount * 7 + naturalNoteIndex[distanceFromE % 12];
-				finalYPosition = currentYPosition + noteDistance * NOTATION_LINE_GAP * 0.5f;
-
-			}
-
 			// Check if key signature applies to this note
 			bool requiresSharp = false;
-			if (isNaturalNote[notes[i][j].first % 12] && !keySignature[naturalNoteIndex[distanceFromE % 12]]) {
+			if (isNaturalNote[notes[i][j].first % 12] && !keySignature[naturalNote]) {
 				requiresSharp = true;
 			}
 
 			 // Render
-			drawSingularNote(vec2(currentXPosition, finalYPosition), currentYPosition - NOTATION_LINE_GAP * 2.0f, notes[i][j].second, requiresSharp);
-			
-			int requiredLedgerLinesUpper = (finalYPosition - currentYPosition) / NOTATION_LINE_GAP;
-			for (int k = 0; k < requiredLedgerLinesUpper; k++) {
-				float yPosition = currentYPosition + NOTATION_LINE_GAP * (k + 1);
-				drawLedgerLine(currentXPosition * display_x, yPosition * display_y);
-			}
-			
-			float bottomStave = currentYPosition - 4.0f * NOTATION_LINE_GAP;
-			int requiredLedgerLinesLower = (bottomStave - finalYPosition) / NOTATION_LINE_GAP;
-
-			for (int k = 0; k < requiredLedgerLinesLower; k++) {
-				float yPosition = bottomStave - NOTATION_LINE_GAP * (k + 1);
-				drawLedgerLine(currentXPosition * display_x, yPosition * display_y);
-			}
-			
+			float middleOfStave = currentYPosition - NOTATION_LINE_GAP * 2.0F;
+			drawSingularNote(vec2(currentXPosition, yPosition), middleOfStave, notes[i][j].second, requiresSharp);
+			drawLedgerLines(yPosition, currentYPosition, currentXPosition);			
 		}
 
 		// Draw Bar Lines if 4 notes have occured (4 beats per bar)
@@ -643,7 +611,7 @@ void notationViewer::drawNotes(vector<vector<pair<int, int>>> notes, vector<bool
 		// Check if note is the last of the line, if so calculate new base y position
 		if (noteStaveIndex == notesPerLine - 1) {
 			currentStave = currentStave + 1;
-			currentYPosition = currentYPosition - (5 * NOTATION_LINE_GAP + NOTATION_EDGE_DISTANCE + 2 * NOTATION_MAX_LEDGER_LINES * NOTATION_LINE_GAP);
+			currentYPosition = currentYPosition - NOTATION_HEIGHT;
 		}
 	}
 }
@@ -673,64 +641,28 @@ void notationViewer::drawNotation() {
 
 	// Draw Notes
 	drawNotes(noteLengths, keySignature);
+
 	// Draw BPM Text
 	vec2 bpmTextPosition = vec2(NOTATION_EDGE_DISTANCE * display_x, display_y - NOTATION_EDGE_DISTANCE * display_y);
 	float bpmTextSize = NOTATION_BPM_TEXT_SIZE * (float(display_y) / 1000.0f);
+
 	renderText(bpmText, bpmTextPosition, 1.0f, bpmTextSize, vec3(0.0f), fontCharacters);
 
-	// Calculate progress bar position variables
-	float staveHeight = 4.0f * NOTATION_LINE_GAP;
-	float aspectRatioMultiplier = (float(display_y) / float(display_x));
-	float trebleClefWidth = (staveHeight * 0.3672 * aspectRatioMultiplier); // 0.3672 comes from image aspect ratio
-
-	int count = 1;
-	for (int i = 0; i < 5; i++) {
-		if (keySignature[i]) {
-			count += 1;
-		}
-	}
-	float lineLength = 1.0f - 2 * NOTATION_EDGE_DISTANCE - trebleClefWidth - (count + 1) * NOTATION_SHARP_DISTANCE;
-
-	float timePerChunk = float(samplesPerChunkProgress) / float(sampleRateProgress);
-	float timePerLine = chunksPerLine * timePerChunk;
-
+	// Update Time Variables
 	if (trackPaused) {
 		pausedTime = pausedTime + (glfwGetTime() - previousRuntime);
 	}
 	float playingTime = glfwGetTime() - pausedTime;
 
+	// Calculate Current Line
+	float timePerChunk = float(samplesPerChunkProgress) / float(sampleRateProgress);
+	float timePerLine = chunksPerLine * timePerChunk;
+
 	int lineNumber = floorf(playingTime / timePerLine);
 	currentLineNumber = lineNumber;
-	float usedTime = playingTime - currentLineNumber * timePerLine;
 
-	float lineProportion = usedTime / timePerLine;
-	float xOffset = lineProportion * lineLength;
-
-	float notationHeight = 5 * NOTATION_LINE_GAP + NOTATION_EDGE_DISTANCE;
-	notationHeight = notationHeight + 2 * NOTATION_MAX_LEDGER_LINES * NOTATION_LINE_GAP; // Add ledger line height
-
-	// Calculate limits for when track is finished playing
-	int lineCount = ceilf(floor(chunkCount) / float(chunksPerLine));
-	float maxYPosition = -NOTATION_EDGE_DISTANCE - NOTATION_MAX_LEDGER_LINES * NOTATION_LINE_GAP - (lineCount - 1) * notationHeight;
-
-	int finalLineChunkCount = chunkCount % (chunksPerLine + 1);
-	float maxXOffset = NOTATION_EDGE_DISTANCE + trebleClefWidth + (count + 1) * NOTATION_SHARP_DISTANCE + (float(finalLineChunkCount) / float(chunksPerLine)) * lineLength;
-
-	// Calculate final positions and draw
-	float xPosition = NOTATION_EDGE_DISTANCE + trebleClefWidth + (count + 1) * NOTATION_SHARP_DISTANCE + xOffset;
-	float yPosition = -NOTATION_EDGE_DISTANCE - NOTATION_MAX_LEDGER_LINES * NOTATION_LINE_GAP - currentLineNumber * notationHeight;
-
-	if (yPosition < maxYPosition) {
-		xPosition = maxXOffset;
-		yPosition = maxYPosition;
-	}
-	if (yPosition == maxYPosition) {
-		if (xPosition > maxXOffset) {
-			xPosition = maxXOffset;
-		}
-	}
-
-	drawProgressBar(xPosition * display_x, yPosition * display_y);
+	// Calculate progress bar position variables
+	drawProgressBar();
 
 	previousRuntime = glfwGetTime();
 }
@@ -738,12 +670,9 @@ void notationViewer::drawNotation() {
 void notationViewer::startProgressBar() {
 	progressBarTexture = readyTexture("Assets/progressBar.png");
 
-	float notationHeight = 4 * NOTATION_LINE_GAP;
-	float aspectRatioMultiplier = (float(display_y) / float(display_x));
-
-	float x = 0.22f * aspectRatioMultiplier * notationHeight * display_x; // 0.22f from image resolution
+	float x = PROGRESS_BAR_SIZE * aspectRatioMultiplier * display_x; // 0.22f from image resolution
 	float y1 = display_y;
-	float y2 = display_y - notationHeight * display_y;
+	float y2 = display_y - STAVE_HEIGHT * display_y;
 
 	vector<float> vertices = {
 		x, y1, 1.0f, 1.0f,
@@ -770,14 +699,51 @@ void notationViewer::startProgressBar() {
 	glEnableVertexAttribArray(0);
 	glEnableVertexAttribArray(1);
 }
-void notationViewer::drawProgressBar(float xOffset, float yOffset) {
+void notationViewer::drawProgressBar() {
+	// Calculate and limit coordinates
+	float minimumX = NOTATION_EDGE_DISTANCE + TREBLE_CLEF_WIDTH * aspectRatioMultiplier + getKeySignatureWidth();
+	float lineLength = getLineLength();
+
+	int chunkCount = noteLengths.size();
+	float timePerChunk = float(samplesPerChunkProgress) / float(sampleRateProgress);
+	int chunksPerLine = NOTATION_CHUNKS_PER_LINE * (double(display_x) / 1000.0);
+
+	float playingTime = glfwGetTime() - pausedTime;
+	float timePerLine = chunksPerLine * timePerChunk;
+
+	float lineTime = playingTime - currentLineNumber * timePerLine;
+	float lineProportion = lineTime / timePerLine;
+
+	// Calculate limits for when track is finished playing
+	int lineCount = ceilf(floor(chunkCount) / float(chunksPerLine));
+	float maxYPosition = -NOTATION_EDGE_DISTANCE - NOTATION_MAX_LEDGER_LINES * NOTATION_LINE_GAP - (lineCount - 1) * NOTATION_HEIGHT;
+
+	int finalLineChunkCount = chunkCount % (chunksPerLine + 1);
+	float maxXOffset = minimumX + (float(finalLineChunkCount) / float(chunksPerLine)) * lineLength;
+
+	// Calculate final positions and draw
+	float xPosition = minimumX + lineProportion * lineLength;
+	float yPosition = -NOTATION_EDGE_DISTANCE - NOTATION_MAX_LEDGER_LINES * NOTATION_LINE_GAP - currentLineNumber * NOTATION_HEIGHT;
+
+	// Limits according to how many note chunks
+	if (yPosition < maxYPosition) {
+		xPosition = maxXOffset;
+		yPosition = maxYPosition;
+	}
+	if (yPosition == maxYPosition) {
+		if (xPosition > maxXOffset) {
+			xPosition = maxXOffset;
+		}
+	}
+
+	// Draw
 	glUseProgram(imageShader);
 
 	glBindVertexArray(progressBarVAO);
 	glBindTexture(GL_TEXTURE_2D, progressBarTexture);
 
 	mat4 scalePositionMatrix = ortho(0.0f, static_cast<GLfloat>(display_x), 0.0f, static_cast<GLfloat>(display_y));
-	scalePositionMatrix = translate(scalePositionMatrix, vec3(xOffset, yOffset, 0.0f));
+	scalePositionMatrix = translate(scalePositionMatrix, vec3(xPosition * display_x, yPosition * display_y, 0.0f));
 
 	setMat4(imageShader, "scalePositionMatrix", scalePositionMatrix * getViewMatrix());
 	glDrawArrays(GL_TRIANGLES, 0, 6);

@@ -5,7 +5,9 @@
 
 GLFWwindow* window;
 int display_x, display_y;
+
 double aspect_x, aspect_y;
+float aspectRatioMultiplier;
 
 int aspectDivider(int x, int y) {
 	// make UI suitable for widescreen displays, clamp values to 16:9, probably a bad way to do it when I look back at this
@@ -70,6 +72,8 @@ bool startOpenGL(GLFWwindow*& used_window, int width, int height) {
 
 	aspect_x = width / aspectDivider(width, height); //gives 16:10
 	aspect_y = height / aspectDivider(width, height);
+
+	aspectRatioMultiplier = (float(display_y) / float(display_x));
 
 	return true;
 }

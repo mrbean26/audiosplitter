@@ -10,6 +10,13 @@ using namespace std;
 #define NOTATION_LINE_GAP 0.03f
 #define NOTATION_MAX_LEDGER_LINES 3
 
+#define STAVE_HEIGHT 4.0f * NOTATION_LINE_GAP
+#define NOTATION_HEIGHT ((5.0f * NOTATION_LINE_GAP + NOTATION_EDGE_DISTANCE) + (2 * NOTATION_MAX_LEDGER_LINES * NOTATION_LINE_GAP))
+#define TREBLE_CLEF_WIDTH STAVE_HEIGHT * 0.3672f
+
+#define NOTE_SIZE NOTATION_LINE_GAP
+#define NOTE_SIZE_WIDTH 1.294f * NOTE_SIZE
+
 #define NOTATION_CHUNKS_PER_LINE 20.0 // On a 1000px width screen
 
 #define NOTATION_SHARP_DISTANCE 0.015f
@@ -19,6 +26,7 @@ using namespace std;
 
 #define NOTATION_BPM_TEXT_SIZE 1.25f // On a 1000px height screen
 
+#define PROGRESS_BAR_SIZE 0.22f * STAVE_HEIGHT
 #define NOTATION_SCROLL_RATE 0.025
 
 class notationViewer {
@@ -58,6 +66,7 @@ public:
 	GLuint ledgerLineVBO;
 	GLuint ledgerLineSize;
 
+	void drawLedgerLines(float noteY, float staveY, float noteX);
 	void drawLedgerLine(float xOffset, float yOffset);
 
 	void startBarLine();
@@ -69,6 +78,7 @@ public:
 
 	// Returned vector is length 5 - a true represents the note is a sharp - eg index 1 = C#
 	static vector<bool> findKey(vector<vector<int>> notes);
+	float getKeySignatureWidth();
 	void drawKeySignature(vector<bool> keySignature, float yOffset);
 
 	int samplesPerChunkProgress; // for progress bar calculations
@@ -91,11 +101,12 @@ public:
 	static vector<vector<int>> removeNoteRepetitions(vector<vector<int>> originalChunks);
 	static vector<vector<pair<int, int>>> findNoteLengths(vector<vector<int>> noteChunks);
 
+	float getLineLength();
 	void drawNotes(vector<vector<pair<int, int>>> notes, vector<bool> keySignature);
 	void drawNotation();
 
 	void startProgressBar();
-	void drawProgressBar(float xOffset, float yOffset);
+	void drawProgressBar();
 };
 
 #endif // !NOTATION_H

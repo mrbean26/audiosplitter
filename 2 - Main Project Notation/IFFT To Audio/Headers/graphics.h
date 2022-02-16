@@ -12,7 +12,9 @@ using namespace std;
 
 extern GLFWwindow* window;
 extern int display_x, display_y;
+
 extern double aspect_x, aspect_y;
+extern float aspectRatioMultiplier;
 
 bool startOpenGL(GLFWwindow*& used_window, int width, int height);
 

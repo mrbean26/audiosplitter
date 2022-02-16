@@ -1,36 +1,35 @@
 ﻿  0 File(s) copied
+  main.cpp
+D:\Projects\Audio Splitter App\2 - Main Project Notation\IFFT To Audio\main.cpp(49,41): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+D:\Projects\Audio Splitter App\2 - Main Project Notation\IFFT To Audio\main.cpp(50,46): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
   notation.cpp
-D:\Projects\Audio Splitter App\2 - Main Project Notation\IFFT To Audio\notation.cpp(58,15): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project Notation\IFFT To Audio\notation.cpp(60,15): warning C4244: 'initializing': conversion from 'int' to 'float', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project Notation\IFFT To Audio\notation.cpp(108,20): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project Notation\IFFT To Audio\notation.cpp(183,15): warning C4244: 'initializing': conversion from 'int' to 'float', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project Notation\IFFT To Audio\notation.cpp(220,15): warning C4244: 'initializing': conversion from 'int' to 'float', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project Notation\IFFT To Audio\notation.cpp(289,18): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project Notation\IFFT To Audio\notation.cpp(370,24): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project Notation\IFFT To Audio\notation.cpp(514,20): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project Notation\IFFT To Audio\notation.cpp(515,21): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project Notation\IFFT To Audio\notation.cpp(532,19): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project Notation\IFFT To Audio\notation.cpp(534,33): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project Notation\IFFT To Audio\notation.cpp(553,25): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project Notation\IFFT To Audio\notation.cpp(573,19): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project Notation\IFFT To Audio\notation.cpp(598,21): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project Notation\IFFT To Audio\notation.cpp(600,22): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project Notation\IFFT To Audio\notation.cpp(605,21): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project Notation\IFFT To Audio\notation.cpp(621,33): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project Notation\IFFT To Audio\notation.cpp(628,33): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project Notation\IFFT To Audio\notation.cpp(652,20): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project Notation\IFFT To Audio\notation.cpp(653,21): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project Notation\IFFT To Audio\notation.cpp(684,24): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project Notation\IFFT To Audio\notation.cpp(698,27): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project Notation\IFFT To Audio\notation.cpp(700,20): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project Notation\IFFT To Audio\notation.cpp(702,17): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project Notation\IFFT To Audio\notation.cpp(713,42): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project Notation\IFFT To Audio\notation.cpp(713,16): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project Notation\IFFT To Audio\notation.cpp(735,31): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-D:\Projects\Audio Splitter App\2 - Main Project Notation\IFFT To Audio\notation.cpp(745,11): warning C4244: 'initializing': conversion from 'int' to 'float', possible loss of data
+D:\Projects\Audio Splitter App\2 - Main Project Notation\IFFT To Audio\notation.cpp(57,15): warning C4244: 'initializing': conversion from 'int' to 'float', possible loss of data
+D:\Projects\Audio Splitter App\2 - Main Project Notation\IFFT To Audio\notation.cpp(102,31): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+D:\Projects\Audio Splitter App\2 - Main Project Notation\IFFT To Audio\notation.cpp(109,31): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+D:\Projects\Audio Splitter App\2 - Main Project Notation\IFFT To Audio\notation.cpp(119,20): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+D:\Projects\Audio Splitter App\2 - Main Project Notation\IFFT To Audio\notation.cpp(191,15): warning C4244: 'initializing': conversion from 'int' to 'float', possible loss of data
+D:\Projects\Audio Splitter App\2 - Main Project Notation\IFFT To Audio\notation.cpp(226,15): warning C4244: 'initializing': conversion from 'int' to 'float', possible loss of data
+D:\Projects\Audio Splitter App\2 - Main Project Notation\IFFT To Audio\notation.cpp(293,18): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+D:\Projects\Audio Splitter App\2 - Main Project Notation\IFFT To Audio\notation.cpp(525,20): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+D:\Projects\Audio Splitter App\2 - Main Project Notation\IFFT To Audio\notation.cpp(526,21): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+D:\Projects\Audio Splitter App\2 - Main Project Notation\IFFT To Audio\notation.cpp(539,19): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+D:\Projects\Audio Splitter App\2 - Main Project Notation\IFFT To Audio\notation.cpp(541,33): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+D:\Projects\Audio Splitter App\2 - Main Project Notation\IFFT To Audio\notation.cpp(568,19): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+D:\Projects\Audio Splitter App\2 - Main Project Notation\IFFT To Audio\notation.cpp(589,25): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+D:\Projects\Audio Splitter App\2 - Main Project Notation\IFFT To Audio\notation.cpp(620,20): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+D:\Projects\Audio Splitter App\2 - Main Project Notation\IFFT To Audio\notation.cpp(621,21): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+D:\Projects\Audio Splitter App\2 - Main Project Notation\IFFT To Audio\notation.cpp(653,27): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+D:\Projects\Audio Splitter App\2 - Main Project Notation\IFFT To Audio\notation.cpp(655,20): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+D:\Projects\Audio Splitter App\2 - Main Project Notation\IFFT To Audio\notation.cpp(661,17): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+D:\Projects\Audio Splitter App\2 - Main Project Notation\IFFT To Audio\notation.cpp(667,31): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+D:\Projects\Audio Splitter App\2 - Main Project Notation\IFFT To Audio\notation.cpp(674,11): warning C4244: 'initializing': conversion from 'int' to 'float', possible loss of data
+D:\Projects\Audio Splitter App\2 - Main Project Notation\IFFT To Audio\notation.cpp(709,20): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+D:\Projects\Audio Splitter App\2 - Main Project Notation\IFFT To Audio\notation.cpp(711,20): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+D:\Projects\Audio Splitter App\2 - Main Project Notation\IFFT To Audio\notation.cpp(718,42): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+D:\Projects\Audio Splitter App\2 - Main Project Notation\IFFT To Audio\notation.cpp(718,16): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
 LINK : warning LNK4098: defaultlib 'LIBCMT' conflicts with use of other libs; use /NODEFAULTLIB:library
   Generating code
-  2 of 1839 functions ( 0.1%) were compiled, the rest were copied from previous compilation.
+  2 of 1842 functions ( 0.1%) were compiled, the rest were copied from previous compilation.
     0 functions were new in current compilation
     10 functions had inline decision re-evaluated but remain unchanged
   Finished generating code
