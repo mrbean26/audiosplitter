@@ -11,6 +11,7 @@ tabViewer::tabViewer(vector<vector<int>> notes, vector<int> tunings, vector<int>
 	sampleRateProgress = sampleRate;
 
 	trackObjectPointer = trackAudio;
+	tabHeight = (stringCount - 1) * TAB_LINE_GAP;
 }
 
 void tabViewer::tabsBegin(int stringCount) {
@@ -44,11 +45,9 @@ void tabViewer::tabsBegin(int stringCount) {
 
 	// Begin progress bar
 	progressBarTexture = readyTexture("Assets/progressBar.png");
+	tabHeight = (stringCount - 1) * TAB_LINE_GAP;
 
-	float tabHeight = (stringCount - 1) * TAB_LINE_GAP;
-	float aspectRatioMultiplier = (float(display_y) / float(display_x));
-
-	float x = 0.22f * aspectRatioMultiplier * tabHeight * display_x; // 0.22f from image resolution
+	float x = PROGRESS_BAR_SIZE * aspectRatioMultiplier * tabHeight * display_x; // 0.22f from image resolution
 	float y1 = display_y;
 	float y2 = display_y - tabHeight * display_y;
 
@@ -99,14 +98,13 @@ void tabViewer::resumeTrack() {
 
 bool tabViewer::checkIfScroll() {
 	// Check if tab viewer is more than screen
-	float tabHeight = tabStringCount * TAB_LINE_GAP + TAB_EDGE_DISTANCE;
+	float chunkHeight = tabHeight + TAB_EDGE_DISTANCE;
 	int chunksPerLine = TAB_CHUNKS_PER_LINE * (float(display_x) / 1000.0f);
 
 	int chunkCount = noteFrets.size();
 	int requiredLines = ceilf(float(chunkCount) / float(chunksPerLine));
 
-	float maxHeight = tabHeight * requiredLines;
-
+	float maxHeight = chunkHeight * requiredLines;
 	if (maxHeight > 1.0f) {
 		// Longer than screen
 		return true;
@@ -117,7 +115,7 @@ mat4 tabViewer::getViewMatrix() {
 	mat4 resultantMatrix = mat4(1.0f);
 	
 	if (checkIfScroll()) {
-		float tapGapDistance = currentLineNumber * (tabStringCount * TAB_LINE_GAP + TAB_EDGE_DISTANCE) * display_y;
+		float tapGapDistance = currentLineNumber * (tabHeight + TAB_EDGE_DISTANCE) * display_y;
 		float deltaTime = glfwGetTime() - previousRuntime;
 
 		currentOffset = currentOffset + display_y * deltaTime * TAB_SCROLL_RATE;
@@ -126,7 +124,6 @@ mat4 tabViewer::getViewMatrix() {
 		}
 
 		vec3 translation = vec3(0.0f, currentOffset, 0.0f);
-
 		resultantMatrix = translate(resultantMatrix, translation);
 	}
 
@@ -134,13 +131,10 @@ mat4 tabViewer::getViewMatrix() {
 }
 void tabViewer::drawTab() {
 	int chunkCount = noteFrets.size();
-	int stringCount = noteFrets[0].size();
-
-	float lineLength = 1.0f - 2 * TAB_EDGE_DISTANCE;
 	int chunksPerLine = TAB_CHUNKS_PER_LINE * (float(display_x) / 1000.0f);
 
 	float tabTextSize = TAB_TEXT_SIZE * (float(display_y) / 1000.0f);
-	float tabTextDistance = lineLength / float(chunksPerLine);
+	float tabTextDistance = LINE_LENGTH / float(chunksPerLine);
 	
 	// Draw Lines
 	int tabLinesCount = ceil(float(chunkCount) / float(chunksPerLine));
@@ -151,58 +145,31 @@ void tabViewer::drawTab() {
 		drawTabLines(0, yCoordinate * display_y);
 	}
 
-	// Pausing and playing
-	float deltaTime = glfwGetTime() - previousRuntime;
-	previousRuntime = glfwGetTime();
-
+	// Update Time Variables
 	if (trackPaused) {
-		pausedTime = pausedTime + deltaTime;
+		pausedTime = pausedTime + (glfwGetTime() - previousRuntime);
 	}
+	float playingTime = glfwGetTime() - pausedTime;
 
-	// Calculate progress bar position variables
+	// Calculate Current Line
 	float timePerChunk = float(samplesPerChunkProgress) / float(sampleRateProgress);
 	float timePerLine = chunksPerLine * timePerChunk;
 
-	float playingTime = glfwGetTime() - pausedTime;
-
 	int lineNumber = floorf(playingTime / timePerLine);
 	currentLineNumber = lineNumber;
-	float usedTime = playingTime - currentLineNumber * timePerLine;
 
-	float lineProportion = usedTime / timePerLine;
-	float xOffset = lineProportion * lineLength;
-
-	// Calculate limits for when track is finished playing
-	int lineCount = ceilf(floor(chunkCount) / float(chunksPerLine));
-	float maxYPosition = -TAB_EDGE_DISTANCE - (lineCount - 1) * (tabStringCount * TAB_LINE_GAP + TAB_EDGE_DISTANCE);
-
-	int finalLineChunkCount = chunkCount % (chunksPerLine + 1);
-	float maxXOffset = (float(finalLineChunkCount) / float(chunksPerLine)) * lineLength;
-
-	// Calculate final positions and draw
-	float xPosition = TAB_EDGE_DISTANCE + xOffset;
-	float yPosition = -TAB_EDGE_DISTANCE - currentLineNumber * (tabStringCount * TAB_LINE_GAP + TAB_EDGE_DISTANCE);
-
-	if (yPosition < maxYPosition) {
-		xPosition = TAB_EDGE_DISTANCE + maxXOffset;
-		yPosition = maxYPosition;
-	}
-	if (yPosition == maxYPosition) {
-		if (xOffset > maxXOffset) {
-			xPosition = TAB_EDGE_DISTANCE + maxXOffset;
-		}
-	}
-
-	drawProgressBar(xPosition * display_x, yPosition * display_y);
+	drawProgressBar();
 
 	// Draw Text 
 	int characterCount = 0;
+	int stringCount = noteFrets[0].size();
+
 	for (int i = 0; i < chunkCount; i++) {
 		int lineIndex = i % chunksPerLine;
 		int tabChunkIndex = floor(float(i) / float(chunksPerLine));
 
 		float relativeXPosition = TAB_EDGE_DISTANCE + lineIndex * tabTextDistance;
-
+		
 		for (int j = 0; j < stringCount; j++) {
 			if (noteFrets[i][j] == -1) {
 				continue;
@@ -233,14 +200,50 @@ void tabViewer::drawTab() {
 	}
 }
 
-void tabViewer::drawProgressBar(float xOffset, float yOffset) {
+void tabViewer::drawProgressBar() {
+	// Calculate progress bar position variables
+	float timePerChunk = float(samplesPerChunkProgress) / float(sampleRateProgress);
+	int chunksPerLine = TAB_CHUNKS_PER_LINE * (double(display_x) / 1000.0);
+	float timePerLine = chunksPerLine * timePerChunk;
+	int chunkCount = noteFrets.size();
+
+	float playingTime = glfwGetTime() - pausedTime;
+
+	int lineNumber = floorf(playingTime / timePerLine);
+	currentLineNumber = lineNumber;
+	float usedTime = playingTime - currentLineNumber * timePerLine;
+
+	float lineProportion = usedTime / timePerLine;
+	float xOffset = lineProportion * LINE_LENGTH;
+
+	// Calculate limits for when track is finished playing
+	int lineCount = ceilf(floor(chunkCount) / float(chunksPerLine));
+	float maxYPosition = -TAB_EDGE_DISTANCE - (lineCount - 1) * (tabStringCount * TAB_LINE_GAP + TAB_EDGE_DISTANCE);
+
+	int finalLineChunkCount = chunkCount % (chunksPerLine + 1);
+	float maxXOffset = (float(finalLineChunkCount) / float(chunksPerLine)) * LINE_LENGTH;
+
+	// Calculate final positions and draw
+	float xPosition = TAB_EDGE_DISTANCE + xOffset;
+	float yPosition = -TAB_EDGE_DISTANCE - currentLineNumber * (tabStringCount * TAB_LINE_GAP + TAB_EDGE_DISTANCE);
+
+	if (yPosition < maxYPosition) {
+		xPosition = TAB_EDGE_DISTANCE + maxXOffset;
+		yPosition = maxYPosition;
+	}
+	if (yPosition == maxYPosition) {
+		if (xOffset > maxXOffset) {
+			xPosition = TAB_EDGE_DISTANCE + maxXOffset;
+		}
+	}
+
 	glUseProgram(imageShader);
 
 	glBindVertexArray(progressBarVAO);
 	glBindTexture(GL_TEXTURE_2D, progressBarTexture);
 
 	mat4 scalePositionMatrix = ortho(0.0f, static_cast<GLfloat>(display_x), 0.0f, static_cast<GLfloat>(display_y));
-	scalePositionMatrix = translate(scalePositionMatrix, vec3(xOffset, yOffset, 0.0f));
+	scalePositionMatrix = translate(scalePositionMatrix, vec3(xPosition * display_x, yPosition * display_y, 0.0f));
 
 	setMat4(imageShader, "scalePositionMatrix", scalePositionMatrix * getViewMatrix());
 	glDrawArrays(GL_TRIANGLES, 0, 6);

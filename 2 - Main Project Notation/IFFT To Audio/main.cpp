@@ -50,8 +50,8 @@ int main() {
 			newNotationViewer.pausedTime = glfwGetTime();
 		}
 
-		//newTabViewer.drawTab();
-		newNotationViewer.drawNotation();
+		newTabViewer.drawTab();
+		//newNotationViewer.drawNotation();
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();

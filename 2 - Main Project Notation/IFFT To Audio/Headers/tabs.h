@@ -13,11 +13,15 @@ using namespace std;
 #define TAB_CHUNKS_PER_LINE 25 // On an 1000px width screen
 #define TAB_SCROLL_RATE 0.025
 
+#define PROGRESS_BAR_SIZE 0.22f // from image resolution ratio
+#define LINE_LENGTH (1.0f - 2 * TAB_EDGE_DISTANCE)
+
 class tabViewer {
 public:
 	audioObject* trackObjectPointer;
 	tabViewer(vector<vector<int>> notes, vector<int> tunings, vector<int> maxFrets, int stringCount, int samplesPerChunk, int sampleRate, audioObject * trackAudio);
 
+	float tabHeight = 0.0f;
 	vector<GLuint> tabVAOs;
 	vector<GLuint> tabVBOs;
 	vector<GLuint> tabSizes;
@@ -56,7 +60,7 @@ public:
 
 	void drawTab();
 
-	void drawProgressBar(float xOffset, float yOffset);
+	void drawProgressBar();
 };
 
 #endif // !TABS_H
