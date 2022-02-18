@@ -1525,7 +1525,7 @@ vector<float> NeuralNetwork::trainBatchGradientDescent(standardTrainConfig train
         float totalError = 0.0f;
         for (int t = 0; t < trainDataCount; t++) {
             vector<float> prediction = predict(trainConfig.trainInputs[t]);
-
+            cout << epoch + 1 << ":" << t + 1 << "/" << trainDataCount << endl;
             // Calculate Differences
             vector<float> errors;
             for (int e = 0; e < outputCount; e++) {

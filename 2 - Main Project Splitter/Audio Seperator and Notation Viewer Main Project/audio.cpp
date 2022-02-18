@@ -79,7 +79,7 @@ pair<vector<vector<float>>, float> spectrogramOutput(const char* mp3Filename, au
 	fftw_complex* fftInputArray = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) * audioConfig.samplesPerChunk);
 	fftw_complex* fftOutput = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) * audioConfig.samplesPerChunk);
 	fftw_plan fftwPlan = fftw_plan_dft_1d(audioConfig.samplesPerChunk, fftInputArray, fftOutput, FFTW_FORWARD, FFTW_ESTIMATE);
-
+	
 	// Execute FFTW Plan and Convert Complex to Real
 	int chunkCount = spectrogramChunks.size();
 	for (int chunkNum = 0; chunkNum < chunkCount; chunkNum++) {

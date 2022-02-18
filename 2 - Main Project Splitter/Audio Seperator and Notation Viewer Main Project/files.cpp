@@ -178,12 +178,16 @@ pair<vector<vector<float>>, vector<vector<float>>> generateAllSongDataSet(audioF
 
 		vector<vector<float>> songInputs = generateInputs(config);
 		vector<vector<float>> songOutputs = generateOutputs(config);
-
+		
 		// Make sure randomly taken samples are regularly distributed across the song
 		int miniBatchSize = songInputs.size() / chunksPerSong;
 
 		for (int j = 0; j < chunksPerSong; j++) {
 			int currentIndex = (i * miniBatchSize) + (rand() % miniBatchSize);
+
+			if (songOutputs[currentIndex].size() == 0) {
+				continue;
+			}
 
 			resultantInputs.push_back(songInputs[currentIndex]);
 			resultantOutputs.push_back(songOutputs[currentIndex]);
