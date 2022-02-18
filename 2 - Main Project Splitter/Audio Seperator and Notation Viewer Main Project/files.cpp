@@ -134,6 +134,10 @@ vector<vector<float>> generateOutputs(audioFileConfig config) {
 						value = 0.0f;
 					}
 				}
+				
+				if (config.useNoisePrediction) {
+					value = 1.0f - value; // Noise prediction (invert the amplitude)
+				}
 
 				currentInput.push_back(value);
 			}

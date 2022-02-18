@@ -157,7 +157,12 @@ vector<int16_t> vocalSamples(const char* fullFileNameMP3, vector<vector<float>> 
 		*/
 
 		for (int j = 0; j < networkOutput[i].size(); j++) {
-			networkOutput[i][j] = powf(networkOutput[i][j], audioConfig.spectrogramEmphasis);
+			float networkValue = networkOutput[i][j];
+			if (audioConfig.useNoisePrediction) {
+				networkValue = 1.0f - networkValue;
+			}
+
+			networkOutput[i][j] = powf(networkValue, audioConfig.spectrogramEmphasis);
 		}
 
 		vector<float> currentChunk = networkOutput[i];

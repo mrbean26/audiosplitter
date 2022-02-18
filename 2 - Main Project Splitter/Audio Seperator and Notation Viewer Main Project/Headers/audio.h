@@ -19,6 +19,8 @@ struct audioFileConfig {
 
 	bool useOutputBinaryMask = false;
 	float binaryMaskThreshold = 0.025f;
+
+	bool useNoisePrediction = false;
 };
 
 pair<vector<vector<float>>, float> spectrogramOutput(const char* mp3Filename, audioFileConfig audioConfig);

@@ -9,11 +9,11 @@ using namespace std;
 int main() {
 	srand(time(NULL));
 	audioFileConfig audioConfig = {
-		512, // samples per chunk
-		512, // samples per overlap
+		2048, // samples per chunk
+		2048, // samples per overlap
 
-		512, // frequency res
-		12, // chunk border
+		64, // frequency res
+		4, // chunk border
 
 		1, // start file index
 		1, // song count
@@ -21,7 +21,9 @@ int main() {
 		2.5f, // spectrogram emphasis, no emphasis = 1.0f
 
 		false, // use binary mask for output
-		0.025f, // binary mask threshold
+		0.1f, // binary mask threshold
+
+		false, // use noise prediction
 	};
 
 	// Train Config
@@ -39,7 +41,7 @@ int main() {
 	newConfig.gradientDescent.datasetAudioConfig = audioConfig;
 
 	// Train Network
-	vector<int> nodes = { 6144, 6144, 6144, 6144, 6144, 6144, 2048, 2048, 2048, 2048, 2048, 2048, 682, 682, 682, 682, 682, 256 };
+	vector<int> nodes = { 256, 448, 256, 64, 768, 448, 384, 256, 256, 448, 32 };
 	vector<int> bias(nodes.size(), 1);
 	vector<int> activations(nodes.size(), SIGMOID);
 
