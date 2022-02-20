@@ -30,6 +30,7 @@ void writeToFile(const char* fileName, vector<string> lines) {
 		return;
 	}
 
+	// Write vector to file line by line
 	int vectorSize = lines.size();
 	for (int i = 0; i < vectorSize; i++) {
 		currentFile << lines[i] << endl;
@@ -46,6 +47,7 @@ vector<string> readFile(const char* fileName) {
 		cout << "File could not be opened: " << fileName << endl;
 	}
 
+	// read file in line by line
 	while (getline(newFile, currentLine)) {
 		result.push_back(currentLine);
 	}
@@ -56,12 +58,12 @@ vector<string> splitStringByCharacter(string used, char splitter) {
 	vector<string> result;
 	stringstream stringStream(used);
 
+	// traverse string chunks between each character
 	while (stringStream.good()) {
 		string substring;
 		getline(stringStream, substring, splitter);
 		result.push_back(substring);
 	}
-
 
 	return result;
 }
@@ -182,17 +184,17 @@ pair<vector<vector<float>>, vector<vector<float>>> generateAllSongDataSet(audioF
 
 		vector<vector<float>> songInputs = generateInputs(config);
 		vector<vector<float>> songOutputs = generateOutputs(config);
-		
+
 		// Make sure randomly taken samples are regularly distributed across the song
 		int miniBatchSize = songInputs.size() / chunksPerSong;
 
 		for (int j = 0; j < chunksPerSong; j++) {
-			int currentIndex = (i * miniBatchSize) + (rand() % miniBatchSize);
+			int currentIndex = (j * miniBatchSize) + (rand() % miniBatchSize);
 
 			if (songOutputs[currentIndex].size() == 0) {
 				continue;
 			}
-
+			//cout << songInputs.size() << " " << songOutputs.size() << " " << currentIndex << endl;
 			resultantInputs.push_back(songInputs[currentIndex]);
 			resultantOutputs.push_back(songOutputs[currentIndex]);
 		}
@@ -208,6 +210,7 @@ pair<vector<vector<float>>, vector<vector<float>>> generateAllSongDataSet(audioF
 vector<vector<float>> addCharacterToImage(vector<vector<float>> data, int character, int xMidpoint, int yMidpoint) {
 	vector<vector<float>> characterPixels; // 5 x 5
 
+	// Character pixels of numbers 1 -> 9 (on a 5x5 grid)
 	if (character == 0) {
 		characterPixels = { {1.0f, 1.0f, 1.0f, 1.0f, 1.0f},
 							{1.0f, 0.0f, 0.0f, 0.0f, 1.0f},

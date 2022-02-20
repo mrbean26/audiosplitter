@@ -206,6 +206,7 @@ void NeuralNetwork::setupNetworkForTraining(standardTrainConfig trainConfig) {
         int weightCount = layerNodes[i + 1].size();
         vector<float> emptyVector(weightCount);
 
+        // Only add vectors for fields that will be used - this is decided on which learning method is chosen
         for (int n = 0; n < nodeCount; n++) {
             if (trainConfig.gradientDescent.learningRateType == ADAM_LEARNING_RATE) {
                 layerNodes[i][n].previousExponentials = emptyVector;
@@ -437,6 +438,8 @@ void NeuralNetwork::resetDerivativesAndResults() {
 }
 
 void NeuralNetwork::decayWeights(float multiplier) {
+    // decaying weights helps in preventing overfitting dataset
+
     for (int i = 0; i < layerCount - 1; i++) {
         int nodeCount = layerNodes[i].size();
         int biasCount = layerBiases[i].size();
@@ -622,23 +625,9 @@ vector<float> NeuralNetwork::trainGradientDescent(standardTrainConfig trainConfi
         random_shuffle(trainIndexes.begin(), trainIndexes.end());
 
         // Calculate Current Learning Rate
-        float currentLearningRate = trainConfig.learningRate;
-        float currentMomentum = trainConfig.momentum;
-
-        if (trainConfig.gradientDescent.learningRateType == CYCLICAL_LEARNING_RATE) {
-            // Peak in Middle - Use Linear Function
-            double currentCoefficient = double(epoch + 1) / (double(trainConfig.epochs));
-            float value = 1.0f - abs(2.0f * (currentCoefficient - 0.5f));
-
-            currentLearningRate = value * trainConfig.learningRate;
-            currentMomentum = (1 - value) * trainConfig.momentum;
-        }
-
-        if (trainConfig.gradientDescent.learningRateType == DECREASING_LEARNING_RATE) {
-            float multiplier = float(epoch + 1) / float(trainConfig.epochs);
-            currentLearningRate = (1.0f - multiplier) * trainConfig.learningRate;
-            currentMomentum = multiplier * trainConfig.learningRate;
-        }
+        pair<float, float> trainingParameters = calculateLRMomentum(epoch, trainConfig);
+        float currentLearningRate = trainingParameters.first;
+        float currentMomentum = trainingParameters.second;
 
         // Randomly Disable Some Nodes to Prevent Overfitting
         if (trainConfig.useDropout) {
@@ -682,6 +671,28 @@ vector<float> NeuralNetwork::trainGradientDescent(standardTrainConfig trainConfi
     return result;
 }
 
+pair<float, float> NeuralNetwork::calculateLRMomentum(int epoch, standardTrainConfig trainConfig) {
+    float currentLearningRate = trainConfig.learningRate;
+    float currentMomentum = trainConfig.momentum;
+    
+    if (trainConfig.gradientDescent.learningRateType == CYCLICAL_LEARNING_RATE) {
+        // Peak in Middle - Use Linear Function
+        double currentCoefficient = double(epoch + 1) / (double(trainConfig.epochs));
+        float value = 1.0f - abs(2.0f * (currentCoefficient - 0.5f));
+
+        currentLearningRate = value * trainConfig.learningRate;
+        currentMomentum = (1 - value) * trainConfig.momentum;
+    }
+
+    if (trainConfig.gradientDescent.learningRateType == DECREASING_LEARNING_RATE) {
+        float multiplier = float(epoch + 1) / float(trainConfig.epochs);
+        currentLearningRate = (1.0f - multiplier) * trainConfig.learningRate;
+        currentMomentum = multiplier * trainConfig.learningRate;
+    }
+
+    return make_pair(currentLearningRate, currentMomentum);
+}
+
 // Stochastic Gradient Descent (select a few random train inputs)
 vector<float> NeuralNetwork::trainStochasticGradientDescent(standardTrainConfig trainConfig) {
     // Useful Integers Calculated Before Iteration
@@ -696,10 +707,12 @@ vector<float> NeuralNetwork::trainStochasticGradientDescent(standardTrainConfig 
             int miniBatchSize = trainConfig.trainInputs.size() / trainConfig.gradientDescent.batchSize;
 
             if ((epoch + 1) % trainConfig.gradientDescent.entireBatchEpochIntervals == 0) {
+                // Use entire dataset every few epochs to test peformance
                 usedInputs = trainConfig.trainInputs;
                 usedOutputs = trainConfig.trainOutputs;
             }
             else {
+                // create mini dataset
                 for (int i = 0; i < trainConfig.gradientDescent.batchSize; i++) {
                     int newIndex = (i * miniBatchSize) + (rand() % miniBatchSize);
 
@@ -709,6 +722,8 @@ vector<float> NeuralNetwork::trainStochasticGradientDescent(standardTrainConfig 
             }
         }
         if (trainConfig.gradientDescent.useAllSongDataset) {
+            // generate dataset from parts of all songs in the current avaliable data files
+
             if (epoch % trainConfig.gradientDescent.datasetRefreshInterval == 0) { // Time to refresh dataset
                 int chunksPerSong = trainConfig.gradientDescent.batchSize / 100; // / song count
                 pair<vector<vector<float>>, vector<vector<float>>> allSongMiniDataset = generateAllSongDataSet(trainConfig.gradientDescent.datasetAudioConfig, chunksPerSong);
@@ -721,23 +736,9 @@ vector<float> NeuralNetwork::trainStochasticGradientDescent(standardTrainConfig 
         int outputCount = usedOutputs[0].size();
 
         // Calculate Current Learning Rate
-        float currentLearningRate = trainConfig.learningRate;
-        float currentMomentum = trainConfig.momentum;
-
-        if (trainConfig.gradientDescent.learningRateType == CYCLICAL_LEARNING_RATE) {
-            // Calculate Multiplier For Learning Parameters such That The Multiplier Peaks at Half Epochs
-            double currentCoefficient = double(epoch + 1) / (double(trainConfig.epochs));
-            float value = 1.0f - abs(2.0f * (currentCoefficient - 0.5f));
-
-            currentLearningRate = value * trainConfig.learningRate;
-            currentMomentum = (1 - value) * trainConfig.momentum;
-        }
-
-        if (trainConfig.gradientDescent.learningRateType == DECREASING_LEARNING_RATE) {
-            float multiplier = float(epoch + 1) / float(trainConfig.epochs);
-            currentLearningRate = (1.0f - multiplier) * trainConfig.learningRate;
-            currentMomentum = multiplier * trainConfig.learningRate;
-        }
+        pair<float, float> trainingParameters = calculateLRMomentum(epoch, trainConfig);
+        float currentLearningRate = trainingParameters.first;
+        float currentMomentum = trainingParameters.second;
 
         // Randomly Disable Some Nodes to Prevent Overfitting
         if (trainConfig.useDropout) {
@@ -811,6 +812,7 @@ vector<float> NeuralNetwork::trainResistantPropagation(standardTrainConfig train
                 errors.push_back(trainConfig.trainOutputs[currentIndex][e] - result[e]);
             }
 
+            // Update network parameters 
             calculateDerivatives(errors);
             adjustWeightsRPROP(trainConfig.resistantPropagation.rpropWeightIncreaseMultiplier, trainConfig.resistantPropagation.rpropWeightDecreaseMultiplier, epoch == 0 && t == 0);
 
@@ -920,6 +922,7 @@ float NeuralNetwork::measureNetworkFitness(NeuralNetwork network, standardTrainC
         vector<float> predicted = network.predict(usedInputs[j]);
 
         for (int k = 0; k < outputCount; k++) {
+            // Update total error according to learning parameter chosen
             if (trainConfig.naturalSelection.fitnessFunctionType == ABSOLUTE_ERROR) {
                 currentFitness = currentFitness - abs(usedOutputs[j][k] - predicted[k]);
             }
@@ -929,6 +932,7 @@ float NeuralNetwork::measureNetworkFitness(NeuralNetwork network, standardTrainC
         }
     }
 
+    // calculate final fitness according to learnign parameter chosen
     if (trainConfig.naturalSelection.fitnessFunctionType == ROOT_SQUARED_ERROR) {
         currentFitness = sqrtf(currentFitness);
     }
@@ -947,12 +951,14 @@ vector<float> NeuralNetwork::measurePopulationFitness(vector<NeuralNetwork> popu
     vector<vector<float>> usedInputs = trainConfig.trainInputs;
     vector<vector<float>> usedOutputs = trainConfig.trainOutputs;
 
+    // create a mini dataset if stochastic training is used
     if (trainConfig.naturalSelection.useStochasticDataset) {
         int miniBatchSize = trainConfig.trainInputs.size() / trainConfig.naturalSelection.stochasticDatasetSize;
 
         usedInputs.clear();
         usedOutputs.clear();
 
+        // take random samples at regular intervals
         for (int i = 0; i < trainConfig.naturalSelection.stochasticDatasetSize; i++) {
             int newIndex = (i * miniBatchSize) + (rand() % miniBatchSize);
 
@@ -965,6 +971,8 @@ vector<float> NeuralNetwork::measurePopulationFitness(vector<NeuralNetwork> popu
     int populationCount = population.size();
 
     if (!trainConfig.naturalSelection.useThreading) {
+        // run networks one after another
+
         for (int i = 0; i < populationCount; i++) {
             float currentFitness = measureNetworkFitness(population[i], trainConfig, usedInputs, usedOutputs);
             result.push_back(currentFitness);
@@ -973,6 +981,7 @@ vector<float> NeuralNetwork::measurePopulationFitness(vector<NeuralNetwork> popu
     if (trainConfig.naturalSelection.useThreading) {
         vector<shared_future<float>> threads;
 
+        // Run all networks simultanously
         for (int i = 0; i < populationCount; i++) {
             shared_future<float> future = async(measureNetworkFitness, population[i], trainConfig, usedInputs, usedOutputs);
             threads.push_back(future);
@@ -1170,6 +1179,7 @@ vector<NeuralNetwork> NeuralNetwork::reproducePopulation(vector<NeuralNetwork> p
     return result;
 }
 NeuralNetwork NeuralNetwork::mutateNetwork(NeuralNetwork input) {
+    // Add small random values (returned by normalDistribution()) to each weight, creating slightly more variation    
     int layerCount = input.layerCount;
 
     for (int l = 0; l < layerCount - 1; l++) {
@@ -1208,6 +1218,7 @@ vector<NeuralNetwork> NeuralNetwork::initialisePopulation(vector<int> layers, ve
     return result;
 }
 NeuralNetwork NeuralNetwork::trainNaturalSelectionMethod(standardTrainConfig trainConfig, vector<int> layers, vector<int> biases, vector<int> activations) {
+    // get a set of networks and get them ready 
     vector<NeuralNetwork> population = initialisePopulation(layers, biases, activations, trainConfig.naturalSelection.population, trainConfig.naturalSelection.lowestInitialisedWeight, trainConfig.naturalSelection.highestInitialisedWeight);
     cout << "Initialised population.. " << endl;
 
@@ -1218,7 +1229,9 @@ NeuralNetwork NeuralNetwork::trainNaturalSelectionMethod(standardTrainConfig tra
     NeuralNetwork bestNetwork = population[0];
     float bestFitness = -1.0f;
 
+    // training
     for (int i = 0; i < trainConfig.epochs; i++) {
+        // finding best network, then breed them
         vector<float> currentFitnessScores = measurePopulationFitness(population, trainConfig);
 
         float lowestFitness = currentFitnessScores[0];
@@ -1492,11 +1505,23 @@ vector<float> NeuralNetwork::trainLevenbergMarquardt(standardTrainConfig trainCo
 
 // Batch Gradient Descent
 vector<float> NeuralNetwork::trainBatchGradientDescent(standardTrainConfig trainConfig) {
-    int trainDataCount = trainConfig.trainInputs.size();
-    int outputCount = trainConfig.trainOutputs[0].size();
-
     vector<float> result;
     for (int epoch = 0; epoch < trainConfig.epochs; epoch++) {
+        // Find dataset
+        vector<vector<float>> trainInputs = trainConfig.trainInputs;
+        vector<vector<float>> trainOutputs = trainConfig.trainOutputs;
+
+        if (trainConfig.gradientDescent.useAllSongDataset) {
+            int chunksPerSong = trainConfig.gradientDescent.batchSize / 100; // / song count
+            pair<vector<vector<float>>, vector<vector<float>>> allSongMiniDataset = generateAllSongDataSet(trainConfig.gradientDescent.datasetAudioConfig, chunksPerSong);
+
+            trainInputs = allSongMiniDataset.first;
+            trainOutputs = allSongMiniDataset.second;
+        }
+
+        int trainDataCount = trainInputs.size();
+        int outputCount = trainOutputs[0].size();
+
         // Calculate Current Learning Rate
         float currentLearningRate = trainConfig.learningRate;
         float currentMomentum = trainConfig.momentum;
@@ -1524,13 +1549,13 @@ vector<float> NeuralNetwork::trainBatchGradientDescent(standardTrainConfig train
         // Accumulate Weight Deltas (no mean just yet)
         float totalError = 0.0f;
         for (int t = 0; t < trainDataCount; t++) {
-            vector<float> prediction = predict(trainConfig.trainInputs[t]);
+            vector<float> prediction = predict(trainInputs[t]);
             cout << epoch + 1 << ":" << t + 1 << "/" << trainDataCount << endl;
             // Calculate Differences
             vector<float> errors;
             for (int e = 0; e < outputCount; e++) {
-                totalError = totalError + abs(trainConfig.trainOutputs[t][e] - prediction[e]);
-                errors.push_back(trainConfig.trainOutputs[t][e] - prediction[e]);
+                totalError = totalError + abs(trainOutputs[t][e] - prediction[e]);
+                errors.push_back(trainOutputs[t][e] - prediction[e]);
             }
 
             calculateDerivatives(errors);
@@ -1560,11 +1585,13 @@ vector<float> NeuralNetwork::trainBatchGradientDescent(standardTrainConfig train
 void NeuralNetwork::updateNetworkBatchGradientDescent(float learningRate, float momentum) {
     int layerCount = layerNodes.size();
 
+    // update parameters
     for (int l = 0; l < layerCount - 1; l++) {
         int nodeCount = layerNodes[l].size();
         int biasCount = layerBiases[l].size();
         int weightCount = layerNodes[l + 1].size();
 
+        // loop over each node and calculate each weight delta
         for (int n = 0; n < nodeCount; n++) {
             if (!layerNodes[l][n].active) {
                 continue;
@@ -1578,6 +1605,8 @@ void NeuralNetwork::updateNetworkBatchGradientDescent(float learningRate, float 
                 layerNodes[l][n].previousDeltas[w] = newDelta;
             }
         }
+
+        // loop over each bias and calculate each weight delta
         for (int b = 0; b < biasCount; b++) {
             if (!layerBiases[l][b].active) {
                 continue;
@@ -1837,6 +1866,7 @@ void NeuralNetwork::findBestArchitechture(architechtureFindingConfig config) {
 
 // Natural Selection Algorithm for Finding Best Architechture
 NeuralNetwork NeuralNetwork::architechtureNaturalSelection(standardTrainConfig trainConfig) {
+    // generate networks and ready them for trainig
     vector<NeuralNetwork> population = initialiseArchitechturePopulation(trainConfig);
     cout << "Population initialised" << endl;
 
@@ -1848,7 +1878,9 @@ NeuralNetwork NeuralNetwork::architechtureNaturalSelection(standardTrainConfig t
     NeuralNetwork bestNetwork = population[0];
     float bestFitness = -1.0f;
 
+    // training
     for (int i = 0; i < trainConfig.epochs; i++) {
+        // Find best network from fitness score then reproduce
         vector<NeuralNetwork*> populationAddress;
         for (int j = 0; j < trainConfig.naturalSelection.population; j++) {
             populationAddress.push_back(&population[j]);
@@ -1887,6 +1919,7 @@ vector<NeuralNetwork> NeuralNetwork::initialiseArchitechturePopulation(standardT
     int outputSize = trainConfig.trainOutputs[0].size();
 
     for (int i = 0; i < trainConfig.naturalSelection.population; i++) {
+        // Create config with random numbers within limits
         vector<int> layers = { inputSize };
 
         int firstLayerBiasCount = trainConfig.naturalSelection.selectionMinBias + (rand() % static_cast<int>(trainConfig.naturalSelection.selectionMaxBias - trainConfig.naturalSelection.selectionMinBias + 1));
@@ -1904,6 +1937,7 @@ vector<NeuralNetwork> NeuralNetwork::initialiseArchitechturePopulation(standardT
         layers.push_back(outputSize);
         biases.push_back(0);
         
+        // find activations
         vector<int> activations = {};
         if (trainConfig.naturalSelection.selectionAllowedActivations == ACTIVATION_NONLINEAR_ONLY) {
             for (int j = 0; j < chosenLayerCount; j++) {
@@ -1924,6 +1958,7 @@ vector<NeuralNetwork> NeuralNetwork::initialiseArchitechturePopulation(standardT
             }
         }
 
+        // generate final network config
         NeuralNetwork newNetwork = NeuralNetwork(layers, biases, activations);
         result.push_back(newNetwork);
     }
@@ -1935,6 +1970,7 @@ vector<float> NeuralNetwork::measureArchitechturePopulationFitness(vector<Neural
     int populationCount = population.size();
 
     if (!trainConfig.naturalSelection.useThreading) {
+        // calculate fitness of each network one after another
         for (int i = 0; i < populationCount; i++) {
             float currentFitness = population[i]->measureArchitechtureFitness(trainConfig);
             result.push_back(currentFitness);
@@ -1943,6 +1979,7 @@ vector<float> NeuralNetwork::measureArchitechturePopulationFitness(vector<Neural
     if (trainConfig.naturalSelection.useThreading) {
         vector<shared_future<float>> threads;
 
+        // calculate fitness of each network simultaneously
         for (int i = 0; i < populationCount; i++) {
             shared_future<float> future = async(&NeuralNetwork::measureArchitechtureFitness, population[i], trainConfig);
             threads.push_back(future);

@@ -227,6 +227,8 @@ public:
     void adjustWeightsADAM(standardTrainConfig trainConfig);
     vector<float> trainGradientDescent(standardTrainConfig trainConfig);
 
+    pair<float, float> calculateLRMomentum(int epoch, standardTrainConfig trainConfig);
+
     // Stochastic Gradient Descent (select a few random train inputs)
     vector<float> trainStochasticGradientDescent(standardTrainConfig trainConfig);
 
