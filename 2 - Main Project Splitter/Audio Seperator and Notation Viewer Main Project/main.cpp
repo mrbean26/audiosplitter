@@ -43,11 +43,11 @@ int main() {
 	vector<int> bias(nodes.size(), 1);
 	vector<int> activations(nodes.size(), SIGMOID);
 
-	NeuralNetwork vocalNetwork = NeuralNetwork(nodes, bias, activations);
-	vocalNetwork.train(newConfig);
-
-	vocalNetwork.saveWeightsToFile("vocalsOutputWeights/");
-	createOutputTestTrack(vocalNetwork, audioConfig);
+	NeuralNetwork vocalsNetwork = NeuralNetwork(nodes, bias, activations);
+	vocalsNetwork.train(newConfig);
+	//vocalNetwork.loadWeightsFromFile("vocalsOutputWeights/");
+	vocalsNetwork.saveWeightsToFile("weights/vocalOutputWeights/");
+	createOutputTestTrack(vocalsNetwork, audioConfig);
 
 	system("pause");
 	return 0;

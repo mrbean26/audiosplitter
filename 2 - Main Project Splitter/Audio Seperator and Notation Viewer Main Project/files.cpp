@@ -163,8 +163,11 @@ void createOutputTestTrack(NeuralNetwork network, audioFileConfig config) {
 	// Get Network Predictions and Add to Output Track
 	for (int i = 0; i < chunkCount; i++) {
 		vector<float> currentChunkPrection = network.predict(testTrackSpectrogram[i]);
+		cout << "Prediction " << i + 1 << "/" << chunkCount << " complete" << endl;
+
 		predictedTrackSpectrogram.push_back(currentChunkPrection);
 	}
+	
 
 	// Get Samples and Write To Track
 	vector<int16_t> testTrackOutputSamples = vocalSamples("inputs/1.mp3", predictedTrackSpectrogram, config);
