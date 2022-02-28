@@ -5,9 +5,8 @@ D:\Projects\Audio Splitter App\2 - Main Project Splitter\Audio Seperator and Not
 D:\Projects\Audio Splitter App\2 - Main Project Splitter\Audio Seperator and Notation Viewer Main Project\Headers\NeuralNetwork.h(188): warning C4091: 'static ': ignored on left of 'NeuralNetwork::Bias' when no variable is declared
 D:\Projects\Audio Splitter App\2 - Main Project Splitter\Audio Seperator and Notation Viewer Main Project\main.cpp(10,12): warning C4244: 'argument': conversion from 'time_t' to 'unsigned int', possible loss of data
   Generating code
-D:\Projects\Audio Splitter App\2 - Main Project Splitter\Audio Seperator and Notation Viewer Main Project\matrices.cpp(8): warning C4723: potential divide by 0
-  230 of 1756 functions (13.1%) were compiled, the rest were copied from previous compilation.
+  5 of 1748 functions ( 0.3%) were compiled, the rest were copied from previous compilation.
     0 functions were new in current compilation
-    34 functions had inline decision re-evaluated but remain unchanged
+    4 functions had inline decision re-evaluated but remain unchanged
   Finished generating code
   Audio Seperator and Notation Viewer Main Project.vcxproj -> D:\Projects\Audio Splitter App\2 - Main Project Splitter\x64\Release\Audio Seperator and Notation Viewer Main Project.exe

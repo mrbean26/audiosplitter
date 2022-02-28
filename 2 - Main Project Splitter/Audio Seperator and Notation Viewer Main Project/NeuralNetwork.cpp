@@ -33,8 +33,8 @@ NeuralNetwork::NeuralNetwork(vector<int> layers, vector<int> biases, vector<int>
     activations = activationLayers;
 }
 
-float randomMinimum = -1.0f;
-float randomMaximum = 1.0f;
+float randomMinimum = -0.001f;
+float randomMaximum = 0.001f;
 float randomFloat() {
     float result = randomMinimum + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (randomMaximum - randomMinimum)));
     return result;
@@ -749,14 +749,14 @@ vector<float> NeuralNetwork::trainStochasticGradientDescent(standardTrainConfig 
         float totalError = 0.0f;
         for (int t = 0; t < usedInputs.size(); t++) {
             vector<float> result = predict(usedInputs[t]);
-
+            
             // Calculate Differences In Actual Output
             vector<float> errors;
             for (int e = 0; e < outputCount; e++) {
                 totalError += abs(usedOutputs[t][e] - result[e]);
                 errors.push_back(usedOutputs[t][e] - result[e]);
             }
-
+            
             calculateDerivatives(errors);
 
             // Update Parameters
@@ -1550,7 +1550,9 @@ vector<float> NeuralNetwork::trainBatchGradientDescent(standardTrainConfig train
         float totalError = 0.0f;
         for (int t = 0; t < trainDataCount; t++) {
             vector<float> prediction = predict(trainInputs[t]);
-            cout << epoch + 1 << ":" << t + 1 << "/" << trainDataCount << endl;
+            if (t % 25 == 0) {
+                cout << epoch + 1 << ":" << t + 1 << "/" << trainDataCount << endl;
+            }
             // Calculate Differences
             vector<float> errors;
             for (int e = 0; e < outputCount; e++) {

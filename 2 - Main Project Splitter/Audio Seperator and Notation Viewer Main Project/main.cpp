@@ -16,9 +16,9 @@ int main() {
 		12, // chunk border
 
 		1, // start file index
-		1, // song count
+		4, // song count
 
-		2.5f, // spectrogram emphasis, no emphasis = 1.0f
+		1.0f, // spectrogram emphasis, no emphasis = 1.0f
 
 		false, // use binary mask for output
 		0.025f, // binary mask threshold
@@ -27,8 +27,9 @@ int main() {
 	// Train Config
 	NeuralNetwork::standardTrainConfig newConfig = NeuralNetwork::standardTrainConfig();
 
+	
 	newConfig.trainType = BATCH_GRADIENT_DESCENT;
-	newConfig.epochs = 25;
+	newConfig.epochs = 10;
 
 	newConfig.gradientDescent.learningRateType = CYCLICAL_LEARNING_RATE;
 	newConfig.learningRate = 1.0f;
@@ -41,12 +42,12 @@ int main() {
 	// Train Network
 	vector<int> nodes = { 6144, 6144, 6144, 6144, 6144, 6144, 2048, 2048, 2048, 2048, 2048, 2048, 682, 682, 682, 682, 682, 256 };
 	vector<int> bias(nodes.size(), 1);
-	vector<int> activations(nodes.size(), SIGMOID);
+	vector<int> activations(nodes.size(), TANH);
 
 	NeuralNetwork vocalsNetwork = NeuralNetwork(nodes, bias, activations);
 	vocalsNetwork.train(newConfig);
 	//vocalNetwork.loadWeightsFromFile("vocalsOutputWeights/");
-	vocalsNetwork.saveWeightsToFile("weights/vocalOutputWeights/");
+	//vocalsNetwork.saveWeightsToFile("weights/vocalOutputWeights/");
 	createOutputTestTrack(vocalsNetwork, audioConfig);
 
 	system("pause");
