@@ -9,10 +9,10 @@ int main() {
 	int samplesPerChunk = 8192;
 	
 	float addedOutputError = 0.005f; // Make output not as perfect to make it more realistic
-	float percentageFilter = 0.75f; // Filter bottom 10%
+	float percentageFilter = 0.95f; // Filter bottom 10%
 
 	// Load Fully Correct NeuralNet Output
-	pair<vector<vector<float>>, float> correctOutput = spectrogramOutput("ascendingStrings.mp3", samplesPerChunk, samplesPerChunk, frequencyResolution);
+	pair<vector<vector<float>>, float> correctOutput = spectrogramOutput("vocals.mp3", samplesPerChunk, samplesPerChunk, frequencyResolution);
 	correctOutput = addSpectrogramError(correctOutput, addedOutputError);
 
 	// Filter Output and Turn to Custom Note Format
@@ -27,36 +27,33 @@ int main() {
 
 	saveNoteFormat({ make_pair(newInstrumentConfig, filteredNotes) }, "outputNotes.audio");
 	vector<pair<instrumentConfig, vector<vector<int>>>> loadedNotes = loadNoteFormat("outputNotes.audio");
-
+	
 	// Graphics Rendering
 	startOpenAL();
+
+	audioObject newAudioObject = audioObject({}, samplesPerChunk, 44100);
+	//newAudioObject.play();
+
 	if (!startOpenGL(window, 1280, 720)) {
 		return -1;
 	}
-
-	audioObject newAudioObject = audioObject(filteredNotes, samplesPerChunk, 44100);
+	
 	notationViewer newNotationViewer = notationViewer(loadedNotes[0].second, samplesPerChunk, 44100, &newAudioObject);
 	tabViewer newTabViewer = tabViewer(loadedNotes[0].second, loadedNotes[0].first.tunings, loadedNotes[0].first.maxFrets, loadedNotes[0].first.stringCount, samplesPerChunk, 44100, &newAudioObject);
-
+	
 	textsBegin();
-	//newAudioObject.play();
-
 	int frame = 0;
+
 	while (!glfwWindowShouldClose(window)) {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		if (frame == 0) {
-			newTabViewer.pausedTime = glfwGetTime();
-			newNotationViewer.pausedTime = glfwGetTime();
-		}
-
-		newTabViewer.drawTab();
-		//newNotationViewer.drawNotation();
-
+		//newTabViewer.drawTab();
+		newNotationViewer.drawNotation();
+		
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 		frame++;
 	}
-
+	
 	return 0;
 }

@@ -5,6 +5,7 @@ notationViewer::notationViewer(vector<vector<int>> notes, int samplesPerChunk, i
 	notationBegin();
 
 	vector<vector<int>> newNotes = removeNoteRepetitions(notes);
+	newNotes = removeOutOfRangeNotes(newNotes);
 	this->noteLengths = findNoteLengths(newNotes);
 
 	this->keySignature = findKey(notes);
@@ -510,6 +511,38 @@ vector<vector<pair<int, int>>> notationViewer::findNoteLengths(vector<vector<int
 
 	return resultantChunks;
 }
+vector<vector<int>> notationViewer::removeOutOfRangeNotes(vector<vector<int>> inputNotes) {
+	vector<vector<int>> returnedNotes = inputNotes;
+	
+	vector<int> naturalNoteIndex = { 0, 0, 1, 2, 2, 3, 3, 4, 5, 5, 6, 6 };
+	int chunkCount = returnedNotes.size();
+
+	for (int i = 0; i < chunkCount; i++) {
+		int noteCount = returnedNotes[i].size();
+
+		for (int j = 0; j < noteCount; j++) {
+			// Calculate required ledger lines for notes
+			int naturalNote = naturalNoteIndex[returnedNotes[i][j] % 12];
+			int naturalNoteBaseNote = naturalNoteIndex[31 % 12]; // 31 is base note E (the current position of Y)
+
+			int octaveDifference = floorf(float(35 - returnedNotes[i][j]) / 12.0f); // 35 is note to the nearest full octave
+			int dist = float(octaveDifference * 7 + (naturalNoteBaseNote - naturalNote));
+
+			// calculate
+			int ledgerLinesUpper = ceil((-2 - dist) / 2);
+			int ledgerLinesLower = ceil((dist - 8) / 2);
+
+			if (ledgerLinesUpper > NOTATION_MAX_LEDGER_LINES) {
+				returnedNotes[i].erase(remove(returnedNotes[i].begin(), returnedNotes[i].end(), returnedNotes[i][j]), returnedNotes[i].end());
+			}
+			if (ledgerLinesLower > NOTATION_MAX_LEDGER_LINES) {
+				returnedNotes[i].erase(remove(returnedNotes[i].begin(), returnedNotes[i].end(), returnedNotes[i][j]), returnedNotes[i].end());
+			}
+		}
+	}
+
+	return returnedNotes;
+}
 
 void notationViewer::pauseTrack() {
 	trackObjectPointer->pause();
@@ -647,6 +680,7 @@ void notationViewer::drawNotation() {
 	float bpmTextSize = NOTATION_BPM_TEXT_SIZE * (float(display_y) / 1000.0f);
 
 	renderText(bpmText, bpmTextPosition, 1.0f, bpmTextSize, vec3(0.0f), fontCharacters);
+	drawProgressBar();
 
 	// Update Time Variables
 	if (trackPaused) {
@@ -660,9 +694,6 @@ void notationViewer::drawNotation() {
 
 	int lineNumber = floorf(playingTime / timePerLine);
 	currentLineNumber = lineNumber;
-
-	// Calculate progress bar position variables
-	drawProgressBar();
 
 	previousRuntime = glfwGetTime();
 }

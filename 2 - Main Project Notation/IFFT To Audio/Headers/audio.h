@@ -45,7 +45,7 @@ public:
 	void pause();
 };
 
-vector<ALshort> generateSinWave(float frequency, float volume, float length, int sampleRate);
+vector<float> generateSinWave(float frequency, float volume, float length, int sampleRate);
 vector<ALshort> accumulativeSinWave(vector<float> frequencies, vector<float> volumes, vector<float> lengths, vector<float> offsets);
 
 vector<ALshort> notesToWave(vector<vector<int>> unRepeatedNotes, int samplesPerChunk, int audioFileSampleRate);

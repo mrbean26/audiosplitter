@@ -26,7 +26,7 @@ using namespace std;
 
 #define NOTATION_BPM_TEXT_SIZE 1.25f // On a 1000px height screen
 
-#define PROGRESS_BAR_SIZE 0.22f * STAVE_HEIGHT
+#define PROGRESS_BAR_SIZE 0.089f * STAVE_HEIGHT
 #define NOTATION_SCROLL_RATE 0.025
 
 class notationViewer {
@@ -86,7 +86,7 @@ public:
 
 	float previousRuntime = 0.0f;
 	float pausedTime = 0.0f;
-	bool trackPaused = false;
+	bool trackPaused = true;
 
 	void pauseTrack();
 	void resumeTrack();
@@ -100,6 +100,7 @@ public:
 	static bool compareNoteChunks(vector<int> chunkOne, vector<int> chunkTwo);
 	static vector<vector<int>> removeNoteRepetitions(vector<vector<int>> originalChunks);
 	static vector<vector<pair<int, int>>> findNoteLengths(vector<vector<int>> noteChunks);
+	static vector<vector<int>> removeOutOfRangeNotes(vector<vector<int>> inputNotes);
 
 	float getLineLength();
 	void drawNotes(vector<vector<pair<int, int>>> notes, vector<bool> keySignature);

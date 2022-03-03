@@ -115,7 +115,7 @@ mat4 tabViewer::getViewMatrix() {
 	mat4 resultantMatrix = mat4(1.0f);
 	
 	if (checkIfScroll()) {
-		float tapGapDistance = currentLineNumber * (tabHeight + TAB_EDGE_DISTANCE) * display_y;
+		float tapGapDistance = currentLineNumber * (tabHeight + TAB_EDGE_DISTANCE + TAB_LINE_GAP) * display_y;
 		float deltaTime = glfwGetTime() - previousRuntime;
 
 		currentOffset = currentOffset + display_y * deltaTime * TAB_SCROLL_RATE;
@@ -144,6 +144,41 @@ void tabViewer::drawTab() {
 
 		drawTabLines(0, yCoordinate * display_y);
 	}
+	// Draw Text 
+	int stringCount = noteFrets[0].size();
+
+	for (int i = 0; i < chunkCount; i++) {
+		int lineIndex = i % chunksPerLine;
+		int tabChunkIndex = floor(float(i) / float(chunksPerLine));
+
+		float relativeXPosition = TAB_EDGE_DISTANCE + lineIndex * tabTextDistance;
+		
+		for (int j = 0; j < stringCount; j++) {
+			if (noteFrets[i][j] == -1) {
+				continue;
+			}
+
+			string renderedText = to_string(noteFrets[i][j]);
+			int textLength = renderedText.size();
+
+			float relativeYPosition = 1.0f -TAB_EDGE_DISTANCE - TAB_EDGE_DISTANCE * tabChunkIndex - stringCount * TAB_LINE_GAP * tabChunkIndex;
+			relativeYPosition = relativeYPosition - TAB_LINE_GAP * (stringCount - j - 1);
+
+			vec2 position = vec2(relativeXPosition * display_x, relativeYPosition * display_y);
+
+			// shift text for scrolling
+			if (checkIfScroll()) {
+				position.y += currentOffset;
+			}
+
+			vec2 textWidthHeight = renderText(renderedText, position, 0.0f, tabTextSize, vec3(0.0f), fontCharacters);
+			
+			position = position + (textWidthHeight * vec2(0.5f, -0.5f));
+			renderText(renderedText, position, 1.0f, tabTextSize, vec3(0.0f), fontCharacters);
+		}
+	}
+
+	drawProgressBar();
 
 	// Update Time Variables
 	if (trackPaused) {
@@ -158,46 +193,7 @@ void tabViewer::drawTab() {
 	int lineNumber = floorf(playingTime / timePerLine);
 	currentLineNumber = lineNumber;
 
-	drawProgressBar();
-
-	// Draw Text 
-	int characterCount = 0;
-	int stringCount = noteFrets[0].size();
-
-	for (int i = 0; i < chunkCount; i++) {
-		int lineIndex = i % chunksPerLine;
-		int tabChunkIndex = floor(float(i) / float(chunksPerLine));
-
-		float relativeXPosition = TAB_EDGE_DISTANCE + lineIndex * tabTextDistance;
-		
-		for (int j = 0; j < stringCount; j++) {
-			if (noteFrets[i][j] == -1) {
-				continue;
-			}
-
-			float relativeYPosition = 1.0f -TAB_EDGE_DISTANCE - TAB_EDGE_DISTANCE * tabChunkIndex - stringCount * TAB_LINE_GAP * tabChunkIndex;
-			relativeYPosition = relativeYPosition - TAB_LINE_GAP * (stringCount - j - 1);
-
-			vec2 position = vec2(relativeXPosition * display_x, relativeYPosition * display_y);
-			if (foundSize) {
-				position = position - vec2(0.0f, averageYCharacterSize / 2.0f); // Center Text
-			}
-			// shift text for scrolling
-			if (checkIfScroll()) {
-				position.y += currentOffset;
-			}
-
-			vec2 textWidthHeight = renderText(to_string(noteFrets[i][j]), position, 1.0f, tabTextSize, vec3(0.0f), fontCharacters);
-			if (!foundSize) {
-				averageYCharacterSize = averageYCharacterSize + textWidthHeight.y;
-				characterCount++;
-			}
-		}
-	}
-	if (!foundSize) {
-		averageYCharacterSize = averageYCharacterSize / float(characterCount);
-		foundSize = true;
-	}
+	previousRuntime = glfwGetTime();
 }
 
 void tabViewer::drawProgressBar() {
@@ -208,7 +204,6 @@ void tabViewer::drawProgressBar() {
 	int chunkCount = noteFrets.size();
 
 	float playingTime = glfwGetTime() - pausedTime;
-
 	int lineNumber = floorf(playingTime / timePerLine);
 	currentLineNumber = lineNumber;
 	float usedTime = playingTime - currentLineNumber * timePerLine;
