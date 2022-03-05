@@ -27,7 +27,7 @@ using namespace std;
 #define NOTATION_BPM_TEXT_SIZE 1.25f // On a 1000px height screen
 
 #define PROGRESS_BAR_SIZE 0.089f * STAVE_HEIGHT
-#define NOTATION_SCROLL_RATE 0.025
+#define NOTATION_SCROLL_RATE 0.00025
 
 class notationViewer {
 public:

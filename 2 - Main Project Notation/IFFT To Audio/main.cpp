@@ -31,6 +31,7 @@ int main() {
 	// Graphics Rendering
 	startOpenAL();
 
+	//audioObject newAudioObject = audioObject(filteredNotes, samplesPerChunk, 44100);
 	audioObject newAudioObject = audioObject({}, samplesPerChunk, 44100);
 	//newAudioObject.play();
 
@@ -40,7 +41,7 @@ int main() {
 	
 	notationViewer newNotationViewer = notationViewer(loadedNotes[0].second, samplesPerChunk, 44100, &newAudioObject);
 	tabViewer newTabViewer = tabViewer(loadedNotes[0].second, loadedNotes[0].first.tunings, loadedNotes[0].first.maxFrets, loadedNotes[0].first.stringCount, samplesPerChunk, 44100, &newAudioObject);
-	
+	newNotationViewer.resumeTrack();
 	textsBegin();
 	int frame = 0;
 

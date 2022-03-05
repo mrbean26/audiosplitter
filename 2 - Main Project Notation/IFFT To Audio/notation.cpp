@@ -572,6 +572,7 @@ mat4 notationViewer::getViewMatrix() {
 		float deltaTime = glfwGetTime() - previousRuntime;
 
 		currentOffset = currentOffset + display_y * deltaTime * NOTATION_SCROLL_RATE;
+		
 		if (currentOffset > notationGapDistance) {
 			currentOffset = notationGapDistance;
 		}
@@ -680,7 +681,7 @@ void notationViewer::drawNotation() {
 	float bpmTextSize = NOTATION_BPM_TEXT_SIZE * (float(display_y) / 1000.0f);
 
 	renderText(bpmText, bpmTextPosition, 1.0f, bpmTextSize, vec3(0.0f), fontCharacters);
-	drawProgressBar();
+	
 
 	// Update Time Variables
 	if (trackPaused) {
@@ -696,6 +697,7 @@ void notationViewer::drawNotation() {
 	currentLineNumber = lineNumber;
 
 	previousRuntime = glfwGetTime();
+	drawProgressBar();
 }
 
 void notationViewer::startProgressBar() {
