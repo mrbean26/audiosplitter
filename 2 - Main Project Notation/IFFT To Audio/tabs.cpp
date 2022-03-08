@@ -12,6 +12,7 @@ tabViewer::tabViewer(vector<vector<int>> notes, vector<int> tunings, vector<int>
 
 	trackObjectPointer = trackAudio;
 	tabHeight = (stringCount - 1) * TAB_LINE_GAP;
+	pausedTime = glfwGetTime();
 }
 
 void tabViewer::tabsBegin(int stringCount) {

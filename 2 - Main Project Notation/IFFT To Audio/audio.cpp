@@ -386,8 +386,6 @@ void startOpenAL() {
 audioObject::audioObject(vector<vector<int>> unRepeatedNotes, int samplesPerChunk, int audioFileSampleRate) {
 	vector<ALshort> noteSineWave = notesToWave(unRepeatedNotes, samplesPerChunk, 44100);
 
-	//vector<ALshort> noteSineWave = accumulativeSinWave({ 3100.0f, 550.0f }, { 1.0f, 1.0f }, { 1.0f, 1.0f }, { 0.0f, 1.0f });
-
 	alGenBuffers(1, &buffer);
 	alBufferData(buffer, AL_FORMAT_STEREO16, &noteSineWave[0], noteSineWave.size() * sizeof(ALshort), SAMPLING_HZ);
 
@@ -402,16 +400,16 @@ void audioObject::play() {
 void audioObject::pause() {
 	alSourcePause(source);
 }
-
+#include <chrono>
 vector<float> generateSinWave(float frequency, float volume, float length, int sampleRate) {
 	vector<float> resultantWave;
 
 	int sampleCount = length * sampleRate;
 	for (int i = 0; i < sampleCount; i++) {
 		float multiplier = float(i) / float(sampleRate);
-
+	
 		float sinValue = sin(2 * M_PI * frequency * multiplier) * volume;
-		float antiphaseValue = -1 * sin(2 * M_PI * frequency * multiplier) * volume;
+		float antiphaseValue = -sinValue;
 
 		resultantWave.push_back(sinValue);
 		resultantWave.push_back(antiphaseValue);
@@ -421,34 +419,39 @@ vector<float> generateSinWave(float frequency, float volume, float length, int s
 }
 vector<ALshort> accumulativeSinWave(vector<float> frequencies, vector<float> volumes, vector<float> lengths, vector<float> offsets) {
 	vector<float> totalWave;
-	float maximumValue = 0.0f;
+
+	// Find wave sample count and resize vector
+	int waveCount = frequencies.size();
+	float maxWaveDuration = 0.0f;
+	
+	for (int i = 0; i < waveCount; i++) {
+		float currentDuration = lengths[i] + offsets[i];
+		maxWaveDuration = max(maxWaveDuration, currentDuration);
+	}
+
+	int requiredSamples = SAMPLING_HZ * maxWaveDuration * 2;
+	totalWave.resize(requiredSamples, 0.0f);
 
 	// Get waves and add to total wave
-	int waveCount = frequencies.size();
 	for (int i = 0; i < waveCount; i++) {
-		cout << i << "/" << waveCount << endl;
-		vector<float> offsetWave = generateSinWave(0.0f, 0.0f, offsets[i], SAMPLING_HZ);
 		vector<float> currentWave = generateSinWave(frequencies[i], volumes[i], lengths[i], SAMPLING_HZ);
 
-		offsetWave.insert(offsetWave.end(), currentWave.begin(), currentWave.end()); // resultant wave of this frequency
-		int resultantWaveSize = offsetWave.size();
-
-		// Resize total wave
-		int currentTotalWaveSize = totalWave.size();
-		if (resultantWaveSize > currentTotalWaveSize) {
-			totalWave.resize(resultantWaveSize, 0.0f);
-		}
-
+		int offsetSampleCount = SAMPLING_HZ * offsets[i] * 2;
 		// add to total wave
-		for (int j = 0; j < resultantWaveSize; j++) {
-			totalWave[j] = totalWave[j] + offsetWave[j];
-			maximumValue = max(maximumValue, totalWave[j]);
+		int resultantWaveSize = currentWave.size();
+		for (int j = offsetSampleCount; j < resultantWaveSize; j++) {
+			totalWave[j] = totalWave[j] + currentWave[j];
 		}
 	}
 
 	// Divide all by max value and multiply by SHRT_MAX
 	vector<ALshort> resultantWave;
 	int chunkCount = totalWave.size();
+
+	float maximumValue = 0.0f;
+	for (int i = 0; i < chunkCount; i++) {
+		maximumValue = max(maximumValue, totalWave[i]);
+	}
 
 	for (int i = 0; i < chunkCount; i++) {
 		ALshort resultantValue = (totalWave[i] / maximumValue) * SHRT_MAX;
@@ -470,7 +473,7 @@ vector<ALshort> notesToWave(vector<vector<int>> unRepeatedNotes, int samplesPerC
 	for (int i = 0; i < chunkCount; i++) {
 		float offset = i * chunkDuration;
 		int noteCount = unRepeatedNotes[i].size();
-		cout << noteCount << endl;
+		
 		for (int j = 0; j < noteCount; j++) {
 			int consecutiveChunksWithFrequency = 1;
 			for (int k = i + 1; k < chunkCount; k++) {
