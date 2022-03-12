@@ -315,7 +315,7 @@ float NeuralNetwork::derivative(float x, int layer) {
     }
     return x * (1 - x);
 }
-
+#include <chrono>
 void NeuralNetwork::feedForward(vector<float> inputs) {
     // Set Accumulative Values to 0
     resetDerivativesAndResults();
@@ -329,6 +329,11 @@ void NeuralNetwork::feedForward(vector<float> inputs) {
     // Feed Forward
     for (int i = 0; i < layerCount; i++) {
         int thisLayerCount = layerNodes[i].size();
+        
+        int outWeightCount = 0;
+        if (i < layerCount - 1) {
+            outWeightCount = layerNodes[i + 1].size();
+        }
 
         // After Weighted Sum, Pass node value through activation function
         if (i > 0) {
@@ -346,23 +351,21 @@ void NeuralNetwork::feedForward(vector<float> inputs) {
         }
 
         // Add Weighted Sum To Nodes in Next Layers
+        float currentNodeValue;
         for (int n = 0; n < thisLayerCount; n++) {
-            int outWeightCount = layerNodes[i][n].outWeights.size();
-
             if (!layerNodes[i][n].active) {
                 continue;
             }
+            currentNodeValue = layerNodes[i][n].value;
 
             for (int w = 0; w < outWeightCount; w++) {
-                layerNodes[i + 1][w].value += layerNodes[i][n].value * layerNodes[i][n].outWeights[w];
+                layerNodes[i + 1][w].value += currentNodeValue * layerNodes[i][n].outWeights[w];
             }
         }
 
         // Add Bias Weights (useful for when 0 values are present)
         int thisBiasCount = layerBiases[i].size();
         for (int b = 0; b < thisBiasCount; b++) {
-            int outWeightCount = layerBiases[i][b].outWeights.size();
-
             if (!layerBiases[i][b].active) {
                 continue;
             }
@@ -398,16 +401,17 @@ void NeuralNetwork::calculateDerivatives(vector<float> outputErrors, float error
     for (int i = 0; i < finalLayerCount; i++) {
         layerNodes[layerCount - 1][i].derivativeErrorValue = derivative(layerNodes[layerCount - 1][i].value, layerCount - 1) * outputErrors[i] * errorMultiplier;
     }
+
     // Backpropagate by Calculating Partial Derivatives of Each Node with Respect to The Error
     for (int i = layerCount - 2; i > -1; i--) {
         int currentLayerCount = layerNodes[i].size();
+        int outWeightCount = layerNodes[i + 1].size();
 
         for (int n = 0; n < currentLayerCount; n++) {
             if (!layerNodes[i][n].active) {
                 continue;
             }
 
-            int outWeightCount = layerNodes[i][n].outWeights.size();
             float valueMultiplier = derivative(layerNodes[i][n].value, i);
 
             if (i == 0) {
@@ -423,7 +427,6 @@ void NeuralNetwork::calculateDerivatives(vector<float> outputErrors, float error
                 layerNodes[i][n].derivativeErrorValue += valueMultiplier * layerNodes[i][n].outWeights[w] * layerNodes[i + 1][w].derivativeErrorValue;                
             }
         }
-
     }
 }
 void NeuralNetwork::resetDerivativesAndResults() {
@@ -749,7 +752,7 @@ vector<float> NeuralNetwork::trainStochasticGradientDescent(standardTrainConfig 
         float totalError = 0.0f;
         for (int t = 0; t < usedInputs.size(); t++) {
             vector<float> result = predict(usedInputs[t]);
-            
+
             // Calculate Differences In Actual Output
             vector<float> errors;
             for (int e = 0; e < outputCount; e++) {
@@ -1504,6 +1507,26 @@ vector<float> NeuralNetwork::trainLevenbergMarquardt(standardTrainConfig trainCo
 }
 
 // Batch Gradient Descent
+float runPredictionThreadingGradientDescent(NeuralNetwork* network, vector<float> inputs, vector<float> outputs) {
+    vector<float> prediction = network->predict(inputs);
+    float result = 0.0f;
+
+    // Calculate Differences
+    int outputCount = outputs.size();
+    vector<float> errors;
+
+    for (int e = 0; e < outputCount; e++) {
+        result = result + abs(outputs[e] - prediction[e]);
+        errors.push_back(outputs[e] - prediction[e]);
+    }
+
+    network->calculateDerivatives(errors);
+
+    // Add Derivatives To "Previous Deltas" Field
+    network->addDerivativesBatchGradientDescent();
+
+    return result;
+}
 vector<float> NeuralNetwork::trainBatchGradientDescent(standardTrainConfig trainConfig) {
     vector<float> result;
     for (int epoch = 0; epoch < trainConfig.epochs; epoch++) {
@@ -1547,24 +1570,35 @@ vector<float> NeuralNetwork::trainBatchGradientDescent(standardTrainConfig train
         }
 
         // Accumulate Weight Deltas (no mean just yet)
+        vector<shared_future<float>> threads;
         float totalError = 0.0f;
+
         for (int t = 0; t < trainDataCount; t++) {
-            vector<float> prediction = predict(trainInputs[t]);
-            if (t % 25 == 0) {
-                cout << epoch + 1 << ":" << t + 1 << "/" << trainDataCount << endl;
-            }
-            // Calculate Differences
-            vector<float> errors;
-            for (int e = 0; e < outputCount; e++) {
-                totalError = totalError + abs(trainOutputs[t][e] - prediction[e]);
-                errors.push_back(trainOutputs[t][e] - prediction[e]);
-            }
+            if (!trainConfig.gradientDescent.useThreading) {
+                if (t % 25 == 0) {
+                    cout << epoch + 1 << ":" << t + 1 << "/" << trainDataCount << endl;
+                }
 
-            calculateDerivatives(errors);
-
-            // Add Derivatives To "Previous Deltas" Field
-            addDerivativesBatchGradientDescent();
+                float predictionError = runPredictionThreadingGradientDescent(this, trainInputs[t], trainOutputs[t]);
+                totalError = totalError + predictionError;
+            }
+            if (trainConfig.gradientDescent.useThreading) {
+                shared_future<float> future = async(runPredictionThreadingGradientDescent, this, trainInputs[t], trainOutputs[t]);
+                threads.push_back(future);
+            }
         }
+
+        // Get threads
+        if (trainConfig.gradientDescent.useThreading) {
+            for (int t = 0; t < trainDataCount; t++) {
+                if (t % 25 == 0) {
+                    cout << epoch + 1 << ":" << t + 1 << "/" << trainDataCount << endl;
+                }
+
+                float foundError = threads[t].get();
+                totalError = totalError + foundError;
+            }
+       }
 
         // Update Parameters
         averageDerivativesBatchGradientDescent(trainDataCount);
@@ -1584,6 +1618,7 @@ vector<float> NeuralNetwork::trainBatchGradientDescent(standardTrainConfig train
     }
     return result;
 }
+
 void NeuralNetwork::updateNetworkBatchGradientDescent(float learningRate, float momentum) {
     int layerCount = layerNodes.size();
 

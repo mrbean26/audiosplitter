@@ -80,6 +80,9 @@ public:
         int datasetRefreshInterval = 5; // Refresh dataset every x epochs
         audioFileConfig datasetAudioConfig; // Used for generating dataset
         bool useAllSongDataset = false;
+
+        // batch descent
+        bool useThreading = false;
     } gradientDescent;
     static struct resistantPropagationConfig {
         float rpropWeightDecreaseMultiplier = 0.5f;
