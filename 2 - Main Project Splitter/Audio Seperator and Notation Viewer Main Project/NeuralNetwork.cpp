@@ -315,7 +315,7 @@ float NeuralNetwork::derivative(float x, int layer) {
     }
     return x * (1 - x);
 }
-#include <chrono>
+
 void NeuralNetwork::feedForward(vector<float> inputs) {
     // Set Accumulative Values to 0
     resetDerivativesAndResults();
@@ -726,10 +726,9 @@ vector<float> NeuralNetwork::trainStochasticGradientDescent(standardTrainConfig 
         }
         if (trainConfig.gradientDescent.useAllSongDataset) {
             // generate dataset from parts of all songs in the current avaliable data files
-
             if (epoch % trainConfig.gradientDescent.datasetRefreshInterval == 0) { // Time to refresh dataset
                 int chunksPerSong = trainConfig.gradientDescent.batchSize / 100; // / song count
-                pair<vector<vector<float>>, vector<vector<float>>> allSongMiniDataset = generateAllSongDataSet(trainConfig.gradientDescent.datasetAudioConfig, chunksPerSong);
+                pair<vector<vector<float>>, vector<vector<float>>> allSongMiniDataset = generateAllSongDataSet(trainConfig.gradientDescent.datasetAudioConfig, chunksPerSong, trainConfig.gradientDescent.allSongDatasetStart, trainConfig.gradientDescent.allSongDatasetEnd);
 
                 usedInputs = allSongMiniDataset.first;
                 usedOutputs = allSongMiniDataset.second;
@@ -1535,8 +1534,8 @@ vector<float> NeuralNetwork::trainBatchGradientDescent(standardTrainConfig train
         vector<vector<float>> trainOutputs = trainConfig.trainOutputs;
 
         if (trainConfig.gradientDescent.useAllSongDataset) {
-            int chunksPerSong = trainConfig.gradientDescent.batchSize / 100; // / song count
-            pair<vector<vector<float>>, vector<vector<float>>> allSongMiniDataset = generateAllSongDataSet(trainConfig.gradientDescent.datasetAudioConfig, chunksPerSong);
+            int chunksPerSong = trainConfig.gradientDescent.batchSize / (trainConfig.gradientDescent.allSongDatasetEnd - trainConfig.gradientDescent.allSongDatasetStart); // / song count
+            pair<vector<vector<float>>, vector<vector<float>>> allSongMiniDataset = generateAllSongDataSet(trainConfig.gradientDescent.datasetAudioConfig, chunksPerSong, trainConfig.gradientDescent.allSongDatasetStart, trainConfig.gradientDescent.allSongDatasetEnd);
 
             trainInputs = allSongMiniDataset.first;
             trainOutputs = allSongMiniDataset.second;
@@ -1576,7 +1575,7 @@ vector<float> NeuralNetwork::trainBatchGradientDescent(standardTrainConfig train
         for (int t = 0; t < trainDataCount; t++) {
             if (!trainConfig.gradientDescent.useThreading) {
                 if (t % 25 == 0) {
-                    cout << epoch + 1 << ":" << t + 1 << "/" << trainDataCount << endl;
+                    //cout << epoch + 1 << ":" << t + 1 << "/" << trainDataCount << endl;
                 }
 
                 float predictionError = runPredictionThreadingGradientDescent(this, trainInputs[t], trainOutputs[t]);

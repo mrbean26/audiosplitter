@@ -95,7 +95,8 @@ pair<vector<vector<float>>, float> spectrogramOutput(const char* mp3Filename, au
 			double real = fftOutput[i][0];
 			double imaginary = fftOutput[i][1];
 
-			spectrogramChunks[chunkNum][i] = sqrt(real * real + imaginary * imaginary);
+			spectrogramChunks[chunkNum][i] = powf(real * real + imaginary * imaginary, 1.0f / 3.0f);
+			// use 1.0f / 2.0f for non binary mask
 		}
 	}
 
@@ -188,7 +189,7 @@ vector<int16_t> vocalSamples(const char* fullFileNameMP3, vector<vector<float>> 
 
 	// Split into chunks
 	int sampleCount = doubleAudioSamples.size();
-	for (int i = 0; i < sampleCount - audioConfig.samplesPerChunk; i += audioConfig.samplesPerOverlap) {
+	for (int i = audioConfig.chunkBorder * audioConfig.samplesPerChunk; i < sampleCount - audioConfig.samplesPerChunk - audioConfig.chunkBorder * audioConfig.samplesPerChunk; i += audioConfig.samplesPerOverlap) {
 		vector<double> currentChunk(doubleAudioSamples.begin() + i, doubleAudioSamples.begin() + i + audioConfig.samplesPerChunk);
 		spectrogramChunks.push_back(currentChunk);
 	}

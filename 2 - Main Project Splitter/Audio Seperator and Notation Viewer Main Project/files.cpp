@@ -3,6 +3,7 @@
 
 #include <string>
 #include <fstream>
+#include <future>
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "Headers/stb_image_write.h"
@@ -82,10 +83,10 @@ vector<vector<float>> generateInputs(audioFileConfig config) {
 		// Create Chunk Border to Give Audio 'Context'
 		int newFrequencyResolution = fullAudioInput[0].size();
 
-		for (int i = config.chunkBorder; i < fullAudioInput.size() - config.chunkBorder; i++) {
+		for (int i = config.chunkBorder; i < fullAudioInput.size() - config.chunkBorder - 1; i++) {
 			vector<float> currentInput;
 
-			for (int c = i - config.chunkBorder; c < i + config.chunkBorder; c++) {
+			for (int c = i - config.chunkBorder; c < i + config.chunkBorder + 1; c++) {
 				for (int f = 0; f < newFrequencyResolution; f++) {
 					float value = fullAudioInput[i][f];
 
@@ -117,7 +118,7 @@ vector<vector<float>> generateOutputs(audioFileConfig config) {
 		// Create Chunk Border to Give Audio 'Context'
 		int newFrequencyResolution = fullAudioInput[0].size();
 
-		for (int i = config.chunkBorder; i < fullAudioInput.size() - config.chunkBorder; i++) {
+		for (int i = config.chunkBorder; i < fullAudioInput.size() - config.chunkBorder - 1; i++) {
 			vector<float> currentInput;
 			for (int f = 0; f < newFrequencyResolution; f++) {
 				float value = fullAudioInput[i][f];
@@ -143,6 +144,7 @@ vector<vector<float>> generateOutputs(audioFileConfig config) {
 
 				currentInput.push_back(value);
 			}
+
 			result.push_back(currentInput);
 		}
 	}
@@ -174,38 +176,50 @@ void createOutputTestTrack(NeuralNetwork network, audioFileConfig config) {
 	writeToWAV("testTrackOutput.wav", testTrackOutputSamples);
 }
 
-pair<vector<vector<float>>, vector<vector<float>>> generateAllSongDataSet(audioFileConfig config, int chunksPerSong) {
+pair<vector<vector<float>>, vector<vector<float>>> getSingleSongDataset(audioFileConfig config, int chunksPerSong, int songIndex) {
 	vector<vector<float>> resultantInputs;
 	vector<vector<float>> resultantOutputs;
 
-	config.startFileIndex = 0;
-	config.songCount = 1;
+	config.startFileIndex = songIndex; // Go onto next file
 
-	cout << "Loaded Song: ";
-	for (int i = 0; i < 100; i++) { // 100 song count
-		config.startFileIndex = config.startFileIndex + 1; // Go onto next file
+	vector<vector<float>> songInputs = generateInputs(config);
+	vector<vector<float>> songOutputs = generateOutputs(config);
 
-		vector<vector<float>> songInputs = generateInputs(config);
-		vector<vector<float>> songOutputs = generateOutputs(config);
+	// Make sure randomly taken samples are regularly distributed across the song
+	int miniBatchSize = songInputs.size() / chunksPerSong;
 
-		// Make sure randomly taken samples are regularly distributed across the song
-		int miniBatchSize = songInputs.size() / chunksPerSong;
+	for (int j = 0; j < chunksPerSong; j++) {
+		int currentIndex = (j * miniBatchSize) + (rand() % miniBatchSize);
 
-		for (int j = 0; j < chunksPerSong; j++) {
-			int currentIndex = (j * miniBatchSize) + (rand() % miniBatchSize);
-
-			if (songOutputs[currentIndex].size() == 0) {
-				continue;
-			}
-			//cout << songInputs.size() << " " << songOutputs.size() << " " << currentIndex << endl;
-			resultantInputs.push_back(songInputs[currentIndex]);
-			resultantOutputs.push_back(songOutputs[currentIndex]);
+		if (songOutputs[currentIndex].size() == 0) {
+			continue;
 		}
+		//cout << songInputs.size() << " " << songOutputs.size() << " " << currentIndex << endl;
+		resultantInputs.push_back(songInputs[currentIndex]);
+		resultantOutputs.push_back(songOutputs[currentIndex]);
+	}
+
+	return make_pair(resultantInputs, resultantOutputs);
+}
+pair<vector<vector<float>>, vector<vector<float>>> generateAllSongDataSet(audioFileConfig config, int chunksPerSong, int startSong, int endSong) {
+	vector<vector<float>> resultantInputs;
+	vector<vector<float>> resultantOutputs;
+
+	config.songCount = 1;
+	cout << "Loaded Song: ";
+
+	for (int i = startSong; i < endSong; i++) { // 100 song count		
+		pair<vector<vector<float>>, vector<vector<float>>> result = getSingleSongDataset(config, chunksPerSong, i + 1);
+
+		resultantInputs.insert(resultantInputs.end(), result.first.begin(), result.first.end());
+		resultantOutputs.insert(resultantOutputs.end(), result.second.begin(), result.second.end());
+
 		cout << i + 1 << ", ";
 	}
+
 	cout << "Dataset Size: " << resultantInputs.size() << endl;
-	
 	pair<vector<vector<float>>, vector<vector<float>>> resultantDataset = make_pair(resultantInputs, resultantOutputs);
+
 	return resultantDataset;
 }
 

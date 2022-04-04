@@ -33,7 +33,7 @@ vector<vector<float>> generateInputs(audioFileConfig config);
 vector<vector<float>> generateOutputs(audioFileConfig config);
 void createOutputTestTrack(NeuralNetwork network, audioFileConfig config);
 
-pair<vector<vector<float>>, vector<vector<float>>> generateAllSongDataSet(audioFileConfig config, int chunksPerSong);
+pair<vector<vector<float>>, vector<vector<float>>> generateAllSongDataSet(audioFileConfig config, int chunksPerSong, int startSong, int endSong);
 
 // Image
 vector<vector<float>> addCharacterToImage(vector<vector<float>> data, int character, int xMidpoint, int yMidpoint);

@@ -79,7 +79,10 @@ public:
 
         int datasetRefreshInterval = 5; // Refresh dataset every x epochs
         audioFileConfig datasetAudioConfig; // Used for generating dataset
+        
         bool useAllSongDataset = false;
+        int allSongDatasetStart = 0;
+        int allSongDatasetEnd = 100;
 
         // batch descent
         bool useThreading = false;
