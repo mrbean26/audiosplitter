@@ -33,10 +33,11 @@ class notationViewer {
 public:
 	audioObject* trackObjectPointer;
 	notationViewer();
-	notationViewer(vector<vector<int>> notes, int samplesPerChunk, int sampleRate, audioObject* trackAudio);
+	notationViewer(vector<vector<vector<int>>> notes, int samplesPerChunk, int sampleRate, audioObject* trackAudio);
 
-	vector<bool> keySignature;
-	vector<vector<pair<int, int>>> noteLengths;
+	int currentStem = 0;
+	vector<vector<bool>> keySignature;
+	vector<vector<vector<pair<int, int>>>> noteLengths;
 
 	vector<GLuint> notationVAOs;
 	vector<GLuint> notationVBOs;

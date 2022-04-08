@@ -20,7 +20,7 @@ class tabViewer {
 public:
 	audioObject* trackObjectPointer;
 	tabViewer();
-	tabViewer(vector<vector<int>> notes, vector<int> tunings, vector<int> maxFrets, int stringCount, int samplesPerChunk, int sampleRate, audioObject * trackAudio);
+	tabViewer(vector<vector<vector<int>>> notes, vector<int> tunings, vector<int> maxFrets, int stringCount, int samplesPerChunk, int sampleRate, audioObject * trackAudio);
 
 	float tabHeight = 0.0f;
 	vector<GLuint> tabVAOs;
@@ -37,8 +37,9 @@ public:
 	GLuint progressBarVBO;
 	GLuint progressBarTexture;
 
+	int currentStem = 0;
 	int tabStringCount = 0;
-	vector<vector<int>> noteFrets;
+	vector<vector<vector<int>>> noteFrets;
 
 	float averageYCharacterSize = 0.0f;
 	bool foundSize = false;

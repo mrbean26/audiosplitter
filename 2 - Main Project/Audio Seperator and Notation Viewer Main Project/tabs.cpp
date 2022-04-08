@@ -5,8 +5,12 @@
 tabViewer::tabViewer() {
 
 }
-tabViewer::tabViewer(vector<vector<int>> notes, vector<int> tunings, vector<int> maxFrets, int stringCount, int samplesPerChunk, int sampleRate, audioObject* trackAudio) {
-	noteFrets = notesToFrets(notes, tunings, maxFrets);
+tabViewer::tabViewer(vector<vector<vector<int>>> notes, vector<int> tunings, vector<int> maxFrets, int stringCount, int samplesPerChunk, int sampleRate, audioObject* trackAudio) {
+	int stemCount = notes.size();
+	for (int i = 0; i < stemCount; i++) {
+		noteFrets.push_back(notesToFrets(notes[i], tunings, maxFrets));
+	}
+
 	tabStringCount = stringCount;
 	tabsBegin(stringCount);
 
@@ -104,7 +108,7 @@ bool tabViewer::checkIfScroll() {
 	float chunkHeight = tabHeight + TAB_EDGE_DISTANCE;
 	int chunksPerLine = TAB_CHUNKS_PER_LINE * (float(display_x) / 1000.0f);
 
-	int chunkCount = noteFrets.size();
+	int chunkCount = noteFrets[currentStem].size();
 	int requiredLines = ceilf(float(chunkCount) / float(chunksPerLine));
 
 	float maxHeight = chunkHeight * requiredLines;
@@ -133,7 +137,7 @@ mat4 tabViewer::getViewMatrix() {
 	return resultantMatrix;
 }
 void tabViewer::drawTab() {
-	int chunkCount = noteFrets.size();
+	int chunkCount = noteFrets[currentStem].size();
 	int chunksPerLine = TAB_CHUNKS_PER_LINE * (float(display_x) / 1000.0f);
 
 	float tabTextSize = TAB_TEXT_SIZE * (float(display_y) / 1000.0f);
@@ -165,7 +169,7 @@ void tabViewer::drawTab() {
 
 	// Draw Text 
 	int characterCount = 0;
-	int stringCount = noteFrets[0].size();
+	int stringCount = noteFrets[currentStem][0].size();
 
 	for (int i = 0; i < chunkCount; i++) {
 		int lineIndex = i % chunksPerLine;
@@ -174,7 +178,7 @@ void tabViewer::drawTab() {
 		float relativeXPosition = TAB_EDGE_DISTANCE + lineIndex * tabTextDistance;
 		
 		for (int j = 0; j < stringCount; j++) {
-			if (noteFrets[i][j] == -1) {
+			if (noteFrets[currentStem][i][j] == -1) {
 				continue;
 			}
 
@@ -190,7 +194,7 @@ void tabViewer::drawTab() {
 				position.y += currentOffset;
 			}
 
-			vec2 textWidthHeight = renderText(to_string(noteFrets[i][j]), position, 1.0f, tabTextSize, vec3(0.0f), fontCharacters);
+			vec2 textWidthHeight = renderText(to_string(noteFrets[currentStem][i][j]), position, 1.0f, tabTextSize, vec3(0.0f), fontCharacters);
 			if (!foundSize) {
 				averageYCharacterSize = averageYCharacterSize + textWidthHeight.y;
 				characterCount++;
@@ -208,7 +212,7 @@ void tabViewer::drawProgressBar() {
 	float timePerChunk = float(samplesPerChunkProgress) / float(sampleRateProgress);
 	int chunksPerLine = TAB_CHUNKS_PER_LINE * (double(display_x) / 1000.0);
 	float timePerLine = chunksPerLine * timePerChunk;
-	int chunkCount = noteFrets.size();
+	int chunkCount = noteFrets[currentStem].size();
 
 	float playingTime = glfwGetTime() - pausedTime;
 

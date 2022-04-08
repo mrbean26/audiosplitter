@@ -4,13 +4,16 @@
 notationViewer::notationViewer() {
 
 }
-notationViewer::notationViewer(vector<vector<int>> notes, int samplesPerChunk, int sampleRate, audioObject* trackAudio) {
+notationViewer::notationViewer(vector<vector<vector<int>>> notes, int samplesPerChunk, int sampleRate, audioObject* trackAudio) {
 	notationBegin();
 
-	vector<vector<int>> newNotes = removeNoteRepetitions(notes);
-	this->noteLengths = findNoteLengths(newNotes);
+	int stemCount = notes.size();
+	for (int i = 0; i < stemCount; i++) {
+		vector<vector<int>> newNotes = removeNoteRepetitions(notes[i]);
+		this->noteLengths.push_back(findNoteLengths(newNotes));
 
-	this->keySignature = findKey(notes);
+		this->keySignature.push_back(findKey(notes[i]));
+	}
 
 	samplesPerChunkProgress = samplesPerChunk;
 	sampleRateProgress = sampleRate;
@@ -373,9 +376,9 @@ vector<bool> notationViewer::findKey(vector<vector<int>> notes) {
 float notationViewer::getKeySignatureWidth() {
 	int count = 2;
 
-	int signatureSize = keySignature.size();
+	int signatureSize = keySignature[currentStem].size();
 	for (int i = 0; i < signatureSize; i++) {
-		if (keySignature[i]) {
+		if (keySignature[currentStem][i]) {
 			count = count + 1;
 		}
 	}
@@ -524,7 +527,7 @@ void notationViewer::resumeTrack() {
 }
 
 bool notationViewer::checkIfScroll() {
-	int chunkCount = noteLengths.size();
+	int chunkCount = noteLengths[currentStem].size();
 	int chunksPerLine = NOTATION_CHUNKS_PER_LINE * (double(display_x) / 1000.0);
 	int requiredStaves = ceilf(float(chunkCount) / float(chunksPerLine));
 
@@ -619,7 +622,7 @@ void notationViewer::drawNotes(vector<vector<pair<int, int>>> notes, vector<bool
 	}
 }
 void notationViewer::drawNotation() {
-	int chunkCount = noteLengths.size();
+	int chunkCount = noteLengths[currentStem].size();
 	int chunksPerLine = NOTATION_CHUNKS_PER_LINE * (double(display_x) / 1000.0);
 	int requiredStaves = ceil(double(chunkCount) / chunksPerLine);
 
@@ -639,11 +642,11 @@ void notationViewer::drawNotation() {
 		drawTrebleClef(yOffset * display_y);
 
 		// Draw Key Signature
-		drawKeySignature(keySignature, yOffset);
+		drawKeySignature(keySignature[currentStem], yOffset);
 	}
 
 	// Draw Notes
-	drawNotes(noteLengths, keySignature);
+	drawNotes(noteLengths[currentStem], keySignature[currentStem]);
 
 	// Draw BPM Text
 	vec2 bpmTextPosition = vec2(NOTATION_EDGE_DISTANCE * display_x, display_y - NOTATION_EDGE_DISTANCE * display_y);
@@ -707,7 +710,7 @@ void notationViewer::drawProgressBar() {
 	float minimumX = NOTATION_EDGE_DISTANCE + TREBLE_CLEF_WIDTH * aspectRatioMultiplier + getKeySignatureWidth();
 	float lineLength = getLineLength();
 
-	int chunkCount = noteLengths.size();
+	int chunkCount = noteLengths[currentStem].size();
 	float timePerChunk = float(samplesPerChunkProgress) / float(sampleRateProgress);
 	int chunksPerLine = NOTATION_CHUNKS_PER_LINE * (double(display_x) / 1000.0);
 
