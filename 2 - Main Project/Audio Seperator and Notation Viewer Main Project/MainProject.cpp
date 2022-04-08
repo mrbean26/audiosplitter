@@ -20,6 +20,7 @@
 #define STEM_BASS 1
 #define STEM_DRUMS 2
 
+// Splitter
 string getWeightDirectory(int stem, int quality) {
 	string qualityDirectory = "lowQuality/";
 	if (quality == HIGH_QUALITY) {
@@ -161,4 +162,107 @@ vector<vector<vector<float>>> getNetworkOutputs(string fileName, int stemCount, 
 
 		return { vocalPredictions, bassPredictions, drumsPredictions, otherPredictions };
 	}
+}
+
+// Notation & Tab Viewer
+notationViewer mainNotationViewer;
+tabViewer mainTabViewer;
+vector<audioObject> mainAudioObjects;
+
+vector<vector<vector<float>>> outputStemsToSpectrogram(vector<vector<vector<float>>> networkOutputs, string fileName, audioFileConfig audioConfig) {
+	// Find full track spectrogram and remove chunk border
+	pair<vector<vector<float>>, float> fullTrackSpectrogram = spectrogramOutput(fileName.data(), audioConfig);
+	fullTrackSpectrogram.first.erase(fullTrackSpectrogram.first.begin(), fullTrackSpectrogram.first.begin() + audioConfig.chunkBorder);
+	fullTrackSpectrogram.first.resize(fullTrackSpectrogram.first.size() - audioConfig.chunkBorder);
+
+	// Multiply spectrograms together
+	vector<vector<vector<float>>> resultantSpectrograms;
+
+	int stemCount = networkOutputs.size();
+	for (int i = 0; i < stemCount; i++) {
+		int chunkCount = networkOutputs[i].size();
+		int frequencyCount = networkOutputs[i][0].size();
+
+		for (int j = 0; j < chunkCount; j++) {
+			for (int k = 0; k < frequencyCount; k++) {
+				float currentValue = networkOutputs[i][j][k];
+
+				if (audioConfig.useNoisePrediction) {
+					currentValue = 1.0f - currentValue;
+				}
+
+				currentValue = powf(currentValue, audioConfig.spectrogramEmphasis);
+
+				currentValue = currentValue * fullTrackSpectrogram.first[j][k];
+				networkOutputs[i][j][k] = currentValue;
+			}
+		}
+
+		resultantSpectrograms.push_back(networkOutputs[i]);
+	}
+
+	return resultantSpectrograms;
+}
+void openGLMainloop() {
+	while (!glfwWindowShouldClose(window)) {
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		mainTabViewer.drawTab();
+		mainNotationViewer.drawNotation();
+
+		glfwSwapBuffers(window);
+		glfwPollEvents();
+	}
+}
+
+void displayStems(vector<vector<vector<float>>> networkOutputs, string fileName, int quality, int width, int height) {
+	audioFileConfig splitterAudioConfig;
+
+	// Define Parameters
+	if (quality == HIGH_QUALITY) {
+		splitterAudioConfig = {
+			// Add later
+		};
+	}
+	if (quality == FAST_QUALITY) {
+		splitterAudioConfig = {
+			// Add later
+		};
+	}
+
+	vector<vector<vector<float>>> networkSpectrograms = outputStemsToSpectrogram(networkOutputs, fileName, splitterAudioConfig);
+	int stemCount = networkSpectrograms.size();
+
+	// Change to notes
+	vector<vector<vector<int>>> stemNoteFormats;
+
+	for (int i = 0; i < stemCount; i++) {
+		networkSpectrograms[i] = percentageFiltering(networkSpectrograms[i], AUDIO_PERCENTAGE_FILTER_THRESHOLD);
+		stemNoteFormats.push_back(returnNoteFormat(networkSpectrograms[i]));
+	}
+
+	// Instrument Config
+	instrumentConfig newInstrumentConfig;
+	newInstrumentConfig.tunings = { 7, 12, 17, 22, 26, 31 }; // Guitar Standard Tuning
+	newInstrumentConfig.maxFrets = { 21, 21, 21, 21, 21, 21 };
+	newInstrumentConfig.stringCount = 6;
+
+	// Initialise Audio, Tab & Notation
+	vector<audioObject*> pointers;
+	for (int i = 0; i < stemCount; i++) {
+		mainAudioObjects.push_back(audioObject(stemNoteFormats[i], AUDIO_SAMPLES_PER_CHUNK, 44100));
+		pointers.push_back(&mainAudioObjects[i]);
+	}
+
+	mainNotationViewer = notationViewer(stemNoteFormats, AUDIO_SAMPLES_PER_CHUNK, 44100, pointers);
+	mainTabViewer = tabViewer(stemNoteFormats, newInstrumentConfig.tunings, newInstrumentConfig.maxFrets, newInstrumentConfig.stringCount, AUDIO_SAMPLES_PER_CHUNK, 44100, pointers);
+
+	// Start graphics
+	startOpenAL();
+	if (!startOpenGL(window, width, height)) {
+		return;
+	}
+	textsBegin();
+
+	openGLMainloop();
 }

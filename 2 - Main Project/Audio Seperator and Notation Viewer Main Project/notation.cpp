@@ -4,7 +4,7 @@
 notationViewer::notationViewer() {
 
 }
-notationViewer::notationViewer(vector<vector<vector<int>>> notes, int samplesPerChunk, int sampleRate, audioObject* trackAudio) {
+notationViewer::notationViewer(vector<vector<vector<int>>> notes, int samplesPerChunk, int sampleRate, vector<audioObject*> trackAudio) {
 	notationBegin();
 
 	int stemCount = notes.size();
@@ -518,11 +518,11 @@ vector<vector<pair<int, int>>> notationViewer::findNoteLengths(vector<vector<int
 }
 
 void notationViewer::pauseTrack() {
-	trackObjectPointer->pause();
+	trackObjectPointer[currentStem]->pause();
 	trackPaused = true;
 }
 void notationViewer::resumeTrack() {
-	trackObjectPointer->play();
+	trackObjectPointer[currentStem]->play();
 	trackPaused = false;
 }
 

@@ -18,9 +18,9 @@ using namespace std;
 
 class tabViewer {
 public:
-	audioObject* trackObjectPointer;
+	vector<audioObject*> trackObjectPointer;
 	tabViewer();
-	tabViewer(vector<vector<vector<int>>> notes, vector<int> tunings, vector<int> maxFrets, int stringCount, int samplesPerChunk, int sampleRate, audioObject * trackAudio);
+	tabViewer(vector<vector<vector<int>>> notes, vector<int> tunings, vector<int> maxFrets, int stringCount, int samplesPerChunk, int sampleRate, vector<audioObject*> trackAudio);
 
 	float tabHeight = 0.0f;
 	vector<GLuint> tabVAOs;

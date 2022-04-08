@@ -4,7 +4,7 @@ D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Vie
 D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\Headers\NeuralNetwork.h(188): warning C4091: 'static ': ignored on left of 'NeuralNetwork::Bias' when no variable is declared
 D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\Headers\tabs.h(16,1): warning C4005: 'PROGRESS_BAR_SIZE': macro redefinition
 D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\Headers\notation.h(29): message : see previous definition of 'PROGRESS_BAR_SIZE'
-D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\MainProject.cpp(65,42): warning C4018: '<': signed/unsigned mismatch
+D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\MainProject.cpp(66,42): warning C4018: '<': signed/unsigned mismatch
   main.cpp
 D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\Headers\NeuralNetwork.h(127): warning C4091: 'static ': ignored on left of 'NeuralNetwork::randomMethodConfig' when no variable is declared
 D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\Headers\NeuralNetwork.h(171): warning C4091: 'static ': ignored on left of 'NeuralNetwork::Node' when no variable is declared
@@ -56,9 +56,9 @@ D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Vie
 D:\Projects\Audio Splitter App\2 - Main Project\Audio Seperator and Notation Viewer Main Project\tabs.cpp(227,16): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
 LINK : warning LNK4098: defaultlib 'LIBCMT' conflicts with use of other libs; use /NODEFAULTLIB:library
   Generating code
-  20 of 916 functions ( 2.2%) were compiled, the rest were copied from previous compilation.
-    0 functions were new in current compilation
-    47 functions had inline decision re-evaluated but remain unchanged
+  125 of 1033 functions (12.1%) were compiled, the rest were copied from previous compilation.
+    33 functions were new in current compilation
+    24 functions had inline decision re-evaluated but remain unchanged
   Finished generating code
 glew32s.lib(glew.obj) : warning LNK4099: PDB 'vc120.pdb' was not found with 'glew32s.lib(glew.obj)' or at 'D:\Projects\Audio Splitter App\2 - Main Project\Release\vc120.pdb'; linking object as if no debug info
   Audio Seperator and Notation Viewer Main Project.vcxproj -> D:\Projects\Audio Splitter App\2 - Main Project\Release\Main Project.exe

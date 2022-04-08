@@ -5,7 +5,7 @@
 tabViewer::tabViewer() {
 
 }
-tabViewer::tabViewer(vector<vector<vector<int>>> notes, vector<int> tunings, vector<int> maxFrets, int stringCount, int samplesPerChunk, int sampleRate, audioObject* trackAudio) {
+tabViewer::tabViewer(vector<vector<vector<int>>> notes, vector<int> tunings, vector<int> maxFrets, int stringCount, int samplesPerChunk, int sampleRate, vector<audioObject*> trackAudio) {
 	int stemCount = notes.size();
 	for (int i = 0; i < stemCount; i++) {
 		noteFrets.push_back(notesToFrets(notes[i], tunings, maxFrets));
@@ -95,11 +95,11 @@ void tabViewer::drawTabLines(int index, float yOffset) {
 }
 
 void tabViewer::pauseTrack() {
-	trackObjectPointer->pause();
+	trackObjectPointer[currentStem]->pause();
 	trackPaused = true;
 }
 void tabViewer::resumeTrack() {
-	trackObjectPointer->play();
+	trackObjectPointer[currentStem]->play();
 	trackPaused = false;
 }
 

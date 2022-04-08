@@ -31,9 +31,9 @@ using namespace std;
 
 class notationViewer {
 public:
-	audioObject* trackObjectPointer;
+	vector<audioObject*> trackObjectPointer;
 	notationViewer();
-	notationViewer(vector<vector<vector<int>>> notes, int samplesPerChunk, int sampleRate, audioObject* trackAudio);
+	notationViewer(vector<vector<vector<int>>> notes, int samplesPerChunk, int sampleRate, vector<audioObject*> trackAudio);
 
 	int currentStem = 0;
 	vector<vector<bool>> keySignature;
