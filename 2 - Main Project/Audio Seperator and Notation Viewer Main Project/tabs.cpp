@@ -19,6 +19,65 @@ tabViewer::tabViewer(vector<vector<vector<int>>> notes, vector<int> tunings, vec
 
 	trackObjectPointer = trackAudio;
 	tabHeight = (stringCount - 1) * TAB_LINE_GAP;
+
+	originalNotes = notes;
+}
+
+void tabViewer::changeInstrumentConfig(vector<int> tunings, vector<int> maxFrets) {
+	// Calculate new note frets
+	int stemCount = originalNotes.size();
+	noteFrets.clear();
+
+	for (int i = 0; i < stemCount; i++) {
+		noteFrets.push_back(notesToFrets(originalNotes[i], tunings, maxFrets));
+	}
+
+	tabStringCount = tunings.size();
+	tabHeight = (tabStringCount - 1) * TAB_LINE_GAP;
+
+	// Generate new string lines vertices
+	vector<float> vertices = {};
+	for (int j = 0; j < tabStringCount; j++) {
+		vertices.push_back(display_x * TAB_EDGE_DISTANCE); // Start of Line
+		vertices.push_back(display_y - (j * TAB_LINE_GAP * display_y));
+
+		vertices.push_back(display_x - display_x * TAB_EDGE_DISTANCE);
+		vertices.push_back(display_y - (j * TAB_LINE_GAP * display_y));
+	}
+
+	glBindVertexArray(tabVAOs[0]);
+	glBindBuffer(GL_ARRAY_BUFFER, tabVBOs[0]);
+
+	glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+
+	tabSizes[0] = vertices.size() / 2;
+
+	// Generate new progress bar
+	float x = PROGRESS_BAR_SIZE * aspectRatioMultiplier * tabHeight * display_x; // 0.22f from image resolution
+	float y1 = display_y;
+	float y2 = display_y - tabHeight * display_y;
+
+	vertices = {
+		x, y1, 1.0f, 1.0f,
+		x, y2, 1.0f, 0.0f,
+		0.0f, y1, 0.0f, 1.0f,
+
+		x, y2, 1.0f, 0.0f,
+		0.0f, y2, 0.0f, 0.0f,
+		0.0f, y1, 0.0f, 1.0f
+	};
+
+	glBindVertexArray(progressBarVAO);
+	glBindBuffer(GL_ARRAY_BUFFER, progressBarVBO);
+
+	glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+
+	glEnableVertexAttribArray(0);
+	glEnableVertexAttribArray(1);
 }
 
 void tabViewer::tabsBegin(int stringCount) {

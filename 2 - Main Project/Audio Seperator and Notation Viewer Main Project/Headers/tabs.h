@@ -22,6 +22,9 @@ public:
 	tabViewer();
 	tabViewer(vector<vector<vector<int>>> notes, vector<int> tunings, vector<int> maxFrets, int stringCount, int samplesPerChunk, int sampleRate, vector<audioObject*> trackAudio);
 
+	vector<vector<vector<int>>> originalNotes;
+	void changeInstrumentConfig(vector<int> tunings, vector<int> maxFrets);
+
 	float tabHeight = 0.0f;
 	vector<GLuint> tabVAOs;
 	vector<GLuint> tabVBOs;
