@@ -8,6 +8,8 @@ using namespace std;
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
+#include "texture.h"
+#include "interface.h"
 #include "filesShaders.h"
 
 extern GLFWwindow* window;

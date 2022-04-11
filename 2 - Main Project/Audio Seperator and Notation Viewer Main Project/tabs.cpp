@@ -85,7 +85,7 @@ void tabViewer::tabsBegin(int stringCount) {
 	int vertShader = createShader("Assets/Shaders/tabVert.txt", GL_VERTEX_SHADER);
 	int fragShader = createShader("Assets/Shaders/tabFrag.txt", GL_FRAGMENT_SHADER);
 	tabShader = createProgram({ vertShader, fragShader });
-
+	
 	// Image Shader
 	vertShader = createShader("Assets/Shaders/textureVert.txt", GL_VERTEX_SHADER);
 	fragShader = createShader("Assets/Shaders/textureFrag.txt", GL_FRAGMENT_SHADER);

@@ -9,17 +9,6 @@
 // Notation
 #define AUDIO_PERCENTAGE_FILTER_THRESHOLD 0.75f
 
-// Splitting
-#define HIGH_QUALITY 0
-#define FAST_QUALITY 1
-
-#define STEMS_VOCAL_ALL 0
-#define STEMS_ALL 1
-
-#define STEM_VOCAL 0
-#define STEM_BASS 1
-#define STEM_DRUMS 2
-
 // Splitter
 string getWeightDirectory(int stem, int quality) {
 	string qualityDirectory = "lowQuality/";
@@ -210,14 +199,18 @@ void openGLMainloop() {
 		mainTabViewer.drawTab();
 		mainNotationViewer.drawNotation();
 
+		interfaceMainloop();
+		
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
+
+	glfwTerminate();
 }
 
 void displayStems(vector<vector<vector<float>>> networkOutputs, string fileName, int quality, int width, int height) {
 	audioFileConfig splitterAudioConfig;
-
+	/*
 	// Define Parameters
 	if (quality == HIGH_QUALITY) {
 		splitterAudioConfig = {
@@ -240,7 +233,40 @@ void displayStems(vector<vector<vector<float>>> networkOutputs, string fileName,
 		networkSpectrograms[i] = percentageFiltering(networkSpectrograms[i], AUDIO_PERCENTAGE_FILTER_THRESHOLD);
 		stemNoteFormats.push_back(returnNoteFormat(networkSpectrograms[i]));
 	}
+	*/
 
+
+
+
+
+
+
+
+
+
+
+	
+
+	int stemCount = 1;
+	vector<vector<vector<int>>> stemNoteFormats = { {{1}} };
+
+
+
+
+
+
+
+
+
+
+
+	// Start graphics
+	startOpenAL();
+	if (!startOpenGL(window, width, height)) {
+		return;
+	}
+	textsBegin();
+	
 	// Instrument Config
 	instrumentConfig newInstrumentConfig;
 	newInstrumentConfig.tunings = { 7, 12, 17, 22, 26, 31 }; // Guitar Standard Tuning
@@ -257,12 +283,9 @@ void displayStems(vector<vector<vector<float>>> networkOutputs, string fileName,
 	mainNotationViewer = notationViewer(stemNoteFormats, AUDIO_SAMPLES_PER_CHUNK, 44100, pointers);
 	mainTabViewer = tabViewer(stemNoteFormats, newInstrumentConfig.tunings, newInstrumentConfig.maxFrets, newInstrumentConfig.stringCount, AUDIO_SAMPLES_PER_CHUNK, 44100, pointers);
 
-	// Start graphics
-	startOpenAL();
-	if (!startOpenGL(window, width, height)) {
-		return;
-	}
-	textsBegin();
+	int titleImage = createButton(vec2(1.0f), vec3(0.0f), true);
+	allButtons[titleImage].texture = loadTexture("image.png");
 
+	interfaceBegin();
 	openGLMainloop();
 }

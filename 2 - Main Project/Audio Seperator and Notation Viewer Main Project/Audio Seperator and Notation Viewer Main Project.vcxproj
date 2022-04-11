@@ -158,6 +158,7 @@
     <ClCompile Include="files.cpp" />
     <ClCompile Include="filesShaders.cpp" />
     <ClCompile Include="graphics.cpp" />
+    <ClCompile Include="interface.cpp" />
     <ClCompile Include="KNearestNeighbors.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MainProject.cpp" />
@@ -166,6 +167,7 @@
     <ClCompile Include="NeuralNetwork.cpp" />
     <ClCompile Include="notation.cpp" />
     <ClCompile Include="tabs.cpp" />
+    <ClCompile Include="texture.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Headers\audio.h" />
@@ -173,6 +175,7 @@
     <ClInclude Include="Headers\files.h" />
     <ClInclude Include="Headers\filesShaders.h" />
     <ClInclude Include="Headers\graphics.h" />
+    <ClInclude Include="Headers\interface.h" />
     <ClInclude Include="Headers\KNearestNeighbors.h" />
     <ClInclude Include="Headers\matrices.h" />
     <ClInclude Include="Headers\minimp3.h" />
@@ -182,6 +185,7 @@
     <ClInclude Include="Headers\notation.h" />
     <ClInclude Include="Headers\stb_image_write.h" />
     <ClInclude Include="Headers\tabs.h" />
+    <ClInclude Include="Headers\texture.h" />
     <ClInclude Include="MainProject.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

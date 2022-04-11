@@ -21,5 +21,7 @@ void setMat4(int shader, const char* matrixName, mat4 usedMatrix);
 int createShader(const char* filePath, GLenum shaderType);
 int createProgram(vector<int> shaders);
 
+void setShaderInt(int shader, const char* intName, int usedInt);
+
 #endif // !FILESHADERS_H
 

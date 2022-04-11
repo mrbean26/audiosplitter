@@ -36,6 +36,7 @@ int createShader(const char* filePath, GLenum shaderType) {
 		allLines = allLines + line + "\n";
 	}
 	const char* shaderSource = allLines.data();
+	
 	// compile
 	int newShader = glCreateShader(shaderType);
 	glShaderSource(newShader, 1, &shaderSource, NULL);
@@ -49,4 +50,9 @@ int createShader(const char* filePath, GLenum shaderType) {
 		return 0;
 	}
 	return newShader;
+}
+
+void setShaderInt(int shader, const char* intName, int usedInt) {
+	int location = glGetUniformLocation(shader, intName);
+	glUniform1i(location, usedInt);
 }
