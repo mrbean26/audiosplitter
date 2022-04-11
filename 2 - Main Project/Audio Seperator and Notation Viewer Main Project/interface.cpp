@@ -39,25 +39,21 @@ void renderButtons(){
 		//make button bigger if mouse is over it
 		mat4 scaleMat = mat4(1.0f);
 		if (currentButton.mouseOver && currentButton.interactive) {
-			position *= vec3(0.95f, 0.95f, 1.0f);
 			scale *= vec2(1.05f, 1.05f);
 		}
 		if (currentButton.clickDown && currentButton.interactive) {
 			scale *= vec2(0.95f, 0.95f);
-			position *= vec3(1.05f, 1.05f, 1.0f);
 		}
 		//rescale the matrix and send position info to shader
-		scaleMat = glm::scale(scaleMat, vec3(scale, 1.0f));
 		scaleMat = translate(scaleMat, position);
+		scaleMat = glm::scale(scaleMat, vec3(scale, 1.0f));
 		scaleMat = glm::rotate(scaleMat, radians(currentButton.rotation), vec3(0.0f, 0.0f, 1.0f));
 		//update position, scale and rotation info ready for the shader to use
 		setMat4(buttonTextureShader, "scalePositionMatrix", scaleMat);
 
 		//draw
-		glActiveTexture(GL_TEXTURE0 + i);
         enableTexture(currentButton.texture);
 		//set texture for shader
-		setShaderInt(buttonTextureShader, "texture0", i);
 
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0); //if an error is being shown here for memory, shapes are being created before backendBegin()
 	}
@@ -79,7 +75,7 @@ void registerClicks(){
 	}
 	//mouse pos
 	for (int i = 0; i < buttonCount; i++) {
-		if (!allButtons[i].active) {
+		if (!allButtons[i].active || !allButtons[i].interactive) {
 			continue;
 		}
 		allButtons[i].clickDown = false;
@@ -91,21 +87,15 @@ void registerClicks(){
 		int minX = 0, maxX = 0;
 		int minY = 0, maxY = 0;
 		//variables required to calculate minimum and maximum mouse positions for buttons to interact
-		float xDivided = (float)display_x / 10.0f;
-		float yDivided = (float)display_y / (float)aspect_y;
-		vec2 midScreen = vec2(display_x / 2, display_y / 2);
-		vec2 positionMultiplied = vec2(buttonPosition.x*buttonScale.x,
-			buttonPosition.y*buttonScale.y);
-		positionMultiplied = vec2(positionMultiplied.x*xDivided, positionMultiplied.y*yDivided);
-		vec2 midButton = vec2(midScreen.x + positionMultiplied.x, midScreen.y + positionMultiplied.y);
-		//x axis
-		float rescaleX = xDivided * buttonScale.x;
-		minX = (int)(midButton.x - rescaleX);
-		maxX = (int)(midButton.x + rescaleX);
-		//y axis - get axis from scale then pos
-		float midY = midScreen.y - (yDivided * (buttonPosition.y * buttonScale.y));
-		minY = (int)(midY - ((yDivided * buttonScale.y)));
-		maxY = (int)(midY + (yDivided * buttonScale.y));
+		float midX = (display_x / 2.0f) * (1.0f + allButtons[i].position.x);
+		float midY = display_y - (display_y / 2.0f) * (1.0f + allButtons[i].position.y);
+
+		minX = midX - 10.0f;
+		maxX = midX + 10.0f;
+
+		minY = midY - 10.0f;
+		maxY = midY + 10.0f;
+
 		//add to class
 		allButtons[i].minX = minX;
 		allButtons[i].maxX = maxX;

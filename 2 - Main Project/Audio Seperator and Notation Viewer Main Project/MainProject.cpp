@@ -153,6 +153,63 @@ vector<vector<vector<float>>> getNetworkOutputs(string fileName, int stemCount, 
 	}
 }
 
+// UI
+vector<int> interfaceButtons;
+vector<texture> interfaceTextures;
+
+void createInterfaceButtons() {
+	// Load textures
+	interfaceTextures.push_back(loadTexture("Assets/Images/vocalIcon.png"));
+	interfaceTextures.push_back(loadTexture("Assets/Images/instrumentalIcon.png"));
+	interfaceTextures.push_back(loadTexture("Assets/Images/bassIcon.png"));
+	interfaceTextures.push_back(loadTexture("Assets/Images/drumsIcon.png"));
+	interfaceTextures.push_back(loadTexture("Assets/Images/otherIcon.png"));
+
+	// Create current stem icon (image)
+	int stemIcon = createButton(vec2(0.4f), vec3(0.8f, 0.8f, 0.0f), false);
+	allButtons[stemIcon].texture = interfaceTextures[0];
+	interfaceButtons.push_back(stemIcon);
+
+	// Create shift button
+	int shiftButton = createButton(vec2(0.25f), vec3(0.9f, 0.8f, 0.0f), true);
+	allButtons[shiftButton].texture = loadTexture("Assets/Images/ShiftArrow.png");
+	interfaceButtons.push_back(shiftButton);
+}
+void interfaceButtonMainloop() {
+
+	if (allButtons[interfaceButtons[1]].clickUp) {
+		int currentStemIndex = mainNotationViewer.currentStem;
+		int stemCount = mainNotationViewer.noteLengths.size();
+
+		if (stemCount == 2) { // Vocals & Instrumental
+			currentStemIndex = currentStemIndex + 1;
+			
+			if (currentStemIndex == 2) {
+				currentStemIndex = 0;
+				allButtons[interfaceButtons[0]].texture = interfaceTextures[0];
+			}
+			else {
+				allButtons[interfaceButtons[0]].texture = interfaceTextures[1];
+			}
+		}
+
+		if (stemCount == 4) {
+			currentStemIndex = currentStemIndex + 1;
+
+			if (currentStemIndex == 4) {
+				currentStemIndex = 0;
+				allButtons[interfaceButtons[0]].texture = interfaceTextures[0];
+			}
+			else {
+				allButtons[interfaceButtons[0]].texture = interfaceTextures[currentStemIndex + 1];
+			}
+		}
+
+		mainNotationViewer.currentStem = currentStemIndex;
+		mainTabViewer.currentStem = currentStemIndex;
+	}
+}
+
 // Notation & Tab Viewer
 notationViewer mainNotationViewer;
 tabViewer mainTabViewer;
@@ -200,6 +257,7 @@ void openGLMainloop() {
 		mainNotationViewer.drawNotation();
 
 		interfaceMainloop();
+		interfaceButtonMainloop();
 		
 		glfwSwapBuffers(window);
 		glfwPollEvents();
@@ -247,8 +305,8 @@ void displayStems(vector<vector<vector<float>>> networkOutputs, string fileName,
 
 	
 
-	int stemCount = 1;
-	vector<vector<vector<int>>> stemNoteFormats = { {{1}} };
+	int stemCount = 4;
+	vector<vector<vector<int>>> stemNoteFormats = { {{1}}, {{1}}, {{1}} , {{1}} };
 
 
 
@@ -283,8 +341,7 @@ void displayStems(vector<vector<vector<float>>> networkOutputs, string fileName,
 	mainNotationViewer = notationViewer(stemNoteFormats, AUDIO_SAMPLES_PER_CHUNK, 44100, pointers);
 	mainTabViewer = tabViewer(stemNoteFormats, newInstrumentConfig.tunings, newInstrumentConfig.maxFrets, newInstrumentConfig.stringCount, AUDIO_SAMPLES_PER_CHUNK, 44100, pointers);
 
-	int titleImage = createButton(vec2(1.0f), vec3(0.0f), true);
-	allButtons[titleImage].texture = loadTexture("image.png");
+	createInterfaceButtons();
 
 	interfaceBegin();
 	openGLMainloop();

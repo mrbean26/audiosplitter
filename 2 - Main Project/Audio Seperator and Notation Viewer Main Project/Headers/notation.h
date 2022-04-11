@@ -6,6 +6,7 @@
 #include "audio.h"
 using namespace std;
 
+#define NOTATION_TOP_OFFSET 0.15f // for UI gap
 #define NOTATION_EDGE_DISTANCE 0.05f
 #define NOTATION_LINE_GAP 0.03f
 #define NOTATION_MAX_LEDGER_LINES 3

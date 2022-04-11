@@ -205,7 +205,7 @@ void tabViewer::drawTab() {
 	// Draw Lines
 	int tabLinesCount = ceil(float(chunkCount) / float(chunksPerLine));
 	for (int i = 0; i < tabLinesCount; i++) {
-		float yCoordinate = -TAB_EDGE_DISTANCE;
+		float yCoordinate = -TAB_EDGE_DISTANCE - TAB_TOP_HEIGHT;
 		yCoordinate = yCoordinate - i * (tabStringCount * TAB_LINE_GAP + TAB_EDGE_DISTANCE);
 
 		drawTabLines(0, yCoordinate * display_y);
@@ -241,7 +241,7 @@ void tabViewer::drawTab() {
 				continue;
 			}
 
-			float relativeYPosition = 1.0f -TAB_EDGE_DISTANCE - TAB_EDGE_DISTANCE * tabChunkIndex - stringCount * TAB_LINE_GAP * tabChunkIndex;
+			float relativeYPosition = 1.0f -TAB_EDGE_DISTANCE -	TAB_TOP_HEIGHT - TAB_EDGE_DISTANCE * tabChunkIndex - stringCount * TAB_LINE_GAP * tabChunkIndex;
 			relativeYPosition = relativeYPosition - TAB_LINE_GAP * (stringCount - j - 1);
 
 			vec2 position = vec2(relativeXPosition * display_x, relativeYPosition * display_y);
@@ -284,14 +284,14 @@ void tabViewer::drawProgressBar() {
 
 	// Calculate limits for when track is finished playing
 	int lineCount = ceilf(floor(chunkCount) / float(chunksPerLine));
-	float maxYPosition = -TAB_EDGE_DISTANCE - (lineCount - 1) * (tabStringCount * TAB_LINE_GAP + TAB_EDGE_DISTANCE);
+	float maxYPosition = -TAB_EDGE_DISTANCE - TAB_TOP_HEIGHT - (lineCount - 1) * (tabStringCount * TAB_LINE_GAP + TAB_EDGE_DISTANCE);
 
 	int finalLineChunkCount = chunkCount % (chunksPerLine + 1);
 	float maxXOffset = (float(finalLineChunkCount) / float(chunksPerLine)) * LINE_LENGTH;
 
 	// Calculate final positions and draw
 	float xPosition = TAB_EDGE_DISTANCE + xOffset;
-	float yPosition = -TAB_EDGE_DISTANCE - currentLineNumber * (tabStringCount * TAB_LINE_GAP + TAB_EDGE_DISTANCE);
+	float yPosition = -TAB_EDGE_DISTANCE - TAB_TOP_HEIGHT - currentLineNumber * (tabStringCount * TAB_LINE_GAP + TAB_EDGE_DISTANCE);
 
 	if (yPosition < maxYPosition) {
 		xPosition = TAB_EDGE_DISTANCE + maxXOffset;

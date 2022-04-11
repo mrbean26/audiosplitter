@@ -566,7 +566,7 @@ float notationViewer::getLineLength() {
 void notationViewer::drawNotes(vector<vector<pair<int, int>>> notes, vector<bool> keySignature) {
 	// Prequisite Variables
 	int currentStave = 0;
-	float currentYPosition = -NOTATION_EDGE_DISTANCE - NOTATION_MAX_LEDGER_LINES * NOTATION_LINE_GAP;
+	float currentYPosition = -NOTATION_EDGE_DISTANCE - NOTATION_TOP_OFFSET - NOTATION_MAX_LEDGER_LINES * NOTATION_LINE_GAP;
 
 	float edgeOfTrebleClef = NOTATION_EDGE_DISTANCE + TREBLE_CLEF_WIDTH * aspectRatioMultiplier; // 0.3672 comes from image aspect ratio
 	float initialNoteXPosition = edgeOfTrebleClef + getKeySignatureWidth();
@@ -631,7 +631,7 @@ void notationViewer::drawNotation() {
 	
 	// Draw Staves
 	for (int i = 0; i < requiredStaves; i++) {
-		float yOffset = -NOTATION_EDGE_DISTANCE;
+		float yOffset = -NOTATION_EDGE_DISTANCE - NOTATION_TOP_OFFSET;
 		yOffset = yOffset - NOTATION_MAX_LEDGER_LINES * NOTATION_LINE_GAP; // Top ledger lines of first stave
 
 		yOffset = yOffset - i * (5 * NOTATION_LINE_GAP + NOTATION_EDGE_DISTANCE);
@@ -722,14 +722,14 @@ void notationViewer::drawProgressBar() {
 
 	// Calculate limits for when track is finished playing
 	int lineCount = ceilf(floor(chunkCount) / float(chunksPerLine));
-	float maxYPosition = -NOTATION_EDGE_DISTANCE - NOTATION_MAX_LEDGER_LINES * NOTATION_LINE_GAP - (lineCount - 1) * NOTATION_HEIGHT;
+	float maxYPosition = -NOTATION_EDGE_DISTANCE - NOTATION_TOP_OFFSET - NOTATION_MAX_LEDGER_LINES * NOTATION_LINE_GAP - (lineCount - 1) * NOTATION_HEIGHT;
 
 	int finalLineChunkCount = chunkCount % (chunksPerLine + 1);
 	float maxXOffset = minimumX + (float(finalLineChunkCount) / float(chunksPerLine)) * lineLength;
 
 	// Calculate final positions and draw
 	float xPosition = minimumX + lineProportion * lineLength;
-	float yPosition = -NOTATION_EDGE_DISTANCE - NOTATION_MAX_LEDGER_LINES * NOTATION_LINE_GAP - currentLineNumber * NOTATION_HEIGHT;
+	float yPosition = -NOTATION_EDGE_DISTANCE - NOTATION_TOP_OFFSET - NOTATION_MAX_LEDGER_LINES * NOTATION_LINE_GAP - currentLineNumber * NOTATION_HEIGHT;
 
 	// Limits according to how many note chunks
 	if (yPosition < maxYPosition) {

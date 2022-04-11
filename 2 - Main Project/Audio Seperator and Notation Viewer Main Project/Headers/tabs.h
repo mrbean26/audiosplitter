@@ -6,6 +6,7 @@
 #include "audio.h"
 using namespace std;
 
+#define TAB_TOP_HEIGHT 0.15f // for UI gap
 #define TAB_EDGE_DISTANCE 0.03f
 #define TAB_LINE_GAP 0.02f
 

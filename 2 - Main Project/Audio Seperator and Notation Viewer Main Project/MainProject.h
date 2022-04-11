@@ -18,6 +18,9 @@
 #define STEM_BASS 1
 #define STEM_DRUMS 2
 
+extern notationViewer mainNotationViewer;
+extern tabViewer mainTabViewer;
+
 vector<vector<float>> getNetworkPredictions(NeuralNetwork* network, vector<vector<float>> inputs, int stem, int quality);
 void displayStems(vector<vector<vector<float>>> networkOutputs, string fileName, int quality, int width, int height);
 
