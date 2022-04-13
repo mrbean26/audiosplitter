@@ -6,6 +6,7 @@
 #include "Headers/minimp3.h"
 #include "Headers/minimp3_ex.h"
 
+#include "Headers/stb_image_write.h"
 #include "Headers/files.h"
 #include "Headers/fftw3.h"
 
@@ -95,8 +96,7 @@ pair<vector<vector<float>>, float> spectrogramOutput(const char* mp3Filename, au
 			double real = fftOutput[i][0];
 			double imaginary = fftOutput[i][1];
 
-			spectrogramChunks[chunkNum][i] = powf(real * real + imaginary * imaginary, 1.0f / 3.0f);
-			// use 1.0f / 2.0f for non binary mask
+			spectrogramChunks[chunkNum][i] = sqrtf(real * real + imaginary * imaginary);
 		}
 	}
 
@@ -112,7 +112,6 @@ pair<vector<vector<float>>, float> spectrogramOutput(const char* mp3Filename, au
 
 			for (int j = 0; j < valuesPerBand; j++) {
 				double currentValue = spectrogramChunks[chunkNum][i + j];
-
 				accumulativeValue = accumulativeValue + currentValue;
 			}
 
@@ -124,6 +123,7 @@ pair<vector<vector<float>>, float> spectrogramOutput(const char* mp3Filename, au
 
 		spectrogramChunks[chunkNum] = resultantArray;
 	}
+
 	// Change Values from Range 0 to 1 and remove bottom of half of spectrogram as they are just reflections of each other - unneccesarry network complexity
 	vector<vector<float>> result;
 	int newSamplesPerChunk = spectrogramChunks[0].size();
@@ -136,12 +136,42 @@ pair<vector<vector<float>>, float> spectrogramOutput(const char* mp3Filename, au
 
 		// remove bottom half
 		vector<float> currentVector(spectrogramChunks[chunkNum].begin(), spectrogramChunks[chunkNum].begin() + newSamplesPerChunk / 2);
+
+		// mel scale
+		if (audioConfig.useMelScale) {
+			for (int i = 0; i < newSamplesPerChunk / 2; i++) {
+				float currentFrequency = (float(i) / float(newSamplesPerChunk / 2)) * 22050.0f;
+				currentVector[i] = currentVector[i] * (2595.0f * log10f(1.0f + (currentFrequency / 700.0f))); // Mel scale
+			}
+		}
+
 		result.push_back(currentVector);
 	}
 
 	// Return as vector<vector<float>>
 	return make_pair(result, maxValue);
 }
+void writeSpectrogramToImage(vector<vector<float>> spectrogram, const char* fileNameJPG) {
+	int width = spectrogram.size();
+	int height = spectrogram[0].size();
+	int channelCount = 3;
+
+	unsigned char* data = new unsigned char[width * height * channelCount];
+	int index = 0;
+
+	for (int y = height - 1; y >= 0; y--) {
+		for (int x = 0; x < width; x++) {
+			int intColour = int(255.0 * spectrogram[x][y]);
+
+			data[index++] = intColour;
+			data[index++] = intColour;
+			data[index++] = intColour;
+		}
+	}
+
+	stbi_write_jpg(fileNameJPG, width, height, channelCount, data, width * sizeof(int));
+}
+
 vector<int16_t> vocalSamples(const char* fullFileNameMP3, vector<vector<float>> networkOutput, audioFileConfig audioConfig) {
 	// Get Max Value From Original Track (Inefficient, change before release)
 	pair<vector<vector<float>>, float> fullTrackSpectrogram = spectrogramOutput(fullFileNameMP3, audioConfig);
@@ -150,22 +180,15 @@ vector<int16_t> vocalSamples(const char* fullFileNameMP3, vector<vector<float>> 
 	// Recreate full spectrogram
 	int networkSubOutputSize = networkOutput[0].size();
 	for (int i = 0; i < networkOutput.size(); i++) {
-		/*
-
-		for (int j = 0; j < networkOutput[i].size(); j++) { // Helpful for further isolating vocals
-			double hannMultiplier = 0.5 * (1 - cos(2 * 3.141 * double(j) / double(networkSubOutputSize)));
-			networkOutput[i][j] = networkOutput[i][j] * pow(hannMultiplier, 0.75); // index of 0.75 widens window at top, including more frequencies
-		}
-
-		*/
-
 		for (int j = 0; j < networkOutput[i].size(); j++) {
 			float networkValue = networkOutput[i][j];
 			if (audioConfig.useNoisePrediction) {
 				networkValue = 1.0f - networkValue;
 			}
-
-			networkOutput[i][j] = powf(networkValue, audioConfig.spectrogramEmphasis);
+			
+			if (!audioConfig.useOutputBinaryMask) {
+				networkOutput[i][j] = powf(networkValue, audioConfig.spectrogramEmphasis);
+			}
 		}
 
 		vector<float> currentChunk = networkOutput[i];
@@ -221,7 +244,9 @@ vector<int16_t> vocalSamples(const char* fullFileNameMP3, vector<vector<float>> 
 			// Multiply network output vocal mask by full track values
 			for (int j = 0; j < valuesPerBand; j++) {
 				float valueMagnitude = sqrt(fftOutput[i + j][0] * fftOutput[i + j][0] + fftOutput[i + j][1] * fftOutput[i + j][1]);
-				float multiplier = sqrtf(maxValueSpectrogramFullTrack / valueMagnitude);
+				
+				//float multiplier = sqrtf(maxValueSpectrogramFullTrack / valueMagnitude); // to do with amplification
+				float multiplier = 1.0f;
 				
 				fftOutput[i + j][0] = networkOutput[chunkNum][i / valuesPerBand] * fftOutput[i + j][0] * multiplier;
 				fftOutput[i + j][1] = networkOutput[chunkNum][i / valuesPerBand] * fftOutput[i + j][1] * multiplier;

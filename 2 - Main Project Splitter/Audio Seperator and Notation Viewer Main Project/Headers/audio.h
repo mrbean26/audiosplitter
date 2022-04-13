@@ -21,9 +21,13 @@ struct audioFileConfig {
 	float binaryMaskThreshold = 0.025f;
 
 	bool useNoisePrediction = false;
+
+	bool useMelScale = true;
 };
 
 pair<vector<vector<float>>, float> spectrogramOutput(const char* mp3Filename, audioFileConfig audioConfig);
+void writeSpectrogramToImage(vector<vector<float>> spectrogram, const char* fileName);
+
 vector<int16_t> vocalSamples(const char* fullFileNameMP3, vector<vector<float>> networkOutput, audioFileConfig audioConfig);
 void writeToWAV(const char* fileName, vector<int16_t> samples);
 

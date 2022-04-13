@@ -77,6 +77,7 @@ vector<vector<float>> generateInputs(audioFileConfig config) {
 	for (int f = config.startFileIndex; f < endIndex; f++) {
 		// Load File Spectrogram From Integer File
 		string fileName = "inputs/" + to_string(f) + ".mp3";
+		
 		pair<vector<vector<float>>, float> spectrogram = spectrogramOutput(fileName.data(), config);
 		vector<vector<float>> fullAudioInput = spectrogram.first;
 
@@ -160,17 +161,28 @@ void createOutputTestTrack(NeuralNetwork network, audioFileConfig config) {
 	vector<vector<float>> predictedTrackSpectrogram;
 
 	int chunkCount = testTrackSpectrogram.size();
+	int indexJump = config.samplesPerChunk / config.samplesPerOverlap; // to support overlap output, skip "duplicate" output chunks
 	int networkLayerCount = network.layerNodes.size();
 
 	// Get Network Predictions and Add to Output Track
-	for (int i = 0; i < chunkCount; i++) {
+	for (int i = 0; i < chunkCount; i += indexJump) {
 		vector<float> currentChunkPrection = network.predict(testTrackSpectrogram[i]);
-		cout << "Prediction " << i + 1 << "/" << chunkCount << " complete" << endl;
 
+		// Use step function if binary mask has been used
+		if (config.useOutputBinaryMask) {
+			for (int j = 0; j < currentChunkPrection.size(); j++) {
+				if (currentChunkPrection[j] > 0.5f) {
+					currentChunkPrection[j] = 1.0f;
+				}
+				else {
+					currentChunkPrection[j] = 0.0f;
+				}
+			}
+		}
+		
 		predictedTrackSpectrogram.push_back(currentChunkPrection);
 	}
 	
-
 	// Get Samples and Write To Track
 	vector<int16_t> testTrackOutputSamples = vocalSamples("inputs/1.mp3", predictedTrackSpectrogram, config);
 	writeToWAV("testTrackOutput.wav", testTrackOutputSamples);
@@ -194,6 +206,7 @@ pair<vector<vector<float>>, vector<vector<float>>> getSingleSongDataset(audioFil
 		if (songOutputs[currentIndex].size() == 0) {
 			continue;
 		}
+
 		//cout << songInputs.size() << " " << songOutputs.size() << " " << currentIndex << endl;
 		resultantInputs.push_back(songInputs[currentIndex]);
 		resultantOutputs.push_back(songOutputs[currentIndex]);
