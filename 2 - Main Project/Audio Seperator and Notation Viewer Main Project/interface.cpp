@@ -90,11 +90,14 @@ void registerClicks(){
 		float midX = (display_x / 2.0f) * (1.0f + allButtons[i].position.x);
 		float midY = display_y - (display_y / 2.0f) * (1.0f + allButtons[i].position.y);
 
-		minX = midX - 10.0f;
-		maxX = midX + 10.0f;
+		float xDivided = (float)display_x / (float)aspect_x;
+		float yDivided = (float)display_y / (float)aspect_y;
 
-		minY = midY - 10.0f;
-		maxY = midY + 10.0f;
+		minX = midX - xDivided * allButtons[i].scale.x;
+		maxX = midX + xDivided * allButtons[i].scale.x;
+
+		minY = midY - yDivided * allButtons[i].scale.y;
+		maxY = midY + yDivided * allButtons[i].scale.y;
 
 		//add to class
 		allButtons[i].minX = minX;
