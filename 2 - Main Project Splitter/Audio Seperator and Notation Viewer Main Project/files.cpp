@@ -84,12 +84,12 @@ vector<vector<float>> generateInputs(audioFileConfig config) {
 		// Create Chunk Border to Give Audio 'Context'
 		int newFrequencyResolution = fullAudioInput[0].size();
 
-		for (int i = config.chunkBorder; i < fullAudioInput.size() - config.chunkBorder - 1; i++) {
+		for (int i = config.chunkBorder; i < fullAudioInput.size() - config.chunkBorder; i++) {
 			vector<float> currentInput;
 
 			for (int c = i - config.chunkBorder; c < i + config.chunkBorder + 1; c++) {
 				for (int f = 0; f < newFrequencyResolution; f++) {
-					float value = fullAudioInput[i][f];
+					float value = fullAudioInput[c][f];
 
 					// Remove NaN values, very very rare bug in visual studio
 					if (isnan(value)) {
@@ -119,7 +119,7 @@ vector<vector<float>> generateOutputs(audioFileConfig config) {
 		// Create Chunk Border to Give Audio 'Context'
 		int newFrequencyResolution = fullAudioInput[0].size();
 
-		for (int i = config.chunkBorder; i < fullAudioInput.size() - config.chunkBorder - 1; i++) {
+		for (int i = config.chunkBorder; i < fullAudioInput.size() - config.chunkBorder; i++) {
 			vector<float> currentInput;
 			for (int f = 0; f < newFrequencyResolution; f++) {
 				float value = fullAudioInput[i][f];
@@ -159,7 +159,7 @@ void createOutputTestTrack(NeuralNetwork network, audioFileConfig config) {
 	// Get Input Spectrogram (from first file only)
 	vector<vector<float>> testTrackSpectrogram = generateInputs(config); // First track only, for testing
 	vector<vector<float>> predictedTrackSpectrogram;
-
+	
 	int chunkCount = testTrackSpectrogram.size();
 	int indexJump = config.samplesPerChunk / config.samplesPerOverlap; // to support overlap output, skip "duplicate" output chunks
 	int networkLayerCount = network.layerNodes.size();

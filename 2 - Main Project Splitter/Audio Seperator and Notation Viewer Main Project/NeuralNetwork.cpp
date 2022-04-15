@@ -34,7 +34,7 @@ NeuralNetwork::NeuralNetwork(vector<int> layers, vector<int> biases, vector<int>
 }
 
 float randomMinimum = 0.0f;
-float randomMaximum = 0.001f;
+float randomMaximum = 0.01f;
 float randomFloat() {
     float result = randomMinimum + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (randomMaximum - randomMinimum)));
     return result;
@@ -385,6 +385,7 @@ vector<float> NeuralNetwork::predict(vector<float> inputs) {
     for (int i = 0; i < lastLayerSize; i++) {
         result.push_back(layerNodes[layerCount - 1][i].value);
     }
+
     return result;
 }
 void NeuralNetwork::runTests(vector<vector<float>> inputs) {
@@ -397,11 +398,11 @@ void NeuralNetwork::runTests(vector<vector<float>> inputs) {
 void NeuralNetwork::calculateDerivatives(vector<float> outputErrors, float errorMultiplier = 1.0f) {
     // with outputErrors as actual - target
     int finalLayerCount = layerNodes[layerCount - 1].size();
-
+    
     for (int i = 0; i < finalLayerCount; i++) {
         layerNodes[layerCount - 1][i].derivativeErrorValue = derivative(layerNodes[layerCount - 1][i].value, layerCount - 1) * outputErrors[i] * errorMultiplier;
     }
-
+    
     // Backpropagate by Calculating Partial Derivatives of Each Node with Respect to The Error
     for (int i = layerCount - 2; i > -1; i--) {
         int currentLayerCount = layerNodes[i].size();
@@ -411,9 +412,8 @@ void NeuralNetwork::calculateDerivatives(vector<float> outputErrors, float error
             if (!layerNodes[i][n].active) {
                 continue;
             }
-
+            
             float valueMultiplier = derivative(layerNodes[i][n].value, i);
-
             if (i == 0) {
                 valueMultiplier = layerNodes[i][n].value; // This value is used for input layer due to this layer not being activated
             }
@@ -1513,7 +1513,7 @@ vector<float> NeuralNetwork::trainLevenbergMarquardt(standardTrainConfig trainCo
 float runPredictionThreadingGradientDescent(NeuralNetwork* network, vector<float> inputs, vector<float> outputs) {
     vector<float> prediction = network->predict(inputs);
     float result = 0.0f;
-
+    
     // Calculate Differences
     int outputCount = outputs.size();
     vector<float> errors;
@@ -1533,7 +1533,6 @@ float runPredictionThreadingGradientDescent(NeuralNetwork* network, vector<float
 vector<float> NeuralNetwork::trainBatchGradientDescent(standardTrainConfig trainConfig) {
     vector<float> result;
     for (int epoch = 0; epoch < trainConfig.epochs; epoch++) {
-
         // Find dataset
         vector<vector<float>> trainInputs = trainConfig.trainInputs;
         vector<vector<float>> trainOutputs = trainConfig.trainOutputs;

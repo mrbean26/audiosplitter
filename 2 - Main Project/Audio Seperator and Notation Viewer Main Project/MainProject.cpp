@@ -157,6 +157,9 @@ vector<vector<vector<float>>> getNetworkOutputs(string fileName, int stemCount, 
 vector<int> interfaceButtons;
 vector<texture> interfaceTextures;
 
+int saveTrackButton;
+int loadTrackButton;
+
 void createInterfaceButtons() {
 	// Load textures
 	interfaceTextures.push_back(loadTexture("Assets/Images/vocalIcon.png"));
@@ -164,6 +167,9 @@ void createInterfaceButtons() {
 	interfaceTextures.push_back(loadTexture("Assets/Images/bassIcon.png"));
 	interfaceTextures.push_back(loadTexture("Assets/Images/drumsIcon.png"));
 	interfaceTextures.push_back(loadTexture("Assets/Images/otherIcon.png"));
+
+	texture loadTrackIcon = loadTexture("Assets/Images/import.png");
+	texture saveTrackIcon = loadTexture("Assets/Images/save.png");
 
 	// Create current stem icon (image)
 	int stemIcon = createButton(vec2(0.4f), vec3(0.8f, 0.8f, 0.0f), false);
@@ -174,6 +180,14 @@ void createInterfaceButtons() {
 	int shiftButton = createButton(vec2(0.25f), vec3(0.9f, 0.8f, 0.0f), true);
 	allButtons[shiftButton].texture = loadTexture("Assets/Images/ShiftArrow.png");
 	interfaceButtons.push_back(shiftButton);
+
+	// Load Track
+	loadTrackButton = createButton(vec2(0.3f), vec3(-0.05f, 0.8f, 0.0f), true);
+	allButtons[loadTrackButton].texture = loadTrackIcon;
+
+	// Save Track
+	saveTrackButton = createButton(vec2(0.3f), vec3(0.05f, 0.8f, 0.0f), true);
+	allButtons[saveTrackButton].texture = saveTrackIcon;
 }
 void interfaceButtonMainloop() {
 

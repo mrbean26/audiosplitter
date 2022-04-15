@@ -1,0 +1,8 @@
+﻿  main.cpp
+  The contents of <filesystem> are available only with C++17 or later.
+D:\Projects\Audio Splitter App\3 - C++ Notation\Selecting File From Explorer\Selecting File From Explorer\main.cpp(34,17): warning C4244: 'argument': conversion from 'TCHAR' to '_Elem', possible loss of data
+          with
+          [
+              _Elem=char
+          ]
+  Selecting File From Explorer.vcxproj -> D:\Projects\Audio Splitter App\3 - C++ Notation\Selecting File From Explorer\Debug\Selecting File From Explorer.exe

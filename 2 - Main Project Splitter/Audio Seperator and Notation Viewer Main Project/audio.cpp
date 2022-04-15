@@ -136,7 +136,7 @@ pair<vector<vector<float>>, float> spectrogramOutput(const char* mp3Filename, au
 
 		// remove bottom half
 		vector<float> currentVector(spectrogramChunks[chunkNum].begin(), spectrogramChunks[chunkNum].begin() + newSamplesPerChunk / 2);
-
+		
 		// mel scale
 		if (audioConfig.useMelScale) {
 			for (int i = 0; i < newSamplesPerChunk / 2; i++) {
@@ -174,9 +174,10 @@ void writeSpectrogramToImage(vector<vector<float>> spectrogram, const char* file
 
 vector<int16_t> vocalSamples(const char* fullFileNameMP3, vector<vector<float>> networkOutput, audioFileConfig audioConfig) {
 	// Get Max Value From Original Track (Inefficient, change before release)
+	audioConfig.samplesPerOverlap = audioConfig.samplesPerChunk;
 	pair<vector<vector<float>>, float> fullTrackSpectrogram = spectrogramOutput(fullFileNameMP3, audioConfig);
 	float maxValueSpectrogramFullTrack = fullTrackSpectrogram.second;
-	
+
 	// Recreate full spectrogram
 	int networkSubOutputSize = networkOutput[0].size();
 	for (int i = 0; i < networkOutput.size(); i++) {
@@ -185,7 +186,7 @@ vector<int16_t> vocalSamples(const char* fullFileNameMP3, vector<vector<float>> 
 			if (audioConfig.useNoisePrediction) {
 				networkValue = 1.0f - networkValue;
 			}
-			
+
 			if (!audioConfig.useOutputBinaryMask) {
 				networkOutput[i][j] = powf(networkValue, audioConfig.spectrogramEmphasis);
 			}
@@ -212,7 +213,7 @@ vector<int16_t> vocalSamples(const char* fullFileNameMP3, vector<vector<float>> 
 
 	// Split into chunks
 	int sampleCount = doubleAudioSamples.size();
-	for (int i = audioConfig.chunkBorder * audioConfig.samplesPerChunk; i < sampleCount - audioConfig.samplesPerChunk - audioConfig.chunkBorder * audioConfig.samplesPerChunk; i += audioConfig.samplesPerOverlap) {
+	for (int i = 0; i < sampleCount - audioConfig.samplesPerChunk; i += audioConfig.samplesPerChunk) {
 		vector<double> currentChunk(doubleAudioSamples.begin() + i, doubleAudioSamples.begin() + i + audioConfig.samplesPerChunk);
 		spectrogramChunks.push_back(currentChunk);
 	}
@@ -222,12 +223,12 @@ vector<int16_t> vocalSamples(const char* fullFileNameMP3, vector<vector<float>> 
 	fftw_complex* fftOutput = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) * audioConfig.samplesPerChunk);
 	fftw_plan fftwPlan = fftw_plan_dft_1d(audioConfig.samplesPerChunk, fftInputArray, fftOutput, FFTW_FORWARD, FFTW_ESTIMATE);
 	fftw_plan fftwInversePlan = fftw_plan_dft_1d(audioConfig.samplesPerChunk, fftOutput, fftInputArray, FFTW_BACKWARD, FFTW_ESTIMATE);
-
+	
 	// Execute FFTW Plans
 	int chunkCount = networkOutput.size();
 	int frequencyResolution = networkOutput[0].size();
 	int valuesPerBand = audioConfig.samplesPerChunk / audioConfig.frequencyResolution;
-
+	
 	vector<int16_t> resultantSamples;
 	int maxNewSample = 0;
 
@@ -244,10 +245,10 @@ vector<int16_t> vocalSamples(const char* fullFileNameMP3, vector<vector<float>> 
 			// Multiply network output vocal mask by full track values
 			for (int j = 0; j < valuesPerBand; j++) {
 				float valueMagnitude = sqrt(fftOutput[i + j][0] * fftOutput[i + j][0] + fftOutput[i + j][1] * fftOutput[i + j][1]);
-				
+
 				//float multiplier = sqrtf(maxValueSpectrogramFullTrack / valueMagnitude); // to do with amplification
 				float multiplier = 1.0f;
-				
+
 				fftOutput[i + j][0] = networkOutput[chunkNum][i / valuesPerBand] * fftOutput[i + j][0] * multiplier;
 				fftOutput[i + j][1] = networkOutput[chunkNum][i / valuesPerBand] * fftOutput[i + j][1] * multiplier;
 			}
