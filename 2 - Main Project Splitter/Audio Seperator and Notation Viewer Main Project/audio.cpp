@@ -44,112 +44,159 @@ vector<int> loadAudioSamples(mp3d_sample_t* buffer, int sampleCount, int channel
 }
 
 // Network
-pair<vector<vector<float>>, float> spectrogramOutput(const char* mp3Filename, audioFileConfig audioConfig) {
-	mp3dec_file_info_t audioData = loadAudioData(mp3Filename);
-	vector<int> audioSamples = loadAudioSamples(audioData.buffer, audioData.samples, audioData.channels);
-	delete[] audioData.buffer; 
+vector<vector<double>> spitChunks(vector<double> allSamples, int perChunk, int overlap, bool hanning) {
+	vector<vector<double>> result;
+	int sampleCount = allSamples.size();
 
-	vector<double> doubleAudioSamples(audioSamples.begin(), audioSamples.end());
-	vector<vector<double>> spectrogramChunks;
-
-	// Generate hanning window values to make middle values most "important", count = samplesPerChunk
 	vector<double> hanningWindowValues;
-	for (int i = 0; i < audioConfig.samplesPerChunk; i++) {
+	for (int i = 0; i < perChunk; i++) {
 		double pi = 3.14159265358979323846;
-		double currentCoefficient = double(i) / (double(audioConfig.samplesPerChunk) - 1);
+		double currentCoefficient = double(i) / (double(perChunk) - 1);
 		double cosValue = cos(2 * pi * currentCoefficient);
 
 		double value = 0.5 * (1 - cosValue);
 		hanningWindowValues.push_back(value);
 	}
 
-	// Split into chunks (FFT -> STFT) & apply hanning window function
-	int sampleCount = doubleAudioSamples.size();
-	for (int i = 0; i < sampleCount - audioConfig.samplesPerChunk; i += audioConfig.samplesPerOverlap) {
-		vector<double> currentChunk(doubleAudioSamples.begin() + i, doubleAudioSamples.begin() + i + audioConfig.samplesPerChunk);
-
-		for (int j = 0; j < audioConfig.samplesPerChunk; j++) {
-			double currentValue = currentChunk[j] * hanningWindowValues[j];
-			currentChunk[j] = currentValue;
+	for (int i = 0; i < sampleCount; i += overlap) {
+		if (i + perChunk >= sampleCount) {
+			break;
 		}
 
-		spectrogramChunks.push_back(currentChunk);
+		vector<double> samplesChunk(allSamples.begin() + i, allSamples.begin() + i + perChunk);
+		vector<double> newChunk(perChunk);
+		
+		transform(samplesChunk.begin(), samplesChunk.end(), hanningWindowValues.begin(), newChunk.begin(), multiplies<double>());
+		result.push_back(newChunk);
 	}
 
-	// FFT each chunk 1D with FFTW
-	fftw_complex* fftInputArray = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) * audioConfig.samplesPerChunk);
-	fftw_complex* fftOutput = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) * audioConfig.samplesPerChunk);
-	fftw_plan fftwPlan = fftw_plan_dft_1d(audioConfig.samplesPerChunk, fftInputArray, fftOutput, FFTW_FORWARD, FFTW_ESTIMATE);
-	
-	// Execute FFTW Plan and Convert Complex to Real
-	int chunkCount = spectrogramChunks.size();
+	return result;
+}
+vector<vector<float>> fftChunks(vector<vector<double>> chunks, int perChunk) {
+	fftw_complex* fftInputArray = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) * perChunk);
+	fftw_complex* fftOutput = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) * perChunk);
+	fftw_plan fftwPlan = fftw_plan_dft_1d(perChunk, fftInputArray, fftOutput, FFTW_FORWARD, FFTW_ESTIMATE);
+
+	vector<vector<float>> result;
+	int chunkCount = chunks.size();
+
 	for (int chunkNum = 0; chunkNum < chunkCount; chunkNum++) {
-		for (int i = 0; i < audioConfig.samplesPerChunk; i++) {
-			fftInputArray[i][0] = spectrogramChunks[chunkNum][i];
+		// Set Inputs
+		for (int i = 0; i < perChunk; i++) {
+			fftInputArray[i][0] = chunks[chunkNum][i];
 			fftInputArray[i][1] = 0;
 		}
 
 		fftw_execute(fftwPlan);
 
-		// Take magnitude of each complex number
-		for (int i = 0; i < audioConfig.samplesPerChunk; i++) {
+		// Set Outputs
+		vector<float> newChunk;
+		for (int i = 0; i < perChunk / 2; i++) { // Only take first half of spectrogram due to symmetry
 			double real = fftOutput[i][0];
 			double imaginary = fftOutput[i][1];
 
-			spectrogramChunks[chunkNum][i] = sqrtf(real * real + imaginary * imaginary);
-		}
-	}
-
-	// Downsize Frequency Output with Average, and Take Max Value
-	int valuesPerBand = audioConfig.samplesPerChunk / audioConfig.frequencyResolution;
-	double maxValue = 0.0;
-
-	for (int chunkNum = 0; chunkNum < chunkCount; chunkNum++) {
-		vector<double> resultantArray;
-
-		for (int i = 0; i < audioConfig.samplesPerChunk; i += valuesPerBand) {
-			double accumulativeValue = 0.0;
-
-			for (int j = 0; j < valuesPerBand; j++) {
-				double currentValue = spectrogramChunks[chunkNum][i + j];
-				accumulativeValue = accumulativeValue + currentValue;
-			}
-
-			accumulativeValue = accumulativeValue / valuesPerBand;
-			maxValue = max(maxValue, accumulativeValue);
-
-			resultantArray.push_back(accumulativeValue);
+			newChunk.push_back(sqrtf(real * real + imaginary * imaginary));
 		}
 
-		spectrogramChunks[chunkNum] = resultantArray;
+		result.push_back(newChunk);
 	}
+	
+	return result;
+}
 
-	// Change Values from Range 0 to 1 and remove bottom of half of spectrogram as they are just reflections of each other - unneccesarry network complexity
+vector<vector<float>> downsizeSpectrogramOutputs(vector<vector<float>> chunks, int newResolution) {
+	int currentBandCount = chunks[0].size();
+	int valuesPerBand = currentBandCount / newResolution;
+
+	int chunkCount = chunks.size();
 	vector<vector<float>> result;
-	int newSamplesPerChunk = spectrogramChunks[0].size();
 
-	for (int chunkNum = 0; chunkNum < chunkCount; chunkNum++) {
-		for (int i = 0; i < newSamplesPerChunk / 2; i++) {
-			spectrogramChunks[chunkNum][i] = spectrogramChunks[chunkNum][i] / maxValue;
-			spectrogramChunks[chunkNum][i] = powf(spectrogramChunks[chunkNum][i], 1.0f / audioConfig.spectrogramEmphasis);
-		}
+	for (int i = 0; i < chunkCount; i++) {
+		vector<float> currentChunk;
 
-		// remove bottom half
-		vector<float> currentVector(spectrogramChunks[chunkNum].begin(), spectrogramChunks[chunkNum].begin() + newSamplesPerChunk / 2);
-		
-		// mel scale
-		if (audioConfig.useMelScale) {
-			for (int i = 0; i < newSamplesPerChunk / 2; i++) {
-				float currentFrequency = (float(i) / float(newSamplesPerChunk / 2)) * 22050.0f;
-				currentVector[i] = currentVector[i] * (2595.0f * log10f(1.0f + (currentFrequency / 700.0f))); // Mel scale
+		for (int j = 0; j < currentBandCount; j += valuesPerBand) {
+			float currentValue = 0.0f;
+			
+			for (int k = 0; k < valuesPerBand; k++) {
+				currentValue = currentValue + chunks[i][j + k];
 			}
+
+			currentValue = currentValue / float(valuesPerBand);
+			currentChunk.push_back(currentValue);
 		}
 
-		result.push_back(currentVector);
+		result.push_back(currentChunk);
 	}
 
-	// Return as vector<vector<float>>
-	return make_pair(result, maxValue);
+	return result;
+}
+vector<vector<float>> applySpectrogramEffects(vector<vector<float>> chunks, float emphasis, bool mel, int sampleRate) {
+	int chunkCount = chunks.size();
+	int bands = chunks[0].size();
+
+	vector<float> melValues;
+	if (mel) {
+		for (int i = 0; i < bands; i++) {
+			float currentFrequency = (float(i + 1) / float(bands)) * float(sampleRate / 2.0f);
+			float melScaleFactor = 2595.0f * log10f(1.0f + (currentFrequency / 700.0f));
+			melValues.push_back(melScaleFactor);
+		}
+	}
+
+	vector<vector<float>> result;
+	for (int i = 0; i < chunkCount; i++) {
+		vector<float> currentChunk;
+
+		for (int j = 0; j < bands; j++) {
+			float value = chunks[i][j];
+
+			if (mel) {
+				value = value * melValues[j];
+			}
+
+			value = powf(value, 1.0f / emphasis);
+			currentChunk.push_back(value);
+		}
+
+		result.push_back(currentChunk);
+	}
+
+	return result;
+}
+
+pair<vector<vector<float>>, float> spectrogramOutput(const char* mp3Filename, audioFileConfig audioConfig) {
+	mp3dec_file_info_t audioData = loadAudioData(mp3Filename);
+	int sampleRate = audioData.hz;
+	
+	vector<int> audioSamples = loadAudioSamples(audioData.buffer, audioData.samples, audioData.channels);
+	delete[] audioData.buffer; 
+	
+	vector<double> doubleAudioSamples(audioSamples.begin(), audioSamples.end());
+	vector<vector<double>> spectrogramChunks = spitChunks(doubleAudioSamples, audioConfig.samplesPerChunk, audioConfig.samplesPerOverlap, true);
+	
+	vector<vector<float>> fftOutputs = fftChunks(spectrogramChunks, audioConfig.samplesPerChunk);
+	vector<vector<float>> downsizedOutputs = downsizeSpectrogramOutputs(fftOutputs, audioConfig.frequencyResolution / 2);
+	
+	vector<vector<float>> effectsSpectrogram = applySpectrogramEffects(downsizedOutputs, audioConfig.spectrogramEmphasis, audioConfig.useMelScale, sampleRate);
+	
+	// Normalize
+	int chunkCount = effectsSpectrogram.size();
+	int bands = effectsSpectrogram[0].size();
+
+	float maxValue = 0.0f;
+	for (int i = 0; i < chunkCount; i++) {
+		for (int j = 0; j < bands; j++) {
+			maxValue = max(maxValue, effectsSpectrogram[i][j]);
+		}
+	}
+
+	for (int i = 0; i < chunkCount; i++) {
+		for (int j = 0; j < bands; j++) {
+			effectsSpectrogram[i][j] = effectsSpectrogram[i][j] / maxValue;
+		}
+	}
+
+	return make_pair(effectsSpectrogram, maxValue);
 }
 void writeSpectrogramToImage(vector<vector<float>> spectrogram, const char* fileNameJPG) {
 	int width = spectrogram.size();

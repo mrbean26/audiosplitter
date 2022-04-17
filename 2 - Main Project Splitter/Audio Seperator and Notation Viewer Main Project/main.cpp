@@ -24,12 +24,11 @@ audioFileConfig getAudioConfig() {
 
 		false, // use noise prediction
 
-		false, // use mel scale
+		true, // use mel scale
 	};
 
 	return audioConfig;
 }
-
 NeuralNetwork::standardTrainConfig getTrainConfig() {
 	NeuralNetwork::standardTrainConfig newConfig = NeuralNetwork::standardTrainConfig();
 
@@ -64,6 +63,7 @@ int main() {
 	testNetworkOutputsToImage(audioConfig);
 	testTrainOutputs(audioConfig);
 	inputTrackSpectrogramToImage(audioConfig);
+	system("explorer D:\\Projects\\Audio Splitter App\\2 - Main Project Splitter\\Audio Seperator and Notation Viewer Main Project\\_Testing\\");
 
 	// Network & Trainig
 	vector<int> nodes = { 800, 700, 600, 500, 400, 300, 200, 100, 32 };
@@ -72,6 +72,7 @@ int main() {
 
 	NeuralNetwork vocalsNetwork = NeuralNetwork(nodes, bias, activations);
 	vocalsNetwork.train(trainConfig);
+	createOutputTestTrack(vocalsNetwork, audioConfig);
 
 	system("pause");
 	return 0;

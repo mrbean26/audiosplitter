@@ -266,7 +266,7 @@ void createOutputTestTrack(NeuralNetwork network, audioFileConfig config) {
 	
 	// Get Samples and Write To Track
 	vector<int16_t> testTrackOutputSamples = vocalSamples("inputs/1.mp3", predictedTrackSpectrogram, config);
-	writeToWAV("testTrackOutput.wav", testTrackOutputSamples);
+	writeToWAV("_Testing/vocalPredictionTestTrack.wav", testTrackOutputSamples);
 }
 void testTrainOutputs(audioFileConfig config) {
 	config.startFileIndex = 1;
