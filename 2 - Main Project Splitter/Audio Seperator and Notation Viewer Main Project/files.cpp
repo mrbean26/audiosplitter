@@ -68,6 +68,15 @@ vector<string> splitStringByCharacter(string used, char splitter) {
 
 	return result;
 }
+void outputDataset(vector<vector<float>> data) {
+	for (int i = 0; i < data.size(); i++) {
+		for (int j = 0; j < data[i].size(); j++) {
+			cout << data[i][j] << ",";
+		}
+		cout << endl;
+		system("pause");
+	}
+}
 
 // Audio
 vector<vector<float>> generateInputs(audioFileConfig config) {
@@ -152,6 +161,71 @@ vector<vector<float>> generateOutputs(audioFileConfig config) {
 
 	return result;
 }
+
+void testNetworkInputsToImage(audioFileConfig audioConfig) {
+	audioConfig.startFileIndex = 1;
+	audioConfig.songCount = 1;
+
+	vector<vector<float>> fullInputs = generateInputs(audioConfig);
+	vector<float> input = fullInputs[0];
+
+	vector<vector<float>> inputChunks;
+	int inputSize = input.size();
+
+	int totalChunkCount = 2 * audioConfig.chunkBorder + 1;
+	int floatsPerChunk = inputSize / totalChunkCount;
+
+	for (int i = 0; i < inputSize; i += floatsPerChunk) {
+		vector<float> currentChunk;
+
+		for (int j = 0; j < floatsPerChunk; j++) {
+			currentChunk.push_back(input[i + j]);
+		}
+		inputChunks.push_back(currentChunk);
+	}
+
+	writeSpectrogramToImage(inputChunks, "_Testing/testInputChunks.png");
+}
+void testNetworkOutputsToImage(audioFileConfig audioConfig, int chunkCount) {
+	audioConfig.startFileIndex = 1;
+	audioConfig.songCount = 1;
+
+	vector<vector<float>> fullOutputs = generateOutputs(audioConfig);
+	vector<vector<float>> resultantOutputs(fullOutputs.begin(), fullOutputs.begin() + chunkCount);
+
+	writeSpectrogramToImage(resultantOutputs, "_Testing/testOutputChunks.png");
+}
+
+void outputInputVector(vector<float> inputVector, audioFileConfig audioConfig) {
+	int inputSize = inputVector.size();
+
+	int totalChunkCount = 2 * audioConfig.chunkBorder + 1;
+	int floatsPerChunk = inputSize / totalChunkCount;
+
+	for (int i = 0; i < inputSize; i += floatsPerChunk) {
+		vector<float> currentChunk;
+
+		for (int j = 0; j < floatsPerChunk; j++) {
+			currentChunk.push_back(inputVector[i + j]);
+		}
+		
+		outputVector(currentChunk);
+	}
+}
+void outputVector(vector<float> vector) {
+	int size = vector.size();
+
+	for (int i = 0; i < size; i++) {
+		cout << vector[i];
+
+		if (i != size - 1) {
+			cout << ", ";
+		}
+	}
+
+	cout << "." << endl;
+}
+
 void createOutputTestTrack(NeuralNetwork network, audioFileConfig config) {
 	config.startFileIndex = 1;
 	config.songCount = 1;
@@ -186,6 +260,40 @@ void createOutputTestTrack(NeuralNetwork network, audioFileConfig config) {
 	// Get Samples and Write To Track
 	vector<int16_t> testTrackOutputSamples = vocalSamples("inputs/1.mp3", predictedTrackSpectrogram, config);
 	writeToWAV("testTrackOutput.wav", testTrackOutputSamples);
+}
+void testTrainOutputs(vector<vector<float>> dataset, audioFileConfig config) {
+	config.startFileIndex = 1;
+	config.songCount = 1;
+
+	// Get Input Spectrogram (from first file only)
+	vector<vector<float>> testTrackSpectrogram = generateInputs(config); // First track only, for testing
+	vector<vector<float>> predictedTrackSpectrogram;
+
+	int chunkCount = testTrackSpectrogram.size();
+	int indexJump = config.samplesPerChunk / config.samplesPerOverlap; // to support overlap output, skip "duplicate" output chunks
+
+	// Get Network Predictions and Add to Output Track
+	for (int i = 0; i < chunkCount; i += indexJump) {
+		vector<float> currentChunkPrection = dataset[i];
+
+		// Use step function if binary mask has been used
+		if (config.useOutputBinaryMask) {
+			for (int j = 0; j < currentChunkPrection.size(); j++) {
+				if (currentChunkPrection[j] > 0.5f) {
+					currentChunkPrection[j] = 1.0f;
+				}
+				else {
+					currentChunkPrection[j] = 0.0f;
+				}
+			}
+		}
+
+		predictedTrackSpectrogram.push_back(currentChunkPrection);
+	}
+
+	// Get Samples and Write To Track
+	vector<int16_t> testTrackOutputSamples = vocalSamples("inputs/1.mp3", predictedTrackSpectrogram, config);
+	writeToWAV("datasetTest.wav", testTrackOutputSamples);
 }
 
 pair<vector<vector<float>>, vector<vector<float>>> getSingleSongDataset(audioFileConfig config, int chunksPerSong, int songIndex) {

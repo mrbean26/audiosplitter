@@ -11,6 +11,7 @@ string vectorToString(vector<float> used);
 void writeToFile(const char* fileName, vector<string> lines);
 vector<string> readFile(const char* fileName);
 vector<string> splitStringByCharacter(string used, char splitter);
+void outputDataset(vector<vector<float>> data);
 
 // Classes
 struct outputImageConfig {
@@ -31,7 +32,15 @@ struct outputImageConfig {
 // Audio
 vector<vector<float>> generateInputs(audioFileConfig config);
 vector<vector<float>> generateOutputs(audioFileConfig config);
+
+void testNetworkInputsToImage(audioFileConfig audioConfig);
+void testNetworkOutputsToImage(audioFileConfig audioConfig, int chunkCount);
+
+void outputInputVector(vector<float> inputVector, audioFileConfig audioConfig);
+void outputVector(vector<float> vector);
+
 void createOutputTestTrack(NeuralNetwork network, audioFileConfig config);
+void testTrainOutputs(vector<vector<float>> dataset, audioFileConfig config);
 
 pair<vector<vector<float>>, vector<vector<float>>> generateAllSongDataSet(audioFileConfig config, int chunksPerSong, int startSong, int endSong);
 

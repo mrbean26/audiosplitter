@@ -11,7 +11,7 @@ audioFileConfig getAudioConfig() {
 		512, // samples per chunk
 		512, // samples per overlap
 
-		64, // frequency res
+		256, // frequency res
 		12, // chunk border
 
 		1, // start file index
@@ -34,11 +34,11 @@ NeuralNetwork::standardTrainConfig getTrainConfig() {
 	NeuralNetwork::standardTrainConfig newConfig = NeuralNetwork::standardTrainConfig();
 
 	newConfig.trainType = BATCH_GRADIENT_DESCENT;
-	newConfig.epochs = 25;
+	newConfig.epochs = 5;
 
 	newConfig.gradientDescent.learningRateType = DECREASING_LEARNING_RATE;
 	newConfig.learningRate = 1.0f;
-	newConfig.momentum = 0.1f;
+	newConfig.momentum = 0.0f;
 	
 	// ALL song training
 	newConfig.gradientDescent.useAllSongDataset = true;
@@ -59,15 +59,17 @@ int main() {
 	audioFileConfig audioConfig = getAudioConfig();
 	NeuralNetwork::standardTrainConfig trainConfig = getTrainConfig();
 	
+	// Tests
+	testNetworkInputsToImage(audioConfig);
+	testNetworkOutputsToImage(audioConfig, 100);
+
+	// Network & Trainig
 	vector<int> nodes = { 800, 700, 600, 500, 400, 300, 200, 100, 32 };
 	vector<int> bias(nodes.size(), 1);
 	vector<int> activations(nodes.size(), SIGMOID);
 
-	// Train
 	NeuralNetwork vocalsNetwork = NeuralNetwork(nodes, bias, activations);
-
 	vocalsNetwork.train(trainConfig);
-	createOutputTestTrack(vocalsNetwork, audioConfig);
 
 	system("pause");
 	return 0;

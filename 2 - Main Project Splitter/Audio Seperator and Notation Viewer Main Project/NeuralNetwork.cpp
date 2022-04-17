@@ -34,7 +34,7 @@ NeuralNetwork::NeuralNetwork(vector<int> layers, vector<int> biases, vector<int>
 }
 
 float randomMinimum = 0.0f;
-float randomMaximum = 0.01f;
+float randomMaximum = 0.001f;
 float randomFloat() {
     float result = randomMinimum + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (randomMaximum - randomMinimum)));
     return result;
