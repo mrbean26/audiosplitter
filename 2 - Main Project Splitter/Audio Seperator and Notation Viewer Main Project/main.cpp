@@ -61,7 +61,9 @@ int main() {
 	
 	// Tests
 	testNetworkInputsToImage(audioConfig);
-	testNetworkOutputsToImage(audioConfig, 100);
+	testNetworkOutputsToImage(audioConfig);
+	testTrainOutputs(audioConfig);
+	inputTrackSpectrogramToImage(audioConfig);
 
 	// Network & Trainig
 	vector<int> nodes = { 800, 700, 600, 500, 400, 300, 200, 100, 32 };

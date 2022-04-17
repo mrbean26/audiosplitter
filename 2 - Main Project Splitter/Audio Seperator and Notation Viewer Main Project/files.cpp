@@ -186,16 +186,13 @@ void testNetworkInputsToImage(audioFileConfig audioConfig) {
 
 	writeSpectrogramToImage(inputChunks, "_Testing/testInputChunks.png");
 }
-void testNetworkOutputsToImage(audioFileConfig audioConfig, int chunkCount) {
+void testNetworkOutputsToImage(audioFileConfig audioConfig) {
 	audioConfig.startFileIndex = 1;
 	audioConfig.songCount = 1;
 
 	vector<vector<float>> fullOutputs = generateOutputs(audioConfig);
-	vector<vector<float>> resultantOutputs(fullOutputs.begin(), fullOutputs.begin() + chunkCount);
-
-	writeSpectrogramToImage(resultantOutputs, "_Testing/testOutputChunks.png");
+	writeSpectrogramToImage(fullOutputs, "_Testing/testOutputChunks.png");
 }
-
 void outputInputVector(vector<float> inputVector, audioFileConfig audioConfig) {
 	int inputSize = inputVector.size();
 
@@ -224,6 +221,16 @@ void outputVector(vector<float> vector) {
 	}
 
 	cout << "." << endl;
+}
+void inputTrackSpectrogramToImage(audioFileConfig audioConfig) {
+	audioConfig.songCount = 1;
+	audioConfig.startFileIndex = 1;
+
+	audioConfig.samplesPerOverlap = audioConfig.samplesPerChunk;
+	audioConfig.chunkBorder = 0;
+
+	vector<vector<float>> inputTrackSpectrogram = generateInputs(audioConfig);
+	writeSpectrogramToImage(inputTrackSpectrogram, "_Testing/inputSpectrogram.png");
 }
 
 void createOutputTestTrack(NeuralNetwork network, audioFileConfig config) {
@@ -261,9 +268,12 @@ void createOutputTestTrack(NeuralNetwork network, audioFileConfig config) {
 	vector<int16_t> testTrackOutputSamples = vocalSamples("inputs/1.mp3", predictedTrackSpectrogram, config);
 	writeToWAV("testTrackOutput.wav", testTrackOutputSamples);
 }
-void testTrainOutputs(vector<vector<float>> dataset, audioFileConfig config) {
+void testTrainOutputs(audioFileConfig config) {
 	config.startFileIndex = 1;
 	config.songCount = 1;
+
+	// get outputs
+	vector<vector<float>> fullOutputs = generateOutputs(config);
 
 	// Get Input Spectrogram (from first file only)
 	vector<vector<float>> testTrackSpectrogram = generateInputs(config); // First track only, for testing
@@ -274,7 +284,7 @@ void testTrainOutputs(vector<vector<float>> dataset, audioFileConfig config) {
 
 	// Get Network Predictions and Add to Output Track
 	for (int i = 0; i < chunkCount; i += indexJump) {
-		vector<float> currentChunkPrection = dataset[i];
+		vector<float> currentChunkPrection = fullOutputs[i];
 
 		// Use step function if binary mask has been used
 		if (config.useOutputBinaryMask) {
@@ -293,7 +303,7 @@ void testTrainOutputs(vector<vector<float>> dataset, audioFileConfig config) {
 
 	// Get Samples and Write To Track
 	vector<int16_t> testTrackOutputSamples = vocalSamples("inputs/1.mp3", predictedTrackSpectrogram, config);
-	writeToWAV("datasetTest.wav", testTrackOutputSamples);
+	writeToWAV("_Testing/datasetTest.wav", testTrackOutputSamples);
 }
 
 pair<vector<vector<float>>, vector<vector<float>>> getSingleSongDataset(audioFileConfig config, int chunksPerSong, int songIndex) {

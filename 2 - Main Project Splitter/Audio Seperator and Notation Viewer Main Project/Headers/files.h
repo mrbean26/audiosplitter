@@ -34,13 +34,13 @@ vector<vector<float>> generateInputs(audioFileConfig config);
 vector<vector<float>> generateOutputs(audioFileConfig config);
 
 void testNetworkInputsToImage(audioFileConfig audioConfig);
-void testNetworkOutputsToImage(audioFileConfig audioConfig, int chunkCount);
-
+void testNetworkOutputsToImage(audioFileConfig audioConfig);
 void outputInputVector(vector<float> inputVector, audioFileConfig audioConfig);
 void outputVector(vector<float> vector);
+void inputTrackSpectrogramToImage(audioFileConfig audioConfig);
 
 void createOutputTestTrack(NeuralNetwork network, audioFileConfig config);
-void testTrainOutputs(vector<vector<float>> dataset, audioFileConfig config);
+void testTrainOutputs(audioFileConfig config);
 
 pair<vector<vector<float>>, vector<vector<float>>> generateAllSongDataSet(audioFileConfig config, int chunksPerSong, int startSong, int endSong);
 
