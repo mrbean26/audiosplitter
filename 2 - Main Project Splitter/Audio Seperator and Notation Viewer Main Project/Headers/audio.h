@@ -21,8 +21,9 @@ struct audioFileConfig {
 	float binaryMaskThreshold = 0.025f;
 
 	bool useNoisePrediction = false;
-
 	bool useMelScale = true;
+
+	bool skipOverlapChunks = true; // avoid generating unneccesary train data
 };
 
 pair<vector<vector<float>>, float> spectrogramOutput(const char* mp3Filename, audioFileConfig audioConfig);

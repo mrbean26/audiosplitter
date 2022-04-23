@@ -34,7 +34,7 @@ NeuralNetwork::NeuralNetwork(vector<int> layers, vector<int> biases, vector<int>
 }
 
 float randomMinimum = 0.0f;
-float randomMaximum = 0.001f;
+float randomMaximum = 0.01f;
 float randomFloat() {
     float result = randomMinimum + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (randomMaximum - randomMinimum)));
     return result;
@@ -640,7 +640,7 @@ vector<float> NeuralNetwork::trainGradientDescent(standardTrainConfig trainConfi
         float totalError = 0.0f;
         for (int t = 0; t < trainDataCount; t++) {
             if (t % 250 == 0) {
-                cout << epoch + 1 << ":" << t + 1 << "/" << trainDataCount << endl;
+                //cout << epoch + 1 << ":" << t + 1 << "/" << trainDataCount << endl;
             }
 
             int currentIndex = trainIndexes[t];
@@ -731,7 +731,7 @@ vector<float> NeuralNetwork::trainStochasticGradientDescent(standardTrainConfig 
         if (trainConfig.gradientDescent.useAllSongDataset) {
             // generate dataset from parts of all songs in the current avaliable data files
             if (epoch % trainConfig.gradientDescent.datasetRefreshInterval == 0) { // Time to refresh dataset
-                int chunksPerSong = trainConfig.gradientDescent.batchSize / 100; // / song count
+                int chunksPerSong = trainConfig.gradientDescent.batchSize / (trainConfig.gradientDescent.allSongDatasetEnd - trainConfig.gradientDescent.allSongDatasetStart); // / song count
                 pair<vector<vector<float>>, vector<vector<float>>> allSongMiniDataset = generateAllSongDataSet(trainConfig.gradientDescent.datasetAudioConfig, chunksPerSong, trainConfig.gradientDescent.allSongDatasetStart, trainConfig.gradientDescent.allSongDatasetEnd);
 
                 usedInputs = allSongMiniDataset.first;
@@ -1581,7 +1581,7 @@ vector<float> NeuralNetwork::trainBatchGradientDescent(standardTrainConfig train
         for (int t = 0; t < trainDataCount; t++) {
             if (!trainConfig.gradientDescent.useThreading) {
                 if (t % 25 == 0) {
-                    cout << epoch + 1 << ":" << t + 1 << "/" << trainDataCount << endl;
+                    //cout << epoch + 1 << ":" << t + 1 << "/" << trainDataCount << endl;
                 }
 
                 float predictionError = runPredictionThreadingGradientDescent(this, trainInputs[t], trainOutputs[t]);
@@ -1642,7 +1642,7 @@ void NeuralNetwork::updateNetworkBatchGradientDescent(float learningRate, float 
             for (int w = 0; w < weightCount; w++) {
                 float newDelta = layerNodes[l][n].accumulativeDeltas[w] * learningRate;
                 layerNodes[l][n].outWeights[w] += newDelta;
-                
+            
                 layerNodes[l][n].outWeights[w] += layerNodes[l][n].previousDeltas[w] * momentum;
                 layerNodes[l][n].previousDeltas[w] = newDelta;
             }

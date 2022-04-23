@@ -139,6 +139,7 @@ vector<vector<float>> applySpectrogramEffects(vector<vector<float>> chunks, floa
 		for (int i = 0; i < bands; i++) {
 			float currentFrequency = (float(i + 1) / float(bands)) * float(sampleRate / 2.0f);
 			float melScaleFactor = 2595.0f * log10f(1.0f + (currentFrequency / 700.0f));
+
 			melValues.push_back(melScaleFactor);
 		}
 	}
@@ -193,6 +194,10 @@ pair<vector<vector<float>>, float> spectrogramOutput(const char* mp3Filename, au
 	for (int i = 0; i < chunkCount; i++) {
 		for (int j = 0; j < bands; j++) {
 			effectsSpectrogram[i][j] = effectsSpectrogram[i][j] / maxValue;
+
+			if (audioConfig.useNoisePrediction) {
+				effectsSpectrogram[i][j] = 1.0f - effectsSpectrogram[i][j];
+			}
 		}
 	}
 

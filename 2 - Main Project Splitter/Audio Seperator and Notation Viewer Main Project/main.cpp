@@ -8,11 +8,11 @@ using namespace std;
 
 audioFileConfig getAudioConfig() {
 	audioFileConfig audioConfig = {
-		512, // samples per chunk
-		512, // samples per overlap
+		2048, // samples per chunk
+		1024, // samples per overlap
 
-		256, // frequency res
-		12, // chunk border
+		32, // frequency res
+		2, // chunk border
 
 		1, // start file index
 		1, // song count
@@ -23,8 +23,9 @@ audioFileConfig getAudioConfig() {
 		0.1f, // binary mask threshold
 
 		false, // use noise prediction
-
 		true, // use mel scale
+
+		true, // skip chunk overlap
 	};
 
 	return audioConfig;
@@ -32,22 +33,29 @@ audioFileConfig getAudioConfig() {
 NeuralNetwork::standardTrainConfig getTrainConfig() {
 	NeuralNetwork::standardTrainConfig newConfig = NeuralNetwork::standardTrainConfig();
 
-	newConfig.trainType = BATCH_GRADIENT_DESCENT;
-	newConfig.epochs = 5;
+	newConfig.trainType = GRADIENT_DESCENT;
+	newConfig.epochs = 25000;
 
 	newConfig.gradientDescent.learningRateType = DECREASING_LEARNING_RATE;
 	newConfig.learningRate = 1.0f;
-	newConfig.momentum = 0.0f;
+	newConfig.momentum = 0.05f;
 	
 	// ALL song training
+	/*
 	newConfig.gradientDescent.useAllSongDataset = true;
 	newConfig.gradientDescent.datasetAudioConfig = getAudioConfig();
 	newConfig.gradientDescent.allSongDatasetStart = 0;
 	newConfig.gradientDescent.allSongDatasetEnd = 1;
-	newConfig.gradientDescent.batchSize = 500;
+	newConfig.gradientDescent.batchSize = 2000;
 
-	newConfig.gradientDescent.useThreading = false;
-	
+	newConfig.gradientDescent.useThreading = false;*/
+
+	newConfig.trainInputs = generateInputs(getAudioConfig());
+	newConfig.trainOutputs = generateOutputs(getAudioConfig());
+	cout << newConfig.trainInputs.size() << endl;
+	newConfig.trainInputs.resize(4000);
+	newConfig.trainOutputs.resize(4000);
+
 	return newConfig;
 }
 
@@ -66,7 +74,7 @@ int main() {
 	system("explorer D:\\Projects\\Audio Splitter App\\2 - Main Project Splitter\\Audio Seperator and Notation Viewer Main Project\\_Testing\\");
 
 	// Network & Trainig
-	vector<int> nodes = { 800, 700, 600, 500, 400, 300, 200, 100, 32 };
+	vector<int> nodes = { 80, 40, 40, 16 };
 	vector<int> bias(nodes.size(), 1);
 	vector<int> activations(nodes.size(), SIGMOID);
 
