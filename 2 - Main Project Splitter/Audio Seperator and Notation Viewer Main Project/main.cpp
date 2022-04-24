@@ -8,10 +8,10 @@ using namespace std;
 
 audioFileConfig getAudioConfig() {
 	audioFileConfig audioConfig = {
-		2048, // samples per chunk
-		1024, // samples per overlap
+		512, // samples per chunk
+		512, // samples per overlap
 
-		32, // frequency res
+		512, // frequency res
 		2, // chunk border
 
 		1, // start file index
@@ -33,28 +33,24 @@ audioFileConfig getAudioConfig() {
 NeuralNetwork::standardTrainConfig getTrainConfig() {
 	NeuralNetwork::standardTrainConfig newConfig = NeuralNetwork::standardTrainConfig();
 
-	newConfig.trainType = GRADIENT_DESCENT;
-	newConfig.epochs = 25000;
+	newConfig.trainType = BATCH_GRADIENT_DESCENT;
+	newConfig.epochs = 10000;
 
-	newConfig.gradientDescent.learningRateType = DECREASING_LEARNING_RATE;
-	newConfig.learningRate = 1.0f;
+	newConfig.gradientDescent.learningRateType = FIXED_LEARNING_RATE;
+	newConfig.learningRate = 0.8f;
 	newConfig.momentum = 0.05f;
 	
 	// ALL song training
-	/*
+	
 	newConfig.gradientDescent.useAllSongDataset = true;
 	newConfig.gradientDescent.datasetAudioConfig = getAudioConfig();
 	newConfig.gradientDescent.allSongDatasetStart = 0;
-	newConfig.gradientDescent.allSongDatasetEnd = 1;
+	newConfig.gradientDescent.allSongDatasetEnd = 10;
 	newConfig.gradientDescent.batchSize = 2000;
 
-	newConfig.gradientDescent.useThreading = false;*/
+	newConfig.gradientDescent.datasetRefreshInterval = 1000;
 
-	newConfig.trainInputs = generateInputs(getAudioConfig());
-	newConfig.trainOutputs = generateOutputs(getAudioConfig());
-	cout << newConfig.trainInputs.size() << endl;
-	newConfig.trainInputs.resize(4000);
-	newConfig.trainOutputs.resize(4000);
+	newConfig.gradientDescent.useThreading = false;
 
 	return newConfig;
 }
@@ -79,8 +75,8 @@ int main() {
 	vector<int> activations(nodes.size(), SIGMOID);
 
 	NeuralNetwork vocalsNetwork = NeuralNetwork(nodes, bias, activations);
-	vocalsNetwork.train(trainConfig);
-	createOutputTestTrack(vocalsNetwork, audioConfig);
+	//vocalsNetwork.train(trainConfig);
+	//createOutputTestTrack(vocalsNetwork, audioConfig);
 
 	system("pause");
 	return 0;

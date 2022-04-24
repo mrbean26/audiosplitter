@@ -1532,19 +1532,22 @@ float runPredictionThreadingGradientDescent(NeuralNetwork* network, vector<float
 }
 vector<float> NeuralNetwork::trainBatchGradientDescent(standardTrainConfig trainConfig) {
     vector<float> result;
+
+    vector<vector<float>> trainInputs = trainConfig.trainInputs;
+    vector<vector<float>> trainOutputs = trainConfig.trainOutputs;
+
     for (int epoch = 0; epoch < trainConfig.epochs; epoch++) {
         // Find dataset
-        vector<vector<float>> trainInputs = trainConfig.trainInputs;
-        vector<vector<float>> trainOutputs = trainConfig.trainOutputs;
-
         if (trainConfig.gradientDescent.useAllSongDataset) {
-            int chunksPerSong = trainConfig.gradientDescent.batchSize / (trainConfig.gradientDescent.allSongDatasetEnd - trainConfig.gradientDescent.allSongDatasetStart); // / song count
-            pair<vector<vector<float>>, vector<vector<float>>> allSongMiniDataset = generateAllSongDataSet(trainConfig.gradientDescent.datasetAudioConfig, chunksPerSong, trainConfig.gradientDescent.allSongDatasetStart, trainConfig.gradientDescent.allSongDatasetEnd);
-            
-            trainInputs = allSongMiniDataset.first;
-            trainOutputs = allSongMiniDataset.second;
+            if (epoch % trainConfig.gradientDescent.datasetRefreshInterval == 0) {
+                int chunksPerSong = trainConfig.gradientDescent.batchSize / (trainConfig.gradientDescent.allSongDatasetEnd - trainConfig.gradientDescent.allSongDatasetStart); // / song count
+                pair<vector<vector<float>>, vector<vector<float>>> allSongMiniDataset = generateAllSongDataSet(trainConfig.gradientDescent.datasetAudioConfig, chunksPerSong, trainConfig.gradientDescent.allSongDatasetStart, trainConfig.gradientDescent.allSongDatasetEnd);
 
-            cout << "Input: " << trainInputs[0].size() << ", Output: " << trainOutputs[0].size() << endl;
+                trainInputs = allSongMiniDataset.first;
+                trainOutputs = allSongMiniDataset.second;
+
+                cout << "Input: " << trainInputs[0].size() << ", Output: " << trainOutputs[0].size() << endl;
+            }           
         }
 
         int trainDataCount = trainInputs.size();
