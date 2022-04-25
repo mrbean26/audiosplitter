@@ -140,6 +140,8 @@ vector<vector<float>> generateOutputs(audioFileConfig config) {
 
 		for (int i = config.chunkBorder; i < fullAudioInput.size() - config.chunkBorder; i += chunkStep) {
 			vector<float> currentInput;
+			int count = 0;
+
 			for (int f = 0; f < newFrequencyResolution; f++) {
 				float value = fullAudioInput[i][f];
 				
@@ -152,6 +154,7 @@ vector<vector<float>> generateOutputs(audioFileConfig config) {
 				if (config.useOutputBinaryMask) {
 					if (value > config.binaryMaskThreshold) {
 						value = 1.0f;
+						count = count + 1;
 					}
 					else {
 						value = 0.0f;
@@ -163,6 +166,17 @@ vector<vector<float>> generateOutputs(audioFileConfig config) {
 				}
 
 				currentInput.push_back(value);
+			}
+
+			if (config.useSingleOutputValue) {
+				int requiredBands = config.singleOutputChunkThreshold * newFrequencyResolution;
+
+				if (count >= requiredBands) {
+					currentInput = { 1.0f };
+				}
+				else {
+					currentInput = { 0.0f };
+				}
 			}
 
 			result.push_back(currentInput);
@@ -272,6 +286,12 @@ void createOutputTestTrack(NeuralNetwork network, audioFileConfig config) {
 			}
 		}
 		
+		if (config.useSingleOutputValue) {
+			// Recreate full chunk
+			vector<float> fullChunkOutput(config.frequencyResolution / 2, currentChunkPrection[0]);
+			currentChunkPrection = fullChunkOutput;
+		}
+
 		predictedTrackSpectrogram.push_back(currentChunkPrection);
 	}
 	//outputDataset(pred);

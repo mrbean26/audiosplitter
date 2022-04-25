@@ -24,6 +24,9 @@ struct audioFileConfig {
 	bool useMelScale = true;
 
 	bool skipOverlapChunks = true; // avoid generating unneccesary train data
+
+	bool useSingleOutputValue = false;
+	float singleOutputChunkThreshold = 0.25f; // percentage of chunk required to be 1
 };
 
 pair<vector<vector<float>>, float> spectrogramOutput(const char* mp3Filename, audioFileConfig audioConfig);

@@ -8,10 +8,10 @@ using namespace std;
 
 audioFileConfig getAudioConfig() {
 	audioFileConfig audioConfig = {
-		512, // samples per chunk
-		512, // samples per overlap
+		256, // samples per chunk
+		256, // samples per overlap
 
-		512, // frequency res
+		32, // frequency res
 		2, // chunk border
 
 		1, // start file index
@@ -26,6 +26,9 @@ audioFileConfig getAudioConfig() {
 		true, // use mel scale
 
 		true, // skip chunk overlap
+
+		true, // single output value
+		0.25f, // percentage of chunk needed to be 1
 	};
 
 	return audioConfig;
@@ -33,14 +36,14 @@ audioFileConfig getAudioConfig() {
 NeuralNetwork::standardTrainConfig getTrainConfig() {
 	NeuralNetwork::standardTrainConfig newConfig = NeuralNetwork::standardTrainConfig();
 
-	newConfig.trainType = BATCH_GRADIENT_DESCENT;
-	newConfig.epochs = 10000;
+	newConfig.trainType = STOCHASTIC_GRADIENT_DESCENT;
+	newConfig.epochs = 4000;
 
 	newConfig.gradientDescent.learningRateType = FIXED_LEARNING_RATE;
-	newConfig.learningRate = 0.8f;
+	newConfig.learningRate = 0.1f;
 	newConfig.momentum = 0.05f;
 	
-	// ALL song training
+	// All song training
 	
 	newConfig.gradientDescent.useAllSongDataset = true;
 	newConfig.gradientDescent.datasetAudioConfig = getAudioConfig();
@@ -64,19 +67,19 @@ int main() {
 	
 	// Tests
 	testNetworkInputsToImage(audioConfig);
-	testNetworkOutputsToImage(audioConfig);
-	testTrainOutputs(audioConfig);
+	//testNetworkOutputsToImage(audioConfig);
+	//testTrainOutputs(audioConfig);
 	inputTrackSpectrogramToImage(audioConfig);
 	system("explorer D:\\Projects\\Audio Splitter App\\2 - Main Project Splitter\\Audio Seperator and Notation Viewer Main Project\\_Testing\\");
 
 	// Network & Trainig
-	vector<int> nodes = { 80, 40, 40, 16 };
+	vector<int> nodes = { 80, 60, 40, 20, 1 };
 	vector<int> bias(nodes.size(), 1);
 	vector<int> activations(nodes.size(), SIGMOID);
 
 	NeuralNetwork vocalsNetwork = NeuralNetwork(nodes, bias, activations);
-	//vocalsNetwork.train(trainConfig);
-	//createOutputTestTrack(vocalsNetwork, audioConfig);
+	vocalsNetwork.train(trainConfig);
+	createOutputTestTrack(vocalsNetwork, audioConfig);
 
 	system("pause");
 	return 0;
