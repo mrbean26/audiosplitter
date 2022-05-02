@@ -267,13 +267,14 @@ void createOutputTestTrack(NeuralNetwork network, audioFileConfig config) {
 	
 	int chunkCount = testTrackSpectrogram.size();
 	int indexJump = config.samplesPerChunk / config.samplesPerOverlap; // to support overlap output, skip "duplicate" output chunks
+
 	int networkLayerCount = network.layerNodes.size();
-	vector<vector<float>> pred;
+	vector<vector<float>> networkPredictions;
+
 	// Get Network Predictions and Add to Output Track
 	for (int i = 0; i < chunkCount; i += indexJump) {
 		vector<float> currentChunkPrection = network.predict(testTrackSpectrogram[i]);
-		
-		pred.push_back(currentChunkPrection);
+
 		// Use step function if binary mask has been used
 		if (config.useOutputBinaryMask) {
 			for (int j = 0; j < currentChunkPrection.size(); j++) {
@@ -285,6 +286,8 @@ void createOutputTestTrack(NeuralNetwork network, audioFileConfig config) {
 				}
 			}
 		}
+
+		networkPredictions.push_back(currentChunkPrection);
 		
 		if (config.useSingleOutputValue) {
 			// Recreate full chunk
@@ -294,10 +297,12 @@ void createOutputTestTrack(NeuralNetwork network, audioFileConfig config) {
 
 		predictedTrackSpectrogram.push_back(currentChunkPrection);
 	}
-	//outputDataset(pred);
+
+	writeSpectrogramToImage(networkPredictions, "_Testing/Predictions/vocalPredictionTestTrackSpectrogram.png");
+
 	// Get Samples and Write To Track
 	vector<int16_t> testTrackOutputSamples = vocalSamples("inputs/1.mp3", predictedTrackSpectrogram, config);
-	writeToWAV("_Testing/vocalPredictionTestTrack.wav", testTrackOutputSamples);
+	writeToWAV("_Testing/Predictions/vocalPredictionTestTrack.wav", testTrackOutputSamples);
 }
 void testTrainOutputs(audioFileConfig config) {
 	config.startFileIndex = 1;
@@ -313,6 +318,10 @@ void testTrainOutputs(audioFileConfig config) {
 	int chunkCount = testTrackSpectrogram.size();
 	int indexJump = config.samplesPerChunk / config.samplesPerOverlap; // to support overlap output, skip "duplicate" output chunks
 
+	if (config.skipOverlapChunks) {
+		indexJump = 1;
+	}
+
 	// Get Network Predictions and Add to Output Track
 	for (int i = 0; i < chunkCount; i += indexJump) {
 		vector<float> currentChunkPrection = fullOutputs[i];
@@ -327,6 +336,12 @@ void testTrainOutputs(audioFileConfig config) {
 					currentChunkPrection[j] = 0.0f;
 				}
 			}
+		}
+
+		if (config.useSingleOutputValue) {
+			// Recreate full chunk
+			vector<float> fullChunkOutput(config.frequencyResolution / 2, currentChunkPrection[0]);
+			currentChunkPrection = fullChunkOutput;
 		}
 
 		predictedTrackSpectrogram.push_back(currentChunkPrection);

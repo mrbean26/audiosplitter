@@ -33,8 +33,8 @@ NeuralNetwork::NeuralNetwork(vector<int> layers, vector<int> biases, vector<int>
     activations = activationLayers;
 }
 
-float randomMinimum = 0.0f;
-float randomMaximum = 0.01f;
+float randomMinimum = -1.0f;
+float randomMaximum = 1.0f;
 float randomFloat() {
     float result = randomMinimum + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (randomMaximum - randomMinimum)));
     return result;
@@ -1583,7 +1583,7 @@ vector<float> NeuralNetwork::trainBatchGradientDescent(standardTrainConfig train
 
         for (int t = 0; t < trainDataCount; t++) {
             if (!trainConfig.gradientDescent.useThreading) {
-                if (t % 25 == 0) {
+                if (t % 500 == 0) {
                     //cout << epoch + 1 << ":" << t + 1 << "/" << trainDataCount << endl;
                 }
 
