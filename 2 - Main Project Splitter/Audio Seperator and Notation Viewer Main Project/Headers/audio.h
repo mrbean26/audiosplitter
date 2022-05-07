@@ -27,6 +27,9 @@ struct audioFileConfig {
 
 	bool useSingleOutputValue = false;
 	float singleOutputChunkThreshold = 0.25f; // percentage of chunk required to be 1
+
+	int noiseReductionChunkSize = 20;
+	int noiseReductionRequiredChunks = 12;
 };
 
 pair<vector<vector<float>>, float> spectrogramOutput(const char* mp3Filename, audioFileConfig audioConfig);

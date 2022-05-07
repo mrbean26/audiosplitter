@@ -15,7 +15,7 @@ audioFileConfig getAudioConfig() {
 		4, // chunk border
 
 		1, // start file index
-		1, // song count
+		100, // song count
 
 		2.0f, // spectrogram emphasis, no emphasis = 1.0f
 
@@ -29,6 +29,9 @@ audioFileConfig getAudioConfig() {
 
 		true, // single output value
 		0.1f, // percentage of chunk needed to be 1
+
+		20, // chunk size
+		12, // required chunk count
 	};
 
 	return audioConfig;
@@ -37,12 +40,12 @@ NeuralNetwork::standardTrainConfig getTrainConfig() {
 	NeuralNetwork::standardTrainConfig newConfig = NeuralNetwork::standardTrainConfig();
 
 	newConfig.trainType = GRADIENT_DESCENT;
-	newConfig.epochs = 100;
+	newConfig.epochs = 300;
 
 	newConfig.gradientDescent.learningRateType = FIXED_LEARNING_RATE;
 	newConfig.learningRate = 0.02f;
 	newConfig.momentum = 0.05f;
-	
+
 	// All song training
 	/*
 	newConfig.gradientDescent.useAllSongDataset = true;
@@ -53,8 +56,16 @@ NeuralNetwork::standardTrainConfig getTrainConfig() {
 	newConfig.gradientDescent.datasetRefreshInterval = 1000;
 	newConfig.gradientDescent.useThreading = false; */
 
-	newConfig.trainInputs = generateInputs(getAudioConfig());
-	newConfig.trainOutputs = generateOutputs(getAudioConfig());
+	vector<vector<float>> i = generateInputs(getAudioConfig());
+	vector<vector<float>> o = generateOutputs(getAudioConfig());
+	
+	int miniBatchSize = i.size() / 30000;
+	for (int j = 0; j < 30000; j++) {
+		int newIndex = (j * miniBatchSize) + (rand() % miniBatchSize);
+
+		newConfig.trainInputs.push_back(i[newIndex]);
+		newConfig.trainOutputs.push_back(o[newIndex]);
+	}
 
 	return newConfig;
 }
@@ -64,7 +75,7 @@ int main() {
 	
 	// Train Config
 	audioFileConfig audioConfig = getAudioConfig();
-	NeuralNetwork::standardTrainConfig trainConfig = getTrainConfig();
+	//NeuralNetwork::standardTrainConfig trainConfig = getTrainConfig();
 	
 	// Tests
 	testNetworkInputsToImage(audioConfig);
@@ -79,10 +90,10 @@ int main() {
 	vector<int> activations(nodes.size(), SIGMOID);
 
 	NeuralNetwork vocalsNetwork = NeuralNetwork(nodes, bias, activations);
-	vocalsNetwork.train(trainConfig);
-
+	//vocalsNetwork.train(trainConfig);
+	vocalsNetwork.loadWeightsFromFile("w_tmp/");
 	createOutputTestTrack(vocalsNetwork, audioConfig);
-	vocalsNetwork.saveWeightsToFile("w_tmp/");
+	//vocalsNetwork.saveWeightsToFile("w_tmp/");
 
 	system("pause");
 	return 0;

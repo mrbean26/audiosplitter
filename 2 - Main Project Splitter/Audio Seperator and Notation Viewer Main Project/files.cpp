@@ -82,7 +82,7 @@ void outputDataset(vector<vector<float>> data) {
 vector<vector<float>> generateInputs(audioFileConfig config) {
 	int endIndex = config.startFileIndex + config.songCount;
 	vector<vector<float>> result;
-	
+
 	int chunkStep = 1;
 	if (config.skipOverlapChunks) {
 		chunkStep = config.samplesPerChunk / config.samplesPerOverlap;
@@ -91,7 +91,7 @@ vector<vector<float>> generateInputs(audioFileConfig config) {
 	for (int f = config.startFileIndex; f < endIndex; f++) {
 		// Load File Spectrogram From Integer File
 		string fileName = "inputs/" + to_string(f) + ".mp3";
-		
+
 		pair<vector<vector<float>>, float> spectrogram = spectrogramOutput(fileName.data(), config);
 		vector<vector<float>> fullAudioInput = spectrogram.first;
 
@@ -104,12 +104,12 @@ vector<vector<float>> generateInputs(audioFileConfig config) {
 			for (int c = i - config.chunkBorder; c < i + config.chunkBorder + 1; c++) {
 				for (int f = 0; f < newFrequencyResolution; f++) {
 					float value = fullAudioInput[c][f];
-					
+
 					// Remove NaN values, very very rare bug in visual studio
 					if (isnan(value)) {
 						value = 0.0f;
 					}
-					
+
 					currentInput.push_back(value);
 				}
 			}
@@ -144,7 +144,7 @@ vector<vector<float>> generateOutputs(audioFileConfig config) {
 
 			for (int f = 0; f < newFrequencyResolution; f++) {
 				float value = fullAudioInput[i][f];
-				
+
 				// Remove NaN values, very very rare bug in visual studio
 				if (isnan(value)) {
 					value = 0.0f;
@@ -160,7 +160,7 @@ vector<vector<float>> generateOutputs(audioFileConfig config) {
 						value = 0.0f;
 					}
 				}
-				
+
 				if (config.useNoisePrediction) {
 					value = 1.0f - value; // Noise prediction (invert the amplitude)
 				}
@@ -229,7 +229,7 @@ void outputInputVector(vector<float> inputVector, audioFileConfig audioConfig) {
 		for (int j = 0; j < floatsPerChunk; j++) {
 			currentChunk.push_back(inputVector[i + j]);
 		}
-		
+
 		outputVector(currentChunk);
 	}
 }
@@ -257,6 +257,55 @@ void inputTrackSpectrogramToImage(audioFileConfig audioConfig) {
 	writeSpectrogramToImage(inputTrackSpectrogram, "_Testing/inputSpectrogram.png");
 }
 
+vector<float> removePredictionNoise(vector<float> networkPrediction, int chunkSize, int chunkCount) {
+	vector<float> result;
+	int predictionCount = networkPrediction.size();
+
+	int zeroCount = 0; int oneCount = 0;
+	for (int i = 0; i < predictionCount; i++) {
+		if (networkPrediction[i] < 0.5f) {
+			zeroCount = zeroCount + 1;
+		}
+		else {
+			oneCount = oneCount + 1;
+		}
+
+		if ((i + 1) % chunkSize == 0) {
+			float value = 0.0f;
+			if (oneCount >= chunkCount) {
+				value = 1.0f;
+			}
+
+			for (int k = 0; k < chunkSize; k++) {
+				result.push_back(value);
+			}
+
+			zeroCount = 0;
+			oneCount = 0;
+		}
+	}
+
+	return result;
+}
+vector<vector<float>> singleValueToChunks(vector<float> predictions, int size) {
+	vector<float> oneChunk(size, 1.0f);
+	vector<float> zeroChunk(size, 0.0f);
+	
+	int chunkCount = predictions.size();
+	vector<vector<float>> result;
+
+	for (int i = 0; i < chunkCount; i++) {
+		if (predictions[i] == 1.0f) {
+			result.push_back(oneChunk);
+		}
+		else {
+			result.push_back(zeroChunk);
+		}
+	}
+
+	return result;
+}
+
 void createOutputTestTrack(NeuralNetwork network, audioFileConfig config) {
 	config.startFileIndex = 1;
 	config.songCount = 1;
@@ -264,12 +313,13 @@ void createOutputTestTrack(NeuralNetwork network, audioFileConfig config) {
 	// Get Input Spectrogram (from first file only)
 	vector<vector<float>> testTrackSpectrogram = generateInputs(config); // First track only, for testing
 	vector<vector<float>> predictedTrackSpectrogram;
-	
+
 	int chunkCount = testTrackSpectrogram.size();
 	int indexJump = config.samplesPerChunk / config.samplesPerOverlap; // to support overlap output, skip "duplicate" output chunks
 
 	int networkLayerCount = network.layerNodes.size();
 	vector<vector<float>> networkPredictions;
+	vector<float> singleValuePredictions;
 
 	// Get Network Predictions and Add to Output Track
 	for (int i = 0; i < chunkCount; i += indexJump) {
@@ -288,14 +338,17 @@ void createOutputTestTrack(NeuralNetwork network, audioFileConfig config) {
 		}
 
 		networkPredictions.push_back(currentChunkPrection);
-		
+
 		if (config.useSingleOutputValue) {
-			// Recreate full chunk
-			vector<float> fullChunkOutput(config.frequencyResolution / 2, currentChunkPrection[0]);
-			currentChunkPrection = fullChunkOutput;
+			singleValuePredictions.push_back(currentChunkPrection[0]);
 		}
 
 		predictedTrackSpectrogram.push_back(currentChunkPrection);
+	}
+
+	if (config.useSingleOutputValue) {
+		singleValuePredictions = removePredictionNoise(singleValuePredictions, config.noiseReductionChunkSize, config.noiseReductionRequiredChunks);
+		predictedTrackSpectrogram = singleValueToChunks(singleValuePredictions, config.frequencyResolution / 2);
 	}
 
 	writeSpectrogramToImage(networkPredictions, "_Testing/Predictions/vocalPredictionTestTrackSpectrogram.png");
@@ -513,7 +566,7 @@ void writeToImage(outputImageConfig config) {
 	// Average Out Error Pixels
 	int vectorsPerPixel = errorCount / config.errorResolution;
 	vector<vector<float>> pixelValues;
-	
+
 	// Add Errors
 	for (int i = 0; i < errorCount; i += vectorsPerPixel) {
 		// Current Y Pixels (errorCount ammount)
