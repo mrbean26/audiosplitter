@@ -324,7 +324,7 @@ void createOutputTestTrack(NeuralNetwork network, audioFileConfig config) {
 	// Get Network Predictions and Add to Output Track
 	for (int i = 0; i < chunkCount; i += indexJump) {
 		vector<float> currentChunkPrection = network.predict(testTrackSpectrogram[i]);
-
+		
 		// Use step function if binary mask has been used
 		if (config.useOutputBinaryMask) {
 			for (int j = 0; j < currentChunkPrection.size(); j++) {
@@ -336,7 +336,7 @@ void createOutputTestTrack(NeuralNetwork network, audioFileConfig config) {
 				}
 			}
 		}
-
+		
 		networkPredictions.push_back(currentChunkPrection);
 
 		if (config.useSingleOutputValue) {
@@ -348,10 +348,18 @@ void createOutputTestTrack(NeuralNetwork network, audioFileConfig config) {
 
 	if (config.useSingleOutputValue) {
 		singleValuePredictions = removePredictionNoise(singleValuePredictions, config.noiseReductionChunkSize, config.noiseReductionRequiredChunks);
+		vector<vector<float>> v;
+
+		for (int i = 0; i < singleValuePredictions.size(); i++) {
+			v.push_back({ singleValuePredictions[i] });
+		}
+		writeSpectrogramToImage(v, "_Testing/Predictions/vocalPredictionCorrectedSpectrogram.png");
+
 		predictedTrackSpectrogram = singleValueToChunks(singleValuePredictions, config.frequencyResolution / 2);
 	}
 
 	writeSpectrogramToImage(networkPredictions, "_Testing/Predictions/vocalPredictionTestTrackSpectrogram.png");
+	
 
 	// Get Samples and Write To Track
 	vector<int16_t> testTrackOutputSamples = vocalSamples("inputs/1.mp3", predictedTrackSpectrogram, config);

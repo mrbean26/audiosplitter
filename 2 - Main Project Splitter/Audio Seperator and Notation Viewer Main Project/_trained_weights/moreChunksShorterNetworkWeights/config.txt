@@ -1,0 +1,6 @@
+832, 700, 600, 400, 200, 200, 1
+1 bias
+sigmoid
+256 perchunk
+128 res
+6 border

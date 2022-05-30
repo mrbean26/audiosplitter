@@ -1,0 +1,6 @@
+320, 300, 250, 200, 150, 100, 64
+1 bias
+sigmoid
+1024 chunk
+128 res
+2 border
