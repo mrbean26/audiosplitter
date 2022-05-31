@@ -94,7 +94,7 @@ int main() {
 	//vocalsNetwork.train(trainConfig);
 	
 	vocalsNetwork.loadWeightsFromFile("_trained_weights/4thconfigweights/");
-	createOutputTestTrack(vocalsNetwork, audioConfig, "inputs/2.mp3");
+	createOutputTestTrack(vocalsNetwork, audioConfig, "test_tracks/californication.mp3");
 	//vocalsNetwork.saveWeightsToFile("_trained_weights/4thconfigweights/");
 
 	system("pause");

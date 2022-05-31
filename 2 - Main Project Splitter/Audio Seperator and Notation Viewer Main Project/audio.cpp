@@ -11,6 +11,7 @@
 #include "Headers/fftw3.h"
 
 // General
+int lastSeenFileSampleRate;
 mp3dec_file_info_t loadAudioData(const char* mp3Filename) {
 	mp3dec_t mp3Decoder;
 	mp3dec_file_info_t fileInfo;
@@ -168,7 +169,8 @@ vector<vector<float>> applySpectrogramEffects(vector<vector<float>> chunks, floa
 pair<vector<vector<float>>, float> spectrogramOutput(const char* mp3Filename, audioFileConfig audioConfig) {
 	mp3dec_file_info_t audioData = loadAudioData(mp3Filename);
 	int sampleRate = audioData.hz;
-	
+	lastSeenFileSampleRate = sampleRate;
+
 	vector<int> audioSamples = loadAudioSamples(audioData.buffer, audioData.samples, audioData.channels);
 	delete[] audioData.buffer; 
 	
@@ -336,7 +338,7 @@ void writeToWAV(const char* fileName, vector<int16_t> samples) {
 
 	// neccesary wave metadata
 	int16_t bitsPerSample = 16;
-	const int32_t sampleRate = 44100; // Samples Played Per Second
+	const int32_t sampleRate = lastSeenFileSampleRate; // Samples Played Per Second
 	int16_t channelCount = 1; 
 	int32_t subChunk2Size = sampleCount * bitsPerSample * channelCount; // Size of Data (samples) chunk
 	int32_t chunkSize = subChunk2Size + 32; // Size of metadata chunk
