@@ -79,43 +79,49 @@ void outputDataset(vector<vector<float>> data) {
 }
 
 // Audio
-vector<vector<float>> generateInputs(audioFileConfig config) {
-	int endIndex = config.startFileIndex + config.songCount;
+vector<vector<float>> generateSingleTrackInput(audioFileConfig config, string fileName) {
 	vector<vector<float>> result;
+	pair<vector<vector<float>>, float> spectrogram = spectrogramOutput(fileName.data(), config);
+	vector<vector<float>> fullAudioInput = spectrogram.first;
 
+	// Create Chunk Border to Give Audio 'Context'
+	int newFrequencyResolution = fullAudioInput[0].size();
 	int chunkStep = 1;
 	if (config.skipOverlapChunks) {
 		chunkStep = config.samplesPerChunk / config.samplesPerOverlap;
 	}
 
+	for (int i = config.chunkBorder; i < fullAudioInput.size() - config.chunkBorder; i += chunkStep) {
+		vector<float> currentInput;
+
+		for (int c = i - config.chunkBorder; c < i + config.chunkBorder + 1; c++) {
+			for (int f = 0; f < newFrequencyResolution; f++) {
+				float value = fullAudioInput[c][f];
+
+				// Remove NaN values, very very rare bug in visual studio
+				if (isnan(value)) {
+					value = 0.0f;
+				}
+
+				currentInput.push_back(value);
+			}
+		}
+
+		result.push_back(currentInput);
+	}
+
+	return result;
+}
+vector<vector<float>> generateInputs(audioFileConfig config) {
+	int endIndex = config.startFileIndex + config.songCount;
+	vector<vector<float>> result;
+	
 	for (int f = config.startFileIndex; f < endIndex; f++) {
 		// Load File Spectrogram From Integer File
 		string fileName = "inputs/" + to_string(f) + ".mp3";
 
-		pair<vector<vector<float>>, float> spectrogram = spectrogramOutput(fileName.data(), config);
-		vector<vector<float>> fullAudioInput = spectrogram.first;
-
-		// Create Chunk Border to Give Audio 'Context'
-		int newFrequencyResolution = fullAudioInput[0].size();
-
-		for (int i = config.chunkBorder; i < fullAudioInput.size() - config.chunkBorder; i += chunkStep) {
-			vector<float> currentInput;
-
-			for (int c = i - config.chunkBorder; c < i + config.chunkBorder + 1; c++) {
-				for (int f = 0; f < newFrequencyResolution; f++) {
-					float value = fullAudioInput[c][f];
-
-					// Remove NaN values, very very rare bug in visual studio
-					if (isnan(value)) {
-						value = 0.0f;
-					}
-
-					currentInput.push_back(value);
-				}
-			}
-
-			result.push_back(currentInput);
-		}
+		vector<vector<float>> currentTrackInputs = generateSingleTrackInput(config, fileName);
+		result.insert(result.end(), currentTrackInputs.begin(), currentTrackInputs.end());
 	}
 
 	return result;
@@ -306,12 +312,9 @@ vector<vector<float>> singleValueToChunks(vector<float> predictions, int size) {
 	return result;
 }
 
-void createOutputTestTrack(NeuralNetwork network, audioFileConfig config) {
-	config.startFileIndex = 1;
-	config.songCount = 1;
-
+void createOutputTestTrack(NeuralNetwork network, audioFileConfig config, string trackName) {
 	// Get Input Spectrogram (from first file only)
-	vector<vector<float>> testTrackSpectrogram = generateInputs(config); // First track only, for testing
+	vector<vector<float>> testTrackSpectrogram = generateSingleTrackInput(config, trackName); // First track only, for testing
 	vector<vector<float>> predictedTrackSpectrogram;
 
 	int chunkCount = testTrackSpectrogram.size();
@@ -362,7 +365,7 @@ void createOutputTestTrack(NeuralNetwork network, audioFileConfig config) {
 	
 
 	// Get Samples and Write To Track
-	vector<int16_t> testTrackOutputSamples = vocalSamples("inputs/1.mp3", predictedTrackSpectrogram, config);
+	vector<int16_t> testTrackOutputSamples = vocalSamples(trackName.data(), predictedTrackSpectrogram, config);
 	writeToWAV("_Testing/Predictions/vocalPredictionTestTrack.wav", testTrackOutputSamples);
 }
 void testTrainOutputs(audioFileConfig config) {

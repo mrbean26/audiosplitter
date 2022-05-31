@@ -1,4 +1,24 @@
 ﻿  0 File(s) copied
+  files.cpp
+D:\Projects\Audio Splitter App\2 - Main Project Splitter\Audio Seperator and Notation Viewer Main Project\Headers\NeuralNetwork.h(133): warning C4091: 'static ': ignored on left of 'NeuralNetwork::randomMethodConfig' when no variable is declared
+D:\Projects\Audio Splitter App\2 - Main Project Splitter\Audio Seperator and Notation Viewer Main Project\Headers\NeuralNetwork.h(177): warning C4091: 'static ': ignored on left of 'NeuralNetwork::Node' when no variable is declared
+D:\Projects\Audio Splitter App\2 - Main Project Splitter\Audio Seperator and Notation Viewer Main Project\Headers\NeuralNetwork.h(194): warning C4091: 'static ': ignored on left of 'NeuralNetwork::Bias' when no variable is declared
+D:\Projects\Audio Splitter App\2 - Main Project Splitter\Audio Seperator and Notation Viewer Main Project\files.cpp(15,24): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+D:\Projects\Audio Splitter App\2 - Main Project Splitter\Audio Seperator and Notation Viewer Main Project\files.cpp(35,31): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+D:\Projects\Audio Splitter App\2 - Main Project Splitter\Audio Seperator and Notation Viewer Main Project\files.cpp(88,55): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+D:\Projects\Audio Splitter App\2 - Main Project Splitter\Audio Seperator and Notation Viewer Main Project\files.cpp(145,56): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+D:\Projects\Audio Splitter App\2 - Main Project Splitter\Audio Seperator and Notation Viewer Main Project\files.cpp(178,23): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+D:\Projects\Audio Splitter App\2 - Main Project Splitter\Audio Seperator and Notation Viewer Main Project\files.cpp(203,30): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+D:\Projects\Audio Splitter App\2 - Main Project Splitter\Audio Seperator and Notation Viewer Main Project\files.cpp(227,36): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+D:\Projects\Audio Splitter App\2 - Main Project Splitter\Audio Seperator and Notation Viewer Main Project\files.cpp(243,26): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+D:\Projects\Audio Splitter App\2 - Main Project Splitter\Audio Seperator and Notation Viewer Main Project\files.cpp(268,48): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+D:\Projects\Audio Splitter App\2 - Main Project Splitter\Audio Seperator and Notation Viewer Main Project\files.cpp(300,37): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+D:\Projects\Audio Splitter App\2 - Main Project Splitter\Audio Seperator and Notation Viewer Main Project\files.cpp(320,46): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+D:\Projects\Audio Splitter App\2 - Main Project Splitter\Audio Seperator and Notation Viewer Main Project\files.cpp(323,51): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+D:\Projects\Audio Splitter App\2 - Main Project Splitter\Audio Seperator and Notation Viewer Main Project\files.cpp(382,46): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+D:\Projects\Audio Splitter App\2 - Main Project Splitter\Audio Seperator and Notation Viewer Main Project\files.cpp(429,55): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+D:\Projects\Audio Splitter App\2 - Main Project Splitter\Audio Seperator and Notation Viewer Main Project\files.cpp(555,39): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+D:\Projects\Audio Splitter App\2 - Main Project Splitter\Audio Seperator and Notation Viewer Main Project\files.cpp(604,63): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
   main.cpp
 D:\Projects\Audio Splitter App\2 - Main Project Splitter\Audio Seperator and Notation Viewer Main Project\Headers\NeuralNetwork.h(133): warning C4091: 'static ': ignored on left of 'NeuralNetwork::randomMethodConfig' when no variable is declared
 D:\Projects\Audio Splitter App\2 - Main Project Splitter\Audio Seperator and Notation Viewer Main Project\Headers\NeuralNetwork.h(177): warning C4091: 'static ': ignored on left of 'NeuralNetwork::Node' when no variable is declared
@@ -6,10 +26,8 @@ D:\Projects\Audio Splitter App\2 - Main Project Splitter\Audio Seperator and Not
 D:\Projects\Audio Splitter App\2 - Main Project Splitter\Audio Seperator and Notation Viewer Main Project\main.cpp(62,38): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
 D:\Projects\Audio Splitter App\2 - Main Project Splitter\Audio Seperator and Notation Viewer Main Project\main.cpp(81,12): warning C4244: 'argument': conversion from 'time_t' to 'unsigned int', possible loss of data
   Generating code
-D:\Projects\Audio Splitter App\2 - Main Project Splitter\Audio Seperator and Notation Viewer Main Project\matrices.cpp(8): warning C4723: potential divide by 0
-D:\Projects\Audio Splitter App\2 - Main Project Splitter\Audio Seperator and Notation Viewer Main Project\audio.cpp(44): warning C4715: 'loadAudioSamples': not all control paths return a value
-  997 of 2150 functions (46.4%) were compiled, the rest were copied from previous compilation.
+  5 of 1761 functions ( 0.3%) were compiled, the rest were copied from previous compilation.
     0 functions were new in current compilation
-    172 functions had inline decision re-evaluated but remain unchanged
+    5 functions had inline decision re-evaluated but remain unchanged
   Finished generating code
   Audio Seperator and Notation Viewer Main Project.vcxproj -> D:\Projects\Audio Splitter App\2 - Main Project Splitter\x64\Release\Audio Seperator and Notation Viewer Main Project.exe

@@ -30,6 +30,7 @@ struct outputImageConfig {
 };
 
 // Audio
+vector<vector<float>> generateSingleTrackInput(audioFileConfig config, string fileName);
 vector<vector<float>> generateInputs(audioFileConfig config);
 vector<vector<float>> generateOutputs(audioFileConfig config);
 
@@ -39,7 +40,7 @@ void outputInputVector(vector<float> inputVector, audioFileConfig audioConfig);
 void outputVector(vector<float> vector);
 void inputTrackSpectrogramToImage(audioFileConfig audioConfig);
 
-void createOutputTestTrack(NeuralNetwork network, audioFileConfig config);
+void createOutputTestTrack(NeuralNetwork network, audioFileConfig config, string trackName);
 void testTrainOutputs(audioFileConfig config);
 
 pair<vector<vector<float>>, vector<vector<float>>> generateAllSongDataSet(audioFileConfig config, int chunksPerSong, int startSong, int endSong);

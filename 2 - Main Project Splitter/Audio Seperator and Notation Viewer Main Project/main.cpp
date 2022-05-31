@@ -82,7 +82,7 @@ int main() {
 
 	// Train Config
 	audioFileConfig audioConfig = getAudioConfig();
-	NeuralNetwork::standardTrainConfig trainConfig = getTrainConfig();
+	//NeuralNetwork::standardTrainConfig trainConfig = getTrainConfig();
 	runDataTests(audioConfig);
 	
 	// Network & Trainig
@@ -91,10 +91,11 @@ int main() {
 	vector<int> activations(nodes.size(), SIGMOID);
 
 	NeuralNetwork vocalsNetwork = NeuralNetwork(nodes, bias, activations);
-	vocalsNetwork.train(trainConfig);
+	//vocalsNetwork.train(trainConfig);
 	
-	createOutputTestTrack(vocalsNetwork, audioConfig);
-	vocalsNetwork.saveWeightsToFile("_trained_weights/4thconfigweights/");
+	vocalsNetwork.loadWeightsFromFile("_trained_weights/4thconfigweights/");
+	createOutputTestTrack(vocalsNetwork, audioConfig, "inputs/2.mp3");
+	//vocalsNetwork.saveWeightsToFile("_trained_weights/4thconfigweights/");
 
 	system("pause");
 	return 0;
