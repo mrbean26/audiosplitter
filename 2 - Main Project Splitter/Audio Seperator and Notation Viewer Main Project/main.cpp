@@ -21,6 +21,7 @@ audioFileConfig getAudioConfig() {
 
 		true, // use binary mask for output
 		0.1f, // binary mask threshold
+		0.8f, // network output threshold binary
 
 		false, // use noise prediction
 		true, // use mel scale
@@ -28,10 +29,11 @@ audioFileConfig getAudioConfig() {
 		true, // skip chunk overlap
 
 		false, // single output value
-		0.1f, // percentage of chunk needed to be 1
+		0.75f, // percentage of chunk needed to be 1
 
-		20, // chunk size
-		16, // required chunk count
+		true, // use noise reduction
+		10, // chunk size
+		8, // required chunk count
 	};
 
 	return audioConfig;
@@ -89,7 +91,7 @@ int main() {
 	//vocalsNetwork.train(trainConfig);
 	
 	vocalsNetwork.loadWeightsFromFile("_trained_weights/1st_proper_train/");
-	createOutputTestTrack(vocalsNetwork, audioConfig, "test_tracks/californication.mp3");
+	createOutputTestTrack(vocalsNetwork, audioConfig, "test_tracks/under_the_bridge.mp3");
 	//vocalsNetwork.saveWeightsToFile("_trained_weights/1st_proper_train/");
 
 	system("pause");

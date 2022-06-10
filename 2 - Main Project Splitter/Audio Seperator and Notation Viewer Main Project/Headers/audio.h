@@ -19,6 +19,7 @@ struct audioFileConfig {
 
 	bool useOutputBinaryMask = false;
 	float binaryMaskThreshold = 0.025f;
+	float networkOutputThreshold = 0.8f;
 
 	bool useNoisePrediction = false;
 	bool useMelScale = true;
@@ -28,6 +29,7 @@ struct audioFileConfig {
 	bool useSingleOutputValue = false;
 	float singleOutputChunkThreshold = 0.25f; // percentage of chunk required to be 1
 
+	bool useNoiseReduction = true;
 	int noiseReductionChunkSize = 20;
 	int noiseReductionRequiredChunks = 12;
 };

@@ -311,6 +311,59 @@ vector<vector<float>> singleValueToChunks(vector<float> predictions, int size) {
 
 	return result;
 }
+vector<vector<float>> removeChunkPredictionNoise(vector<vector<float>> predictions, audioFileConfig config) {
+	// calculate average no. of 1s in chunk
+	int averageNumber = 0;
+	for (int i = 0; i < predictions.size(); i++) {
+		int currentCount = 0;
+
+		for (int j = 0; j < predictions[i].size(); j++) {
+			if (predictions[i][j] == 1.0f) {
+				currentCount += 1;
+			}
+		}
+
+		averageNumber += currentCount;
+	}
+	averageNumber = averageNumber / predictions.size();
+
+	// make chunks into a single value
+	vector<float> singleChunks;
+	for (int i = 0; i < predictions.size(); i++) {
+		int currentCount = 0;
+
+		for (int j = 0; j < predictions[i].size(); j++) {
+			if (predictions[i][j] == 1.0f) {
+				currentCount += 1;
+			}
+		}
+
+		if (currentCount > averageNumber * config.singleOutputChunkThreshold) {
+			singleChunks.push_back(1.0f);
+		}
+		else {
+			singleChunks.push_back(0.0f);
+		}
+	}
+
+	// remove noise
+	singleChunks = removePredictionNoise(singleChunks, config.noiseReductionChunkSize, config.noiseReductionRequiredChunks);
+
+	// recreate
+	vector<vector<float>> finalResult;
+	for (int i = 0; i < predictions.size(); i++) {
+		if (singleChunks[i] == 0.0f) {
+			vector<float> newvec(predictions[i].size(), 0.0f);
+			finalResult.push_back(newvec);
+		}
+		if (singleChunks[i] == 1.0f) {
+			finalResult.push_back(predictions[i]);
+		}
+	}
+
+	// return
+	return finalResult;
+}
 
 void createOutputTestTrack(NeuralNetwork network, audioFileConfig config, string trackName) {
 	// Get Input Spectrogram (from first file only)
@@ -331,7 +384,7 @@ void createOutputTestTrack(NeuralNetwork network, audioFileConfig config, string
 		// Use step function if binary mask has been used
 		if (config.useOutputBinaryMask) {
 			for (int j = 0; j < currentChunkPrection.size(); j++) {
-				if (currentChunkPrection[j] > 0.85f) {
+				if (currentChunkPrection[j] > config.networkOutputThreshold) {
 					currentChunkPrection[j] = 1.0f;
 				}
 				else {
@@ -349,84 +402,25 @@ void createOutputTestTrack(NeuralNetwork network, audioFileConfig config, string
 		predictedTrackSpectrogram.push_back(currentChunkPrection);
 	}
 
+	// remove noise 
+	if (config.useNoiseReduction) {
+		removeChunkPredictionNoise(predictedTrackSpectrogram, config);
 
+		if (config.useSingleOutputValue) {
+			singleValuePredictions = removePredictionNoise(singleValuePredictions, config.noiseReductionChunkSize, config.noiseReductionRequiredChunks);
+			vector<vector<float>> v;
 
-
-
-	int averageNumber = 0;
-	for (int i = 0; i < predictedTrackSpectrogram.size(); i++) {
-		int currentCount = 0;
-
-		for (int j = 0; j < predictedTrackSpectrogram[i].size(); j++) {
-			if (predictedTrackSpectrogram[i][j] == 1.0f) {
-				currentCount += 1;
+			for (int i = 0; i < singleValuePredictions.size(); i++) {
+				v.push_back({ singleValuePredictions[i] });
 			}
-		}
+			writeSpectrogramToImage(v, "_Testing/Predictions/vocalPredictionCorrectedSpectrogram.png");
 
-		averageNumber += currentCount;
-	}
-	averageNumber = averageNumber / predictedTrackSpectrogram.size();
-
-
-	vector<float> singleChunks;
-	for (int i = 0; i < predictedTrackSpectrogram.size(); i++) {
-		int currentCount = 0;
-
-		for (int j = 0; j < predictedTrackSpectrogram[i].size(); j++) {
-			if (predictedTrackSpectrogram[i][j] == 1.0f) {
-				currentCount += 1;
-			}
-		}
-
-		if (currentCount > averageNumber * 0.1) {
-			singleChunks.push_back(1.0f);
-		}
-		else {
-			singleChunks.push_back(0.0f);
+			predictedTrackSpectrogram = singleValueToChunks(singleValuePredictions, config.frequencyResolution / 2);
 		}
 	}
 
-
-	singleChunks = removePredictionNoise(singleChunks, config.noiseReductionChunkSize, config.noiseReductionRequiredChunks);
-
-
-	vector<vector<float>> finalOuts;
-	for (int i = 0; i < predictedTrackSpectrogram.size(); i++) {
-		if (singleChunks[i] == 0.0f) {
-			vector<float> newvec(predictedTrackSpectrogram[i].size(), 0.0f);
-			finalOuts.push_back(newvec);
-		}
-		if (singleChunks[i] == 1.0f) {
-			finalOuts.push_back(predictedTrackSpectrogram[i]);
-		}
-	}
-
-
-	predictedTrackSpectrogram = finalOuts;
-
-
-
-
-
-
-
-
-
-
-	if (config.useSingleOutputValue) {
-		singleValuePredictions = removePredictionNoise(singleValuePredictions, config.noiseReductionChunkSize, config.noiseReductionRequiredChunks);
-		vector<vector<float>> v;
-
-		for (int i = 0; i < singleValuePredictions.size(); i++) {
-			v.push_back({ singleValuePredictions[i] });
-		}
-		writeSpectrogramToImage(v, "_Testing/Predictions/vocalPredictionCorrectedSpectrogram.png");
-
-		predictedTrackSpectrogram = singleValueToChunks(singleValuePredictions, config.frequencyResolution / 2);
-	}
 
 	writeSpectrogramToImage(networkPredictions, "_Testing/Predictions/vocalPredictionTestTrackSpectrogram.png");
-	
 
 	// Get Samples and Write To Track
 	vector<int16_t> testTrackOutputSamples = vocalSamples(trackName.data(), predictedTrackSpectrogram, config);
