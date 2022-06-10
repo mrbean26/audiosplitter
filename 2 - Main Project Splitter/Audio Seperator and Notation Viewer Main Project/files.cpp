@@ -331,7 +331,7 @@ void createOutputTestTrack(NeuralNetwork network, audioFileConfig config, string
 		// Use step function if binary mask has been used
 		if (config.useOutputBinaryMask) {
 			for (int j = 0; j < currentChunkPrection.size(); j++) {
-				if (currentChunkPrection[j] > 0.5f) {
+				if (currentChunkPrection[j] > 0.85f) {
 					currentChunkPrection[j] = 1.0f;
 				}
 				else {
@@ -348,6 +348,70 @@ void createOutputTestTrack(NeuralNetwork network, audioFileConfig config, string
 
 		predictedTrackSpectrogram.push_back(currentChunkPrection);
 	}
+
+
+
+
+
+	int averageNumber = 0;
+	for (int i = 0; i < predictedTrackSpectrogram.size(); i++) {
+		int currentCount = 0;
+
+		for (int j = 0; j < predictedTrackSpectrogram[i].size(); j++) {
+			if (predictedTrackSpectrogram[i][j] == 1.0f) {
+				currentCount += 1;
+			}
+		}
+
+		averageNumber += currentCount;
+	}
+	averageNumber = averageNumber / predictedTrackSpectrogram.size();
+
+
+	vector<float> singleChunks;
+	for (int i = 0; i < predictedTrackSpectrogram.size(); i++) {
+		int currentCount = 0;
+
+		for (int j = 0; j < predictedTrackSpectrogram[i].size(); j++) {
+			if (predictedTrackSpectrogram[i][j] == 1.0f) {
+				currentCount += 1;
+			}
+		}
+
+		if (currentCount > averageNumber * 0.1) {
+			singleChunks.push_back(1.0f);
+		}
+		else {
+			singleChunks.push_back(0.0f);
+		}
+	}
+
+
+	singleChunks = removePredictionNoise(singleChunks, config.noiseReductionChunkSize, config.noiseReductionRequiredChunks);
+
+
+	vector<vector<float>> finalOuts;
+	for (int i = 0; i < predictedTrackSpectrogram.size(); i++) {
+		if (singleChunks[i] == 0.0f) {
+			vector<float> newvec(predictedTrackSpectrogram[i].size(), 0.0f);
+			finalOuts.push_back(newvec);
+		}
+		if (singleChunks[i] == 1.0f) {
+			finalOuts.push_back(predictedTrackSpectrogram[i]);
+		}
+	}
+
+
+	predictedTrackSpectrogram = finalOuts;
+
+
+
+
+
+
+
+
+
 
 	if (config.useSingleOutputValue) {
 		singleValuePredictions = removePredictionNoise(singleValuePredictions, config.noiseReductionChunkSize, config.noiseReductionRequiredChunks);

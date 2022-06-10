@@ -31,7 +31,7 @@ audioFileConfig getAudioConfig() {
 		0.1f, // percentage of chunk needed to be 1
 
 		20, // chunk size
-		12, // required chunk count
+		16, // required chunk count
 	};
 
 	return audioConfig;
