@@ -12,7 +12,7 @@ audioFileConfig getAudioConfig() {
 		1024, // samples per overlap
 
 		128, // frequency res
-		2, // chunk border
+		8, // chunk border
 
 		1, // start file index
 		3, // song count
@@ -56,16 +56,11 @@ NeuralNetwork::standardTrainConfig getTrainConfig() {
 	newConfig.gradientDescent.datasetRefreshInterval = 1000;
 	newConfig.gradientDescent.useThreading = false; */
 
-	vector<vector<float>> i = generateInputs(getAudioConfig());
-	vector<vector<float>> o = generateOutputs(getAudioConfig());
+	pair<vector<vector<float>>, vector<vector<float>>> allSongDataset = generateAllSongDataSet(getAudioConfig(), 1000, 0, 100);
 
-	int miniBatchSize = i.size() / 10000;
-	for (int j = 0; j < 10000; j++) {
-		int newIndex = (j * miniBatchSize) + (rand() % miniBatchSize);
-
-		newConfig.trainInputs.push_back(i[newIndex]);
-		newConfig.trainOutputs.push_back(o[newIndex]);
-	}
+	newConfig.trainInputs = allSongDataset.first;
+	newConfig.trainOutputs = allSongDataset.second;
+	cout << newConfig.trainInputs.size() << endl;
 
 	return newConfig;
 }
@@ -86,16 +81,16 @@ int main() {
 	runDataTests(audioConfig);
 	
 	// Network & Trainig
-	vector<int> nodes = { 320, 300, 250, 200, 150, 100, 64 };
+	vector<int> nodes = { 1088, 750, 500, 300, 100, 64 };
 	vector<int> bias(nodes.size(), 1);
 	vector<int> activations(nodes.size(), SIGMOID);
 
 	NeuralNetwork vocalsNetwork = NeuralNetwork(nodes, bias, activations);
 	//vocalsNetwork.train(trainConfig);
 	
-	vocalsNetwork.loadWeightsFromFile("_trained_weights/4thconfigweights/");
+	vocalsNetwork.loadWeightsFromFile("_trained_weights/1st_proper_train/");
 	createOutputTestTrack(vocalsNetwork, audioConfig, "test_tracks/californication.mp3");
-	//vocalsNetwork.saveWeightsToFile("_trained_weights/4thconfigweights/");
+	//vocalsNetwork.saveWeightsToFile("_trained_weights/1st_proper_train/");
 
 	system("pause");
 	return 0;
