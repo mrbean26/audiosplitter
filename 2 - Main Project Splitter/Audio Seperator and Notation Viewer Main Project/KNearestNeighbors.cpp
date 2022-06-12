@@ -6,6 +6,7 @@ float getElucidianDistance(vector<float> one, vector<float> two) {
 		return -1.0f;
 	}
 
+	// simple distance between two vectors
 	float accumulativeTotal = 0.0f;
 	for (int i = 0; i < size; i++) {
 		float difference = one[i] - two[i];
@@ -22,6 +23,7 @@ vector<float> addVector(vector<float> one, vector<float> two) {
 		return {};
 	}
 
+	// simple elementwise addition between two vectors
 	for (int i = 0; i < size; i++) {
 		one[i] = one[i] + two[i];
 	}
@@ -31,6 +33,7 @@ vector<float> addVector(vector<float> one, vector<float> two) {
 vector<float> multiplyVector(float scalar, vector<float> one) {
 	int size = one.size();
 
+	// simple elementwise multiplication of vector by scalar
 	for (int i = 0; i < size; i++) {
 		one[i] = one[i] * scalar;
 	}
@@ -43,6 +46,7 @@ bool checkVectorEquality(vector<float> one, vector<float> two) {
 		return false;
 	}
 
+	// simple elementwise comparison between two vectors
 	for (int i = 0; i < size; i++) {
 		for (int j = 0; j < size; j++) {
 			if (one[i] != two[i]) {
@@ -63,6 +67,7 @@ vector<float> mostAppearancesInVector(vector<vector<float>> one) {
 		vector<float> current = one[i];
 		int currentCount = 1;
 
+		// count no. of occurences in set of vectors
 		for (int j = 0; j < size; j++) {
 			if (j == i) {
 				continue;
@@ -73,6 +78,7 @@ vector<float> mostAppearancesInVector(vector<vector<float>> one) {
 			}
 		}
 
+		// if more than most common so far, set new vector
 		if (currentCount > mostCommonCount) {
 			mostCommonCount = currentCount;
 			mostCommon = current;

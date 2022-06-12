@@ -74,6 +74,7 @@ void splitter::trainNetwork(int STEM, const char* weightOutputDirectory) {
 }
 
 void splitter::loadStemWeights(int STEM) {
+	// Load weights from predefined directories
 	if (STEM == STEM_VOCAL) {
 		predictionNetwork.loadWeightsFromFile("_trained_weights/1st_proper_train/");
 	}
@@ -87,13 +88,16 @@ void splitter::loadStemWeights(int STEM) {
 	currentLoadedStemWeights = STEM;
 }
 vector<vector<float>> splitter::predictTrack(vector<vector<float>> inputs) {
+	// prequisite variables
 	int inputCount = inputs.size();
 	int inputStep = audioConfig.samplesPerChunk / audioConfig.samplesPerOverlap;
 	vector<vector<float>> resultantPredictions;
 
+	// predict for each input
 	for (int i = 0; i < inputCount; i += inputStep) {
 		vector<float> currentPrediction = predictionNetwork.predict(inputs[i]);
 
+		// binary mask if applicable
 		if (audioConfig.useOutputBinaryMask) {
 			for (int j = 0; j < outputCount; j++) {
 				if (currentPrediction[j] > audioConfig.networkOutputThreshold) {
@@ -108,6 +112,7 @@ vector<vector<float>> splitter::predictTrack(vector<vector<float>> inputs) {
 		resultantPredictions.push_back(currentPrediction);
 	}
 
+	// remove noise algorithm if applicable
 	if (audioConfig.useNoiseReduction) {
 		removeChunkPredictionNoise(resultantPredictions, audioConfig);
 	}
@@ -115,13 +120,16 @@ vector<vector<float>> splitter::predictTrack(vector<vector<float>> inputs) {
 	return resultantPredictions;
 }
 void splitter::predictTrackStemToFile(const char* inputFilename, int STEM, const char* outputFilename) {
+	// load network weights if not loaded
 	if (currentLoadedStemWeights != STEM) {
 		loadStemWeights(STEM);
 	}
 
+	// predict using network
 	vector<vector<float>> trackInput = generateSingleTrackInput(audioConfig, inputFilename);
 	vector<vector<float>> predictedTrack = predictTrack(trackInput);
 
+	// write to file
 	vector<int16_t> testTrackOutputSamples = vocalSamples(inputFilename, predictedTrack, audioConfig);
 	writeToWAV(outputFilename, testTrackOutputSamples);
 }

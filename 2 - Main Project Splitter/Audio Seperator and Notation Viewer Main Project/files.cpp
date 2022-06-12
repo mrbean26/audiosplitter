@@ -192,7 +192,9 @@ vector<vector<float>> generateOutputs(audioFileConfig config) {
 	return result;
 }
 
+// Debugging & Testing functions
 void testNetworkInputsToImage(audioFileConfig audioConfig) {
+	// Prequisite variables
 	audioConfig.startFileIndex = 1;
 	audioConfig.songCount = 1;
 
@@ -202,6 +204,7 @@ void testNetworkInputsToImage(audioFileConfig audioConfig) {
 	vector<vector<float>> inputChunks;
 	int inputSize = input.size();
 
+	// add first network input to an image to visually see that is fed forward
 	int totalChunkCount = 2 * audioConfig.chunkBorder + 1;
 	int floatsPerChunk = inputSize / totalChunkCount;
 
@@ -220,6 +223,7 @@ void testNetworkOutputsToImage(audioFileConfig audioConfig) {
 	audioConfig.startFileIndex = 1;
 	audioConfig.songCount = 1;
 
+	// write entire track output to image
 	vector<vector<float>> fullOutputs = generateOutputs(audioConfig);
 	writeSpectrogramToImage(fullOutputs, "_Testing/testOutputChunks.png");
 }
@@ -259,6 +263,7 @@ void inputTrackSpectrogramToImage(audioFileConfig audioConfig) {
 	audioConfig.samplesPerOverlap = audioConfig.samplesPerChunk;
 	audioConfig.chunkBorder = 0;
 
+	// each central chunk of input written to image
 	vector<vector<float>> inputTrackSpectrogram = generateInputs(audioConfig);
 	writeSpectrogramToImage(inputTrackSpectrogram, "_Testing/inputSpectrogram.png");
 }
@@ -269,6 +274,7 @@ vector<float> removePredictionNoise(vector<float> networkPrediction, int chunkSi
 
 	int zeroCount = 0; int oneCount = 0;
 	for (int i = 0; i < predictionCount; i++) {
+		// count binary mode of how many ones/zeros per chunk
 		if (networkPrediction[i] < 0.5f) {
 			zeroCount = zeroCount + 1;
 		}
@@ -276,12 +282,14 @@ vector<float> removePredictionNoise(vector<float> networkPrediction, int chunkSi
 			oneCount = oneCount + 1;
 		}
 
+		// at the end of each chunk, decide wether or not to include it or not
 		if ((i + 1) % chunkSize == 0) {
 			float value = 0.0f;
 			if (oneCount >= chunkCount) {
-				value = 1.0f;
+				value = 1.0f; // include chunk if no. of 1s is sufficient
 			}
 
+			// create used vector
 			for (int k = 0; k < chunkSize; k++) {
 				result.push_back(value);
 			}
