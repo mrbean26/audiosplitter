@@ -154,6 +154,7 @@
     <ClCompile Include="matrices.cpp" />
     <ClCompile Include="NaiveBayes.cpp" />
     <ClCompile Include="NeuralNetwork.cpp" />
+    <ClCompile Include="splitter.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Headers\audio.h" />
@@ -165,6 +166,7 @@
     <ClInclude Include="Headers\minimp3_ex.h" />
     <ClInclude Include="Headers\NaiveBayes.h" />
     <ClInclude Include="Headers\NeuralNetwork.h" />
+    <ClInclude Include="Headers\splitter.h" />
     <ClInclude Include="Headers\stb_image_write.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
