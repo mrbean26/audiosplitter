@@ -14,6 +14,7 @@ bool checkMatrixEquality(Matrix A, Matrix B, int decimalTolerance) {
 	int rowsB = B.size();
 	int columnsB = B[0].size();
 
+	// check if equal to the nearest integer
 	if (decimalTolerance == 0) {
 		for (int i = 0; i < rowsA; i++) {
 			for (int j = 0; j < columnsA; j++) {
@@ -30,6 +31,7 @@ bool checkMatrixEquality(Matrix A, Matrix B, int decimalTolerance) {
 		return false;
 	}
 
+	// check if equal to the nearest decimal place
 	for (int i = 0; i < rowsA; i++) {
 		for (int j = 0; j < columnsA; j++) {
 			if (roundFloat(A[i][j], decimalTolerance) != roundFloat(B[i][j], decimalTolerance)) {
@@ -42,8 +44,8 @@ bool checkMatrixEquality(Matrix A, Matrix B, int decimalTolerance) {
 Matrix zerosMatrix(int rows, int columns) {
 	Matrix returned;
 
+	vector<float> newRow(columns);
 	for (int i = 0; i < rows; i++) {
-		vector<float> newRow(columns);
 		returned.push_back(newRow);
 	}
 
@@ -66,6 +68,7 @@ Matrix transposeMatrix(Matrix A) {
 
 	Matrix result = zerosMatrix(columns, rows);
 
+	// swap columns and rows
 	for (int i = 0; i < rows; i++) {
 		for (int j = 0; j < columns; j++) {
 			result[j][i] = A[i][j];
@@ -82,6 +85,7 @@ Matrix scalarMultiply(float scalar, Matrix A) {
 	int rows = A.size();
 	int columns = A[0].size();
 
+	// multiply each element by scalar
 	for (int i = 0; i < rows; i++) {
 		for (int j = 0; j < columns; j++) {
 			result[i][j] = result[i][j] * scalar;
@@ -102,6 +106,7 @@ Matrix matrixMultiply(Matrix A, Matrix B) {
 		return Matrix();
 	}
 
+	// follow rules for matrix multiplication
 	Matrix result = zerosMatrix(rowsA, columnsB);
 	for (int i = 0; i < rowsA; i++) {
 		for (int j = 0; j < columnsB; j++) {
@@ -132,6 +137,7 @@ Matrix matrixAddition(Matrix A, Matrix B) {
 		cout << "Not The Same Size Matrices in Addition" << endl;
 	}
 
+	// add corresponding elements
 	for (int i = 0; i < rows; i++) {
 		for (int j = 0; j < columns; j++) {
 			result[i][j] = result[i][j] + B[i][j];

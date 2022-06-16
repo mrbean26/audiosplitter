@@ -35,6 +35,8 @@ struct audioFileConfig {
 };
 
 pair<vector<vector<float>>, float> spectrogramOutput(const char* mp3Filename, audioFileConfig audioConfig);
+pair<vector<vector<float>>, float> spectrogramOutput(vector<vector<double>> samplesChunks, audioFileConfig audioConfig, int sampleRate);
+
 void writeSpectrogramToImage(vector<vector<float>> spectrogram, const char* fileName);
 
 vector<int16_t> vocalSamples(const char* fullFileNameMP3, vector<vector<float>> networkOutput, audioFileConfig audioConfig);
