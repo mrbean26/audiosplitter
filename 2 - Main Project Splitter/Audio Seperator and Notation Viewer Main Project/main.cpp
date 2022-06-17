@@ -7,7 +7,7 @@ int main() {
 	srand(time(NULL));
 
 	splitter newSplitter = splitter(STEM_VOCAL);
-	newSplitter.predictTrackStemToFile("inputs/1.mp3", STEM_VOCAL, "test_tracks/o.wav");
+	newSplitter.predictTrackStemToFile("test_tracks/californication.mp3", STEM_VOCAL, "test_tracks/o2.wav");
 
 	system("pause");
 	return 0;

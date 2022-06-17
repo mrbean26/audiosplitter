@@ -34,7 +34,8 @@ vector<vector<float>> generateSingleTrackInput(audioFileConfig config, string fi
 vector<vector<float>> generateInputs(audioFileConfig config);
 vector<vector<float>> generateOutputs(audioFileConfig config);
 
-vector<float> removePredictionNoise(vector<float> networkPrediction, int chunkSize, int chunkCount);
+vector<float> removePredictionNoiseChunks(vector<float> networkPrediction, int chunkSize, int chunkCount);
+vector<float> removePredictionNoiseConsecutive(vector<float> networkPrediction, int consecutiveCount);
 vector<vector<float>> removeChunkPredictionNoise(vector<vector<float>> predictions, audioFileConfig config);
 
 void testNetworkInputsToImage(audioFileConfig audioConfig);

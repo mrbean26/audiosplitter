@@ -268,7 +268,7 @@ void inputTrackSpectrogramToImage(audioFileConfig audioConfig) {
 	writeSpectrogramToImage(inputTrackSpectrogram, "_Testing/inputSpectrogram.png");
 }
 
-vector<float> removePredictionNoise(vector<float> networkPrediction, int chunkSize, int chunkCount) {
+vector<float> removePredictionNoiseChunks(vector<float> networkPrediction, int chunkSize, int chunkCount) {
 	vector<float> result;
 	int predictionCount = networkPrediction.size();
 
@@ -301,6 +301,56 @@ vector<float> removePredictionNoise(vector<float> networkPrediction, int chunkSi
 
 	return result;
 }
+vector<float> removePredictionNoiseConsecutive(vector<float> networkPrediction, int consecutiveCount) {
+	vector<float> result;
+	int predictionCount = networkPrediction.size();
+
+	int currentCount = 1;
+	float lastValue = roundf(networkPrediction[0]);
+
+	for (int i = 1; i < predictionCount; i++) {
+		// current
+		float currentValue = roundf(networkPrediction[i]);
+
+		// compare
+		if (currentValue == lastValue) {
+			currentCount = currentCount + 1;
+
+			if (i == predictionCount - 1) {
+				float usedValue = 0.0f;
+
+				if (currentCount >= consecutiveCount) {
+					if (lastValue == 1.0f) {
+						usedValue = 1.0f;
+					}
+				}
+
+				vector<float> newAddition(currentCount, usedValue);
+				result.insert(result.end(), newAddition.begin(), newAddition.end());
+			}
+		}
+
+		if (currentValue != lastValue) {
+			float usedValue = 0.0f;
+
+			if (currentCount >= consecutiveCount) {
+				if (lastValue == 1.0f) {
+					usedValue = 1.0f;
+				}
+			}
+
+			vector<float> newAddition(currentCount, usedValue);
+			result.insert(result.end(), newAddition.begin(), newAddition.end());
+			currentCount = 1;
+		}
+
+		lastValue = currentValue;
+	}
+
+
+	return result;
+}
+
 vector<vector<float>> singleValueToChunks(vector<float> predictions, int size) {
 	vector<float> oneChunk(size, 1.0f);
 	vector<float> zeroChunk(size, 0.0f);
@@ -355,7 +405,12 @@ vector<vector<float>> removeChunkPredictionNoise(vector<vector<float>> predictio
 	}
 
 	// remove noise
-	singleChunks = removePredictionNoise(singleChunks, config.noiseReductionChunkSize, config.noiseReductionRequiredChunks);
+	if (config.noiseReductionType == NOISE_REDUCTION_CHUNKS) {
+		singleChunks = removePredictionNoiseChunks(singleChunks, config.noiseReductionChunkSize, config.noiseReductionRequiredChunks);
+	}
+	if (config.noiseReductionType == NOISE_REDUCTION_CONSECUTIVE) {
+		singleChunks = removePredictionNoiseConsecutive(singleChunks, config.noiseReductionRequiredChunks);
+	}
 
 	// recreate
 	vector<vector<float>> finalResult;
@@ -415,7 +470,12 @@ void createOutputTestTrack(NeuralNetwork network, audioFileConfig config, string
 		removeChunkPredictionNoise(predictedTrackSpectrogram, config);
 
 		if (config.useSingleOutputValue) {
-			singleValuePredictions = removePredictionNoise(singleValuePredictions, config.noiseReductionChunkSize, config.noiseReductionRequiredChunks);
+			if (config.noiseReductionType == NOISE_REDUCTION_CHUNKS) {
+				singleValuePredictions = removePredictionNoiseChunks(singleValuePredictions, config.noiseReductionChunkSize, config.noiseReductionRequiredChunks);
+			}
+			if (config.noiseReductionType == NOISE_REDUCTION_CONSECUTIVE) {
+				singleValuePredictions = removePredictionNoiseConsecutive(singleValuePredictions, config.noiseReductionRequiredChunks);
+			}
 			vector<vector<float>> v;
 
 			for (int i = 0; i < singleValuePredictions.size(); i++) {

@@ -5,6 +5,9 @@
 #include <iostream>
 using namespace std;
 
+#define NOISE_REDUCTION_CHUNKS 0
+#define NOISE_REDUCTION_CONSECUTIVE 1
+
 struct audioFileConfig {
 	int samplesPerChunk = 2048;
 	int samplesPerOverlap = 2048;
@@ -32,6 +35,7 @@ struct audioFileConfig {
 	bool useNoiseReduction = true;
 	int noiseReductionChunkSize = 20;
 	int noiseReductionRequiredChunks = 12;
+	int noiseReductionType = NOISE_REDUCTION_CHUNKS;
 };
 
 pair<vector<vector<float>>, float> spectrogramOutput(const char* mp3Filename, audioFileConfig audioConfig);

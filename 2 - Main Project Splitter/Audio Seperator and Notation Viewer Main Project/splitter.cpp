@@ -41,11 +41,12 @@ void splitter::getAudioConfig() {
 		true, // skip chunk overlap
 
 		false, // single output value
-		0.75f, // percentage of chunk needed to be 1
+		0.5f, // percentage of chunk needed to be 1
 
 		true, // use noise reduction
-		10, // chunk size
-		8, // required chunk count
+		5, // chunk size
+		3, // required chunk count
+		NOISE_REDUCTION_CHUNKS, // nosie type
 	};
 }
 
@@ -114,7 +115,7 @@ vector<vector<float>> splitter::predictTrack(vector<vector<float>> inputs) {
 
 	// remove noise algorithm if applicable
 	if (audioConfig.useNoiseReduction) {
-		removeChunkPredictionNoise(resultantPredictions, audioConfig);
+		resultantPredictions = removeChunkPredictionNoise(resultantPredictions, audioConfig);
 	}
 
 	return resultantPredictions;
