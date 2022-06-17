@@ -33,6 +33,7 @@ NeuralNetwork::NeuralNetwork(vector<int> layers, vector<int> biases, vector<int>
     activations = activationLayers;
 }
 
+// random functions for initialising weights
 float randomMinimum = -1.0f;
 float randomMaximum = 1.0f;
 float randomFloat() {
@@ -40,17 +41,20 @@ float randomFloat() {
     return result;
 }
 
+// small random value generation for causing mutation in natural selection algorithms
 default_random_engine generator;
 normal_distribution<float> distribution(0.0f, 0.03f);
 float normalDistribution() {
     return distribution(generator);
 }
 
+// generation of random values for generating network architechtures
 normal_distribution<float> distributionArchitechture(0.0f, 0.75f);
 float architechtureNormalDistribution() {
     return distributionArchitechture(generator);
 }
 
+// clear weight vectors and initialise random values
 void NeuralNetwork::initialiseWeights() {
     // clear weights
     for (int i = 0; i < layerCount; i++) {
@@ -86,6 +90,7 @@ void NeuralNetwork::initialiseWeights() {
     }
 }
 
+// save binary weight values for nodes & bias values
 void NeuralNetwork::saveWeightsToFile(string directory) {
     string fileNameNodes = directory + "nodeWeights.bin";
     string fileNameBias = directory + "biasWeights.bin";
@@ -259,7 +264,7 @@ vector<float> NeuralNetwork::train(standardTrainConfig trainConfig) {
     return result;
 }
 
-// Feed Forward - STEP FUNCTION NOT GOOD, HAS EXTREME GRADIENTS
+// Activation Functions - the step function is not great due to extreme gradients
 float layerSoftmaxTotal = 0.0f;
 float NeuralNetwork::activate(float x, int layer) {
     if (activations[layer] == SIGMOID) {
@@ -316,6 +321,7 @@ float NeuralNetwork::derivative(float x, int layer) {
     return x * (1 - x);
 }
 
+// Feeding values forward through algorithm
 void NeuralNetwork::feedForward(vector<float> inputs) {
     // Set Accumulative Values to 0
     resetDerivativesAndResults();
@@ -395,6 +401,7 @@ void NeuralNetwork::runTests(vector<vector<float>> inputs) {
     }
 }
 
+// calculating derivatives of each weight with respect to error
 void NeuralNetwork::calculateDerivatives(vector<float> outputErrors, float errorMultiplier = 1.0f) {
     // with outputErrors as actual - target
     int finalLayerCount = layerNodes[layerCount - 1].size();
@@ -440,6 +447,7 @@ void NeuralNetwork::resetDerivativesAndResults() {
     }
 }
 
+// Dropout & Weight decay to help prevent overfitting to a training dataset
 void NeuralNetwork::decayWeights(float multiplier) {
     // decaying weights helps in preventing overfitting dataset
 
@@ -462,8 +470,6 @@ void NeuralNetwork::decayWeights(float multiplier) {
         }
     }
 }
-
-// Dropout
 void NeuralNetwork::randomlyDropNodes(int probability) {
     // Randomly Drop Nodes except for output layer
     for (int i = 0; i < layerCount - 1; i++) {
@@ -678,6 +684,7 @@ vector<float> NeuralNetwork::trainGradientDescent(standardTrainConfig trainConfi
     return result;
 }
 
+// calculating learning rate & Momentum according to chosen type
 pair<float, float> NeuralNetwork::calculateLRMomentum(int epoch, standardTrainConfig trainConfig) {
     float currentLearningRate = trainConfig.learningRate;
     float currentMomentum = trainConfig.momentum;
@@ -890,7 +897,7 @@ void NeuralNetwork::adjustWeightsRPROP(float increase, float decrease, bool init
     }
 }
 
-// Natural Selection
+// Natural Selection measuring how good a network is
 vector<float> NeuralNetwork::softmax(vector<float> input) {
     vector<float> result = input;
 
@@ -1001,6 +1008,7 @@ vector<float> NeuralNetwork::measurePopulationFitness(vector<NeuralNetwork> popu
     return result;
 }
 
+// sorting and reproducing networks according to how good they were measured
 NeuralNetwork NeuralNetwork::reproduceParents(vector<NeuralNetwork> parents, vector<float> fitnessScores, standardTrainConfig trainConfig) {
     NeuralNetwork result = parents[0];
     if (trainConfig.naturalSelection.breedingMethod == AVERAGE_PARENTS) {
@@ -1141,6 +1149,7 @@ pair<NeuralNetwork, float> NeuralNetwork::chooseParent(vector<NeuralNetwork> pop
     }
 }
 
+// reproducing a full population of architechtures according to specific rules
 vector<NeuralNetwork> NeuralNetwork::reproducePopulation(vector<NeuralNetwork> parentPopulation, vector<float> fitnessScores, standardTrainConfig trainConfig) {
     int populationSize = parentPopulation.size();
     
@@ -1208,6 +1217,7 @@ NeuralNetwork NeuralNetwork::mutateNetwork(NeuralNetwork input) {
     return input;
 }
 
+// initialising basic networks
 vector<NeuralNetwork> NeuralNetwork::initialisePopulation(vector<int> layers, vector<int> biases, vector<int> activations, int count, float lowestWeight, float highestWeight) {
     randomMinimum = lowestWeight;
     randomMaximum = highestWeight;
@@ -1228,6 +1238,7 @@ NeuralNetwork NeuralNetwork::trainNaturalSelectionMethod(standardTrainConfig tra
     vector<NeuralNetwork> population = initialisePopulation(layers, biases, activations, trainConfig.naturalSelection.population, trainConfig.naturalSelection.lowestInitialisedWeight, trainConfig.naturalSelection.highestInitialisedWeight);
     cout << "Initialised population.. " << endl;
 
+    // setup relevant node attributes and vectors
     for (int i = 0; i < trainConfig.naturalSelection.population; i++) {
         population[i].setupNetworkForTraining(trainConfig);
     }
@@ -1243,6 +1254,7 @@ NeuralNetwork NeuralNetwork::trainNaturalSelectionMethod(standardTrainConfig tra
         float lowestFitness = currentFitnessScores[0];
         int lowestFitnessIndex = 0;
 
+        // find best network in current iteration
         for (int j = 1; j < trainConfig.naturalSelection.population; j++) {
             if (currentFitnessScores[j] > lowestFitness) {
                 lowestFitness = currentFitnessScores[j];
@@ -1250,6 +1262,7 @@ NeuralNetwork NeuralNetwork::trainNaturalSelectionMethod(standardTrainConfig tra
             }
         }
 
+        // compare current best network to alltime best network
         if (lowestFitness > bestFitness || bestFitness == -1.0f) {
             bestFitness = lowestFitness;
             bestNetwork = population[lowestFitnessIndex];
@@ -1321,7 +1334,7 @@ vector<float> NeuralNetwork::trainRandomMethod(standardTrainConfig trainConfig) 
     return result;
 }
 
-// Levenberg Marquardt
+// Levenberg Marquardt matrices for training
 void NeuralNetwork::addDeltasLM(vector<float> deltas) {
     // Deltas Are Ordered By Nodes Then Biases Then Layers
     int index = 0;
@@ -1410,6 +1423,8 @@ vector<float> NeuralNetwork::getJacobianRowLM() {
 
     return jacobianRow;
 }
+
+// training with matrices using levenberd marquardt algorithm
 vector<float> NeuralNetwork::trainLevenbergMarquardt(standardTrainConfig trainConfig) {
     // Useful Integers for Saving Efficiency
     int trainDataCount = trainConfig.trainInputs.size();
@@ -1627,6 +1642,7 @@ vector<float> NeuralNetwork::trainBatchGradientDescent(standardTrainConfig train
     return result;
 }
 
+// updating weights in batch gradient descent according to chosen method
 void NeuralNetwork::updateNetworkBatchGradientDescent(float learningRate, float momentum) {
     int layerCount = layerNodes.size();
 
@@ -1732,6 +1748,7 @@ void NeuralNetwork::updateNetworkBatchGradientDescentADAM(standardTrainConfig tr
     }
 }
 
+// changing derivatives according to errors in batch gradient descent training
 void NeuralNetwork::addDerivativesBatchGradientDescent() {
     int layerCount = layerNodes.size();
 
@@ -1740,11 +1757,14 @@ void NeuralNetwork::addDerivativesBatchGradientDescent() {
         int biasCount = layerBiases[l].size();
         int weightCount = layerNodes[l + 1].size();
 
+        // accumulate backward derivatives for each node
         for (int n = 0; n < nodeCount; n++) {
             for (int w = 0; w < weightCount; w++) {
                 layerNodes[l][n].accumulativeDeltas[w] += layerNodes[l][n].value * layerNodes[l + 1][w].derivativeErrorValue;
             }
         }
+
+        // for each bias
         for (int b = 0; b < biasCount; b++) {
             for (int w = 0; w < weightCount; w++) {
                 layerBiases[l][b].accumulativeDeltas[w] += 1.0f * layerNodes[l + 1][w].derivativeErrorValue;
@@ -1760,11 +1780,14 @@ void NeuralNetwork::averageDerivativesBatchGradientDescent(int count) {
         int biasCount = layerBiases[l].size();
         int weightCount = layerNodes[l + 1].size();
 
+        // average derivatives to take mean weight change across entire dataset
         for (int n = 0; n < nodeCount; n++) {
             for (int w = 0; w < weightCount; w++) {
                 layerNodes[l][n].accumulativeDeltas[w] = layerNodes[l][n].accumulativeDeltas[w] / float(count);
             }
         }
+
+        // across bias
         for (int b = 0; b < biasCount; b++) {
             for (int w = 0; w < weightCount; w++) {
                 layerBiases[l][b].accumulativeDeltas[w] = layerBiases[l][b].accumulativeDeltas[w] / float(count);
@@ -1931,11 +1954,13 @@ NeuralNetwork NeuralNetwork::architechtureNaturalSelection(standardTrainConfig t
             populationAddress.push_back(&population[j]);
         }
 
+        // quantatively score each network
         vector<float> fitnessScores = measureArchitechturePopulationFitness(populationAddress, trainConfig);
 
         float lowestFitness = fitnessScores[0];
         int lowestFitnessIndex = 0;
 
+        // find best network of current iteration
         for (int j = 1; j < trainConfig.naturalSelection.population; j++) {
             if (fitnessScores[j] < lowestFitness) {
                 lowestFitness = fitnessScores[j];
@@ -1943,6 +1968,7 @@ NeuralNetwork NeuralNetwork::architechtureNaturalSelection(standardTrainConfig t
             }
         }
 
+        // check if current best network is better than alltime best network
         if (lowestFitness > bestFitness || bestFitness == -1.0f) {
             bestFitness = lowestFitness;
             bestNetwork = population[lowestFitnessIndex];
@@ -2010,6 +2036,7 @@ vector<NeuralNetwork> NeuralNetwork::initialiseArchitechturePopulation(standardT
     return result;
 }
 
+// methods to quantatively measure how good a network architechture is
 vector<float> NeuralNetwork::measureArchitechturePopulationFitness(vector<NeuralNetwork*> population, standardTrainConfig trainConfig) {
     vector<float> result;
     int populationCount = population.size();
@@ -2111,6 +2138,7 @@ float NeuralNetwork::measureArchitechtureFitness(standardTrainConfig trainConfig
     return previousError;
 }
 
+// reproduction of  networks by taking means of layer counts and node counts
 vector<NeuralNetwork> NeuralNetwork::reproduceArchitechtureNetworks(vector<NeuralNetwork> population, vector<float> scores, standardTrainConfig trainConfig) {
     int populationSize = population.size();
 
@@ -2304,6 +2332,7 @@ NeuralNetwork NeuralNetwork::reproduceArchitechtureParents(vector<NeuralNetwork>
     return resultantNetwork;
 }
 
+// mutation and debugging
 pair<vector<int>, vector<int>> NeuralNetwork::mutateNetworkArchitechture(pair<vector<int>, vector<int>> currentArchitechture) {
     // Make layers
     vector<int> layerResult = currentArchitechture.first;
