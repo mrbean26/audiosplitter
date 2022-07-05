@@ -77,13 +77,13 @@ void splitter::trainNetwork(int STEM, const char* weightOutputDirectory) {
 void splitter::loadStemWeights(int STEM) {
 	// Load weights from predefined directories
 	if (STEM == STEM_VOCAL) {
-		predictionNetwork.loadWeightsFromFile("_trained_weights/vocals/1st_proper_train/");
+		predictionNetwork.loadWeightsFromFile("_trained_weights/vocals/1st_proper_train_final/");
 	}
 	if (STEM == STEM_BASS) {
-
+		predictionNetwork.loadWeightsFromFile("_trained_weights/bass/1st_proper_train/");
 	}
 	if (STEM == STEM_DRUMS) {
-
+		predictionNetwork.loadWeightsFromFile("_trained_weights/drums/1st_proper_train/");
 	}
 	
 	currentLoadedStemWeights = STEM;
