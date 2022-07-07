@@ -134,3 +134,106 @@ void splitter::predictTrackStemToFile(const char* inputFilename, int STEM, const
 	vector<int16_t> testTrackOutputSamples = vocalSamples(inputFilename, predictedTrack, audioConfig);
 	writeToWAV(outputFilename, testTrackOutputSamples);
 }
+
+vector<vector<float>> splitter::flipOutputVector(vector<vector<float>> input) {
+	vector<vector<float>> result;
+
+	int count = input.size();
+	int subChunkSize = input[0].size();
+
+	for (int i = 0; i < count; i++) {
+		vector<float> currentChunk;
+
+		for (int j = 0; j < subChunkSize; j++) {
+			currentChunk.push_back(1.0f - input[i][j]);
+		}
+
+		result.push_back(currentChunk);
+	}
+
+	return result;
+}
+vector<vector<float>> splitter::addOutputVectors(vector<vector<float>> inputOne, vector<vector<float>> inputTwo) {
+	vector<vector<float>> result;
+
+	int count = inputOne.size();
+	int subChunkSize = inputOne[0].size();
+
+	for (int i = 0; i < count; i++) {
+		vector<float> currentChunk;
+
+		for (int j = 0; j < subChunkSize; j++) {
+			if (inputOne[i][j] == 1.0f || inputTwo[i][j] == 1.0f) {
+				currentChunk.push_back(1.0f);
+			}
+			else {
+				currentChunk.push_back(0.0f);
+			}
+		}
+
+		result.push_back(currentChunk);
+	}
+
+	return result;
+}
+
+void splitter::splitStems(int STEMS_CHOICE, const char* inputFilename, string outputDirectory) {
+	if (STEMS_CHOICE == STEMS_VOCALS_BACKING) {
+		if (currentLoadedStemWeights != STEM_VOCAL) {
+			loadStemWeights(STEM_VOCAL);
+		}
+
+		cout << "Predicting Vocals..." << endl;
+		vector<vector<float>> trackInput = generateSingleTrackInput(audioConfig, inputFilename);
+		vector<vector<float>> predictedTrackVocal = predictTrack(trackInput);
+
+		cout << "Predicting Other..." << endl;
+		vector<vector<float>> predictedTrackOther = flipOutputVector(predictedTrackVocal);
+
+		// write vocals
+		vector<int16_t> testTrackOutputSamples = vocalSamples(inputFilename, predictedTrackVocal, audioConfig);
+		writeToWAV((outputDirectory + "vocals.wav").data(), testTrackOutputSamples);
+
+		// write backing
+		testTrackOutputSamples = vocalSamples(inputFilename, predictedTrackOther, audioConfig);
+		writeToWAV((outputDirectory + "other.wav").data(), testTrackOutputSamples);
+	}
+	if (STEMS_CHOICE == STEMS_ALL) {
+		vector<vector<float>> trackInput = generateSingleTrackInput(audioConfig, inputFilename);
+
+		// predict stems
+		if (currentLoadedStemWeights != STEM_VOCAL) {
+			loadStemWeights(STEM_VOCAL);
+		}
+		cout << "Predicting Vocals..." << endl;
+		vector<vector<float>> predictedTrackVocal = predictTrack(trackInput);
+
+		cout << "Predicting Bass..." << endl;
+		loadStemWeights(STEM_BASS);
+		vector<vector<float>> predictedTrackBass = predictTrack(trackInput);
+
+		cout << "Predicting Drums..." << endl;
+		loadStemWeights(STEM_DRUMS);
+		vector<vector<float>> predictedTrackDrums = predictTrack(trackInput);
+
+		// add stems
+		cout << "Predicting Other..." << endl;
+		vector<vector<float>> totalStems = addOutputVectors(predictedTrackVocal, predictedTrackBass);
+		totalStems = addOutputVectors(totalStems, predictedTrackDrums);
+
+		vector<vector<float>> otherPredictions = flipOutputVector(totalStems);
+
+		// write stems
+		vector<int16_t> testTrackOutputSamples = vocalSamples(inputFilename, predictedTrackVocal, audioConfig);
+		writeToWAV((outputDirectory + "vocals.wav").data(), testTrackOutputSamples);
+
+		testTrackOutputSamples = vocalSamples(inputFilename, predictedTrackBass, audioConfig);
+		writeToWAV((outputDirectory + "bass.wav").data(), testTrackOutputSamples);
+
+		testTrackOutputSamples = vocalSamples(inputFilename, predictedTrackDrums, audioConfig);
+		writeToWAV((outputDirectory + "drums.wav").data(), testTrackOutputSamples);
+
+		testTrackOutputSamples = vocalSamples(inputFilename, otherPredictions, audioConfig);
+		writeToWAV((outputDirectory + "other.wav").data(), testTrackOutputSamples);
+	}
+}
