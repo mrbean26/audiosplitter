@@ -1,0 +1,13 @@
+﻿  FinalProject.cpp
+D:\Projects\Audio Splitter App\Final Project\Final Project\Headers\NeuralNetwork.h(133): warning C4091: 'static ': ignored on left of 'NeuralNetwork::randomMethodConfig' when no variable is declared
+D:\Projects\Audio Splitter App\Final Project\Final Project\Headers\NeuralNetwork.h(177): warning C4091: 'static ': ignored on left of 'NeuralNetwork::Node' when no variable is declared
+D:\Projects\Audio Splitter App\Final Project\Final Project\Headers\NeuralNetwork.h(194): warning C4091: 'static ': ignored on left of 'NeuralNetwork::Bias' when no variable is declared
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.18362.0\shared\minwindef.h(130,1): warning C4005: 'APIENTRY': macro redefinition
+D:\Projects\Audio Splitter App\Final Project\API32\opengl\glfw3.h(98): message : see previous definition of 'APIENTRY'
+  The contents of <filesystem> are available only with C++17 or later.
+D:\Projects\Audio Splitter App\Final Project\Final Project\FinalProject.cpp(63,3): error C3861: 'aa': identifier not found
+D:\Projects\Audio Splitter App\Final Project\Final Project\FinalProject.cpp(91,17): warning C4244: 'argument': conversion from 'TCHAR' to '_Elem', possible loss of data
+          with
+          [
+              _Elem=char
+          ]
