@@ -13,6 +13,7 @@ using namespace experimental;
 
 FinalProject::FinalProject(int width, int height) {
 	startOpenGL(window, width, height);
+	startOpenAL();
 	interfaceBegin();
 
 	mainSplitter = splitter(STEM_VOCAL);
@@ -48,17 +49,68 @@ void FinalProject::createInterfaceButtons() {
 	for (int i = 0; i < 2; i++) {
 		int newButton = createButton(vec2(0.3f), vec3(0.9f, 0.1f - i * 0.3f, 0.0f), true);
 		allButtons[newButton].texture = muteTexture;
+		
 		muteButtons.push_back(newButton);
+		muted.push_back(false);
 	}
 
 	// Loading Bar
 	loadingBarOne = createButton(vec2(6.5f, 0.1f), vec3(-0.0f, 0.1f, 0.0f), false);
 	loadingBarTwo = createButton(vec2(6.5f, 0.1f), vec3(-0.0f, -0.2f, 0.0f), false);
+
+	// Pause and play
+	playTexture = loadTexture("Assets/Images/play.png");
+	pauseTexture = loadTexture("Assets/Images/pause.png");
+
+	playButton = createButton(vec2(0.2f) * vec2(1.0f, 1.6f), vec3(0.0f, -0.45f, 0.0f), true);
+	allButtons[playButton].texture = playTexture;
 }
 void FinalProject::interfaceButtonMainloop() {
 	// Load
 	if (allButtons[loadButton].clickUp) {
 		currentSplitterThread = async(&FinalProject::splitFile, this);
+	}
+
+	if (allButtons[muteButtons[0]].clickUp) {
+		muted[0] = !muted[0];
+
+		if (!muted[0]) {
+			allButtons[muteButtons[0]].texture = muteTexture;
+			alSourcef(sourceVocals, AL_GAIN, 1.0f);
+		}
+		else {
+			allButtons[muteButtons[0]].texture = unmuteTexture;
+			alSourcef(sourceVocals, AL_GAIN, 0.0f);
+		}
+	}
+	if (allButtons[muteButtons[1]].clickUp) {
+		muted[1] = !muted[1];
+
+		if (!muted[1]) {
+			allButtons[muteButtons[1]].texture = muteTexture;
+			alSourcef(sourceInstrumentals, AL_GAIN, 1.0f);
+		}
+		else {
+			allButtons[muteButtons[1]].texture = unmuteTexture;
+			alSourcef(sourceInstrumentals, AL_GAIN, 0.0f);
+		}
+	}
+
+	if (allButtons[playButton].clickUp) {
+		paused = !paused;
+
+		if (!paused) {
+			alSourcePlay(sourceVocals);
+			alSourcePlay(sourceInstrumentals);
+
+			allButtons[playButton].texture = pauseTexture;
+		}
+		else {
+			alSourcePause(sourceVocals);
+			alSourcePause(sourceInstrumentals);
+			
+			allButtons[playButton].texture = playTexture;
+		}
 	}
 }
 
@@ -101,7 +153,9 @@ void FinalProject::openGLMainloop() {
 
 		interfaceMainloop();
 		interfaceButtonMainloop();
+		
 		updateLoadingBar();
+		generateAudioObjects();
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
@@ -122,4 +176,32 @@ void FinalProject::updateLoadingBar() {
 
 	allButtons[loadingBarTwo].scale = vec2(xScale, 0.1f);
 	allButtons[loadingBarTwo].position = vec3(xPosition, -0.2f, 0.0f);
+}
+
+void FinalProject::startOpenAL() {
+	device = alcOpenDevice(NULL);
+	context = alcCreateContext(device, NULL);
+	alcMakeContextCurrent(context);
+}
+void FinalProject::generateAudioObjects() {
+	if (generatedTracks || mainSplitter.outputSamples.size() != 2) {
+		return;
+	}
+
+	// generate vocal audio
+	alGenBuffers(1, &bufferVocals);
+	alBufferData(bufferVocals, AL_FORMAT_MONO16, &mainSplitter.outputSamples[0][0], mainSplitter.outputSamples[0].size() * sizeof(ALshort), 44100);
+	
+	alGenSources(1, &sourceVocals);
+	alSourcei(sourceVocals, AL_BUFFER, bufferVocals);
+
+	// generate instrumental
+	alGenBuffers(1, &bufferInstrumentals);
+	alBufferData(bufferInstrumentals, AL_FORMAT_MONO16, &mainSplitter.outputSamples[1][0], mainSplitter.outputSamples[1].size() * sizeof(ALshort), 44100);
+
+	alGenSources(1, &sourceInstrumentals);
+	alSourcei(sourceInstrumentals, AL_BUFFER, bufferInstrumentals);
+	
+	generatedTracks = true;
+	//mainSplitter.outputSamples.clear();
 }

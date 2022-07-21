@@ -38,6 +38,8 @@ public:
 	static vector<vector<float>> addOutputVectors(vector<vector<float>> inputOne, vector<vector<float>> inputTwo);
 
 	void splitStems(int STEMS_CHOICE, const char* inputFilename, string outputDirectory);
+
+	vector<vector<int16_t>> outputSamples;
 };
 
 #endif // !SPLITTER_H

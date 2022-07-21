@@ -77,13 +77,13 @@ void splitter::trainNetwork(int STEM, const char* weightOutputDirectory) {
 void splitter::loadStemWeights(int STEM) {
 	// Load weights from predefined directories
 	if (STEM == STEM_VOCAL) {
-		predictionNetwork.loadWeightsFromFile("_trained_weights/vocals/1st_proper_train_final/");
+		predictionNetwork.loadWeightsFromFile("Assets/Weights/Vocals/");
 	}
 	if (STEM == STEM_BASS) {
-		predictionNetwork.loadWeightsFromFile("_trained_weights/bass/1st_proper_train/");
+		predictionNetwork.loadWeightsFromFile("Assets/Weights/Bass/");
 	}
 	if (STEM == STEM_DRUMS) {
-		predictionNetwork.loadWeightsFromFile("_trained_weights/drums/1st_proper_train/");
+		predictionNetwork.loadWeightsFromFile("Assets/Weights/Drums/");
 	}
 	
 	currentLoadedStemWeights = STEM;
@@ -183,6 +183,8 @@ vector<vector<float>> splitter::addOutputVectors(vector<vector<float>> inputOne,
 }
 
 void splitter::splitStems(int STEMS_CHOICE, const char* inputFilename, string outputDirectory) {
+	outputSamples.clear();
+	
 	if (STEMS_CHOICE == STEMS_VOCALS_BACKING) {
 		if (currentLoadedStemWeights != STEM_VOCAL) {
 			loadStemWeights(STEM_VOCAL);
@@ -198,10 +200,12 @@ void splitter::splitStems(int STEMS_CHOICE, const char* inputFilename, string ou
 		// write vocals
 		vector<int16_t> testTrackOutputSamples = vocalSamples(inputFilename, predictedTrackVocal, audioConfig);
 		writeToWAV((outputDirectory + "vocals.wav").data(), testTrackOutputSamples);
-
+		outputSamples.push_back(testTrackOutputSamples);
 		// write backing
 		testTrackOutputSamples = vocalSamples(inputFilename, predictedTrackOther, audioConfig);
 		writeToWAV((outputDirectory + "other.wav").data(), testTrackOutputSamples);
+
+		outputSamples.push_back(testTrackOutputSamples);
 	}
 	if (STEMS_CHOICE == STEMS_ALL) {
 		vector<vector<float>> trackInput = generateSingleTrackInput(audioConfig, inputFilename);
