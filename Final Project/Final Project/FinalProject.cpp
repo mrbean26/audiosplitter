@@ -224,11 +224,16 @@ void FinalProject::updateLoadingBar() {
 }
 
 void FinalProject::saveSamplesToFile() {
+	allButtons[saveButton].colour = vec3(0.4f);
+	allButtons[loadButton].colour = vec3(0.4f);
+
 	const char* saveFileName = saveFileExplorer();
 	ofstream outputFile(saveFileName, ios::out | ios::binary);
 
-	allButtons[saveButton].colour = vec3(0.4f);
-	allButtons[loadButton].colour = vec3(0.4f);
+	// Sample Rate
+	int16_t sampleRate = lastSeenFileSampleRate;
+	outputFile.write((char*)&sampleRate, sizeof(sampleRate));
+	outputFile << "DATA";
 
 	// Write vocal samples
 	int sampleCount = mainSplitter.outputSamples[0].size();
