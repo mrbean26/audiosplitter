@@ -50,6 +50,7 @@ void renderButtons(){
 		scaleMat = glm::rotate(scaleMat, radians(currentButton.rotation), vec3(0.0f, 0.0f, 1.0f));
 		//update position, scale and rotation info ready for the shader to use
 		setMat4(buttonTextureShader, "scalePositionMatrix", scaleMat);
+		setVec3(buttonTextureShader, "imageColor", currentButton.colour);
 
 		//draw
         enableTexture(currentButton.texture);

@@ -17,6 +17,7 @@ using namespace std;
 
 vector<string> readLines(const char* fileName);
 void setMat4(int shader, const char* matrixName, mat4 usedMatrix);
+void setVec3(int shader, const char* vectorName, vec3 usedVector);
 
 int createShader(const char* filePath, GLenum shaderType);
 int createProgram(vector<int> shaders);

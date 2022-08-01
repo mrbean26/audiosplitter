@@ -13,6 +13,10 @@ vector<string> readLines(const char* fileName) {
 	return allLines;
 }
 
+void setVec3(int shader, const char* vectorName, vec3 usedVector) {
+	int location = glGetUniformLocation(shader, vectorName);
+	glUniform3f(location, usedVector.x, usedVector.y, usedVector.z);
+}
 void setMat4(int shader, const char* matrixName, mat4 usedMatrix) {
 	int location = glGetUniformLocation(shader, matrixName);
 	glUniformMatrix4fv(location, 1, GL_FALSE, value_ptr(usedMatrix));

@@ -30,10 +30,12 @@ void FinalProject::createInterfaceButtons() {
 	// Load
 	loadButton = createButton(vec2(0.25f), vec3(-0.3f, 0.7f, 0.0f), true);
 	allButtons[loadButton].texture = loadTexture("Assets/Images/load.png");
+	allButtons[loadButton].colour = vec3(0.0f);
 
 	// Save
 	saveButton = createButton(vec2(0.25f), vec3(0.3f, 0.7f, 0.0f), true);
 	allButtons[saveButton].texture = loadTexture("Assets/Images/save.png");
+	allButtons[saveButton].colour = vec3(0.4f);
 
 	// Track Icons
 	int vocalIcon = createButton(vec2(0.3f), vec3(-0.9f, 0.1f, 0.0f), false);
@@ -57,13 +59,14 @@ void FinalProject::createInterfaceButtons() {
 	// Loading Bar
 	loadingBarOne = createButton(vec2(6.5f, 0.1f), vec3(-0.0f, 0.1f, 0.0f), false);
 	loadingBarTwo = createButton(vec2(6.5f, 0.1f), vec3(-0.0f, -0.2f, 0.0f), false);
-
+	
 	// Pause and play
 	playTexture = loadTexture("Assets/Images/play.png");
 	pauseTexture = loadTexture("Assets/Images/pause.png");
 
 	playButton = createButton(vec2(0.2f) * vec2(1.0f, 1.6f), vec3(0.0f, -0.45f, 0.0f), true);
 	allButtons[playButton].texture = playTexture;
+	allButtons[playButton].colour = vec3(0.4f);
 }
 void FinalProject::interfaceButtonMainloop() {
 	// Load
@@ -143,8 +146,14 @@ const char* FinalProject::loadFileExplorer() {
 	return a.data();
 }
 void FinalProject::splitFile() {
+	allButtons[loadButton].colour = vec3(0.4f);
+
 	const char* chosenFilename = loadFileExplorer();
 	mainSplitter.splitStems(STEMS_VOCALS_BACKING, chosenFilename, "");
+
+	allButtons[loadButton].colour = vec3(0.0f);
+	allButtons[playButton].colour = vec3(0.0f);
+	allButtons[saveButton].colour = vec3(0.0f);
 }
 
 void FinalProject::openGLMainloop() {
