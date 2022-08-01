@@ -21,6 +21,10 @@ public:
 	void openGLMainloop();
 	void updateLoadingBar();
 
+	// Saving and Loading
+	void saveSamplesToFile();
+	void loadSamplesFromFile(const char* fileName);
+
 	// Loading
 	int loadButton;
 	int saveButton;
@@ -46,6 +50,7 @@ public:
 	splitter mainSplitter;
 	future<void> currentSplitterThread;
 
+	const char* saveFileExplorer();
 	const char* loadFileExplorer();
 	void splitFile();
 

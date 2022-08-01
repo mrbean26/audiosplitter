@@ -38,6 +38,7 @@ struct audioFileConfig {
 	int noiseReductionType = NOISE_REDUCTION_CHUNKS;
 };
 
+extern int lastSeenFileSampleRate;
 pair<vector<vector<float>>, float> spectrogramOutput(const char* mp3Filename, audioFileConfig audioConfig);
 pair<vector<vector<float>>, float> spectrogramOutput(vector<vector<double>> samplesChunks, audioFileConfig audioConfig, int sampleRate);
 

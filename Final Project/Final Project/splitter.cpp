@@ -199,12 +199,12 @@ void splitter::splitStems(int STEMS_CHOICE, const char* inputFilename, string ou
 
 		// write vocals
 		vector<int16_t> testTrackOutputSamples = vocalSamples(inputFilename, predictedTrackVocal, audioConfig);
-		writeToWAV((outputDirectory + "vocals.wav").data(), testTrackOutputSamples);
+		//writeToWAV((outputDirectory + "vocals.wav").data(), testTrackOutputSamples);
 		outputSamples.push_back(testTrackOutputSamples);
 		// write backing
 		testTrackOutputSamples = vocalSamples(inputFilename, predictedTrackOther, audioConfig);
-		writeToWAV((outputDirectory + "other.wav").data(), testTrackOutputSamples);
-
+		//writeToWAV((outputDirectory + "other.wav").data(), testTrackOutputSamples);
+		
 		outputSamples.push_back(testTrackOutputSamples);
 	}
 	if (STEMS_CHOICE == STEMS_ALL) {

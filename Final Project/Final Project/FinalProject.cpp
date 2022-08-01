@@ -74,6 +74,12 @@ void FinalProject::interfaceButtonMainloop() {
 		currentSplitterThread = async(&FinalProject::splitFile, this);
 	}
 
+	// save
+	if (allButtons[saveButton].clickUp) {
+		currentSplitterThread = async(&FinalProject::saveSamplesToFile, this);
+	}
+
+	// mute
 	if (allButtons[muteButtons[0]].clickUp) {
 		muted[0] = !muted[0];
 
@@ -117,6 +123,36 @@ void FinalProject::interfaceButtonMainloop() {
 	}
 }
 
+const char* FinalProject::saveFileExplorer() {
+	OPENFILENAME ofn;
+
+	char szFileName[MAX_PATH] = { 0 };
+
+	ZeroMemory(&ofn, sizeof(ofn));
+
+	ofn.lStructSize = sizeof(ofn);
+	ofn.hwndOwner = NULL;
+	ofn.lpstrFilter = (LPCWSTR)L"Splitter Output (.splittersamples)\0*.*\0";
+	ofn.lpstrFile = (LPWSTR)szFileName;
+	ofn.nMaxFile = MAX_PATH;
+	ofn.Flags = OFN_EXPLORER | OFN_FILEMUSTEXIST | OFN_HIDEREADONLY;
+
+	string a = "";
+	if (GetSaveFileName(&ofn) == TRUE) {
+		filesystem::path myFile = ofn.lpstrFile;
+		filesystem::path fullname = myFile.filename();
+
+		for (int i = 0; i < MAX_PATH; i++) {
+			if (szFileName[i] > 0) {
+				a += szFileName[i];
+			}
+
+		}
+	}
+
+	a = a + ".splittersamples";
+	return a.data();
+}
 const char* FinalProject::loadFileExplorer() {
 	OPENFILENAME ofn = { 0 };
 	TCHAR szFile[MAX_PATH] = { 0 };
@@ -187,6 +223,32 @@ void FinalProject::updateLoadingBar() {
 	allButtons[loadingBarTwo].position = vec3(xPosition, -0.2f, 0.0f);
 }
 
+void FinalProject::saveSamplesToFile() {
+	const char* saveFileName = saveFileExplorer();
+	ofstream outputFile(saveFileName, ios::out | ios::binary);
+
+	allButtons[saveButton].colour = vec3(0.4f);
+	allButtons[loadButton].colour = vec3(0.4f);
+
+	// Write vocal samples
+	int sampleCount = mainSplitter.outputSamples[0].size();
+	
+	for (int j = 0; j < 2; j++) {
+		for (int i = 0; i < sampleCount; i++) {
+			int16_t currentSample = mainSplitter.outputSamples[j][i];
+			outputFile.write((char*)&currentSample, sizeof(currentSample));
+		}
+
+		outputFile << "CHUNK";
+	}
+
+	allButtons[saveButton].colour = vec3(0.0f);
+	allButtons[loadButton].colour = vec3(0.0f);
+}
+void FinalProject::loadSamplesFromFile(const char* fileName) {
+
+}
+
 void FinalProject::startOpenAL() {
 	device = alcOpenDevice(NULL);
 	context = alcCreateContext(device, NULL);
@@ -199,14 +261,14 @@ void FinalProject::generateAudioObjects() {
 
 	// generate vocal audio
 	alGenBuffers(1, &bufferVocals);
-	alBufferData(bufferVocals, AL_FORMAT_MONO16, &mainSplitter.outputSamples[0][0], mainSplitter.outputSamples[0].size() * sizeof(ALshort), 44100);
+	alBufferData(bufferVocals, AL_FORMAT_MONO16, &mainSplitter.outputSamples[0][0], mainSplitter.outputSamples[0].size() * sizeof(ALshort), lastSeenFileSampleRate);
 	
 	alGenSources(1, &sourceVocals);
 	alSourcei(sourceVocals, AL_BUFFER, bufferVocals);
 
 	// generate instrumental
 	alGenBuffers(1, &bufferInstrumentals);
-	alBufferData(bufferInstrumentals, AL_FORMAT_MONO16, &mainSplitter.outputSamples[1][0], mainSplitter.outputSamples[1].size() * sizeof(ALshort), 44100);
+	alBufferData(bufferInstrumentals, AL_FORMAT_MONO16, &mainSplitter.outputSamples[1][0], mainSplitter.outputSamples[1].size() * sizeof(ALshort), lastSeenFileSampleRate);
 
 	alGenSources(1, &sourceInstrumentals);
 	alSourcei(sourceInstrumentals, AL_BUFFER, bufferInstrumentals);
