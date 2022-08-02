@@ -52,6 +52,8 @@ public:
 
 	const char* saveFileExplorer();
 	const char* loadFileExplorer();
+
+	void removeTrack();
 	void splitFile();
 
 	// audio

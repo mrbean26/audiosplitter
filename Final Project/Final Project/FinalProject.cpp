@@ -71,11 +71,13 @@ void FinalProject::createInterfaceButtons() {
 void FinalProject::interfaceButtonMainloop() {
 	// Load
 	if (allButtons[loadButton].clickUp) {
+		currentSplitterThread = future<void>();
 		currentSplitterThread = async(&FinalProject::splitFile, this);
 	}
 
 	// save
 	if (allButtons[saveButton].clickUp) {
+		currentSplitterThread = future<void>();
 		currentSplitterThread = async(&FinalProject::saveSamplesToFile, this);
 	}
 
@@ -167,7 +169,7 @@ const char* FinalProject::loadFileExplorer() {
 	ofn.nMaxFileTitle = 0;
 	ofn.lpstrInitialDir = NULL;
 	ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
-	ofn.lpstrFilter = (LPCWSTR)L"MP3 Files (*.mp3)\0*.*\0";;
+	ofn.lpstrFilter = (LPCWSTR)L"MP3 Files (*.mp3)\0\0Splitter Output (*.splittersamples)\0*.*\0";
 
 	string a = "";
 	if (GetOpenFileName(&ofn) == TRUE) {
@@ -181,12 +183,43 @@ const char* FinalProject::loadFileExplorer() {
 	
 	return a.data();
 }
+
+void FinalProject::removeTrack() {
+	// change button colours
+	allButtons[saveButton].colour = vec3(0.4f);
+	allButtons[playButton].colour = vec3(0.4f);
+	allButtons[loadButton].colour = vec3(0.4f);
+
+	// clear samples
+	mainSplitter.outputSamples.clear();
+	generatedTracks = false;
+
+	// reset loading bar
+	mainSplitter.predictionsRequired = 0;
+	mainSplitter.predictionsDone = 0;
+
+	// delete audio objects
+	alDeleteSources(1, &sourceVocals);
+	alDeleteSources(1, &sourceInstrumentals);
+
+	alDeleteBuffers(1, &bufferVocals);
+	alDeleteBuffers(1, &bufferInstrumentals);
+
+	allButtons[loadButton].colour = vec3(0.0f);
+}
 void FinalProject::splitFile() {
 	allButtons[loadButton].colour = vec3(0.4f);
 
-	const char* chosenFilename = loadFileExplorer();
-	mainSplitter.splitStems(STEMS_VOCALS_BACKING, chosenFilename, "");
+	string chosenFilename = loadFileExplorer();
+	string fileExtension = chosenFilename.substr(chosenFilename.find(".") + 1);
 
+	if (fileExtension == "mp3") {
+		mainSplitter.splitStems(STEMS_VOCALS_BACKING, chosenFilename.data(), "");
+	}
+	if (fileExtension == "splittersamples") {
+		loadSamplesFromFile(chosenFilename.data());
+	}
+	
 	allButtons[loadButton].colour = vec3(0.0f);
 	allButtons[playButton].colour = vec3(0.0f);
 	allButtons[saveButton].colour = vec3(0.0f);
@@ -247,11 +280,60 @@ void FinalProject::saveSamplesToFile() {
 		outputFile << "CHUNK";
 	}
 
+	outputFile.close();
+
 	allButtons[saveButton].colour = vec3(0.0f);
 	allButtons[loadButton].colour = vec3(0.0f);
 }
 void FinalProject::loadSamplesFromFile(const char* fileName) {
+	ifstream stream(fileName, std::ios::in | std::ios::binary);
+	lastSeenFileSampleRate = stream.get();
+	lastSeenFileSampleRate += (stream.get() << 8);
 
+	// collect data
+	vector<int> fileData;
+	while (stream.good()) {
+		fileData.push_back(stream.get());
+	}
+	
+	bool finishedVocals = false;
+	vector<int16_t> vocalSamples;
+	vector<int16_t> backgroundSamples;
+
+	// process samples
+	int dataPoints = fileData.size();
+	mainSplitter.predictionsRequired = dataPoints;
+
+	for (int i = 4; i < dataPoints; i = i + 2) {
+		// Check if first chunk has been read in
+		if (char(fileData[i]) == 'C' && char(fileData[i + 1]) == 'H' && char(fileData[i + 2]) == 'U'){
+			if (char(fileData[i + 3]) == 'N' && char(fileData[i + 4]) == 'K') {
+				i = i + 5;
+				finishedVocals = true;
+			}
+		}
+
+		// Calculate current sample
+		int intOne = fileData[i];
+		int intTwo = fileData[i + 1];
+
+		int16_t currentSample = intOne;
+		currentSample += (intTwo << 8);
+
+		if (!finishedVocals) {
+			vocalSamples.push_back(currentSample);
+		}
+		if (finishedVocals) {
+			backgroundSamples.push_back(currentSample);
+		}
+
+		// update loading bar
+		mainSplitter.predictionsDone = i;
+	}
+
+	// add to splitter ready for audio processing
+	mainSplitter.outputSamples.push_back(vocalSamples);
+	mainSplitter.outputSamples.push_back(backgroundSamples);
 }
 
 void FinalProject::startOpenAL() {
@@ -277,7 +359,7 @@ void FinalProject::generateAudioObjects() {
 
 	alGenSources(1, &sourceInstrumentals);
 	alSourcei(sourceInstrumentals, AL_BUFFER, bufferInstrumentals);
-	
+
 	generatedTracks = true;
 	//mainSplitter.outputSamples.clear();
 }

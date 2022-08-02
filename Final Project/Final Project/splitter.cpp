@@ -196,11 +196,13 @@ void splitter::splitStems(int STEMS_CHOICE, const char* inputFilename, string ou
 
 		cout << "Predicting Other..." << endl;
 		vector<vector<float>> predictedTrackOther = flipOutputVector(predictedTrackVocal);
-
+		
 		// write vocals
 		vector<int16_t> testTrackOutputSamples = vocalSamples(inputFilename, predictedTrackVocal, audioConfig);
 		//writeToWAV((outputDirectory + "vocals.wav").data(), testTrackOutputSamples);
+		
 		outputSamples.push_back(testTrackOutputSamples);
+
 		// write backing
 		testTrackOutputSamples = vocalSamples(inputFilename, predictedTrackOther, audioConfig);
 		//writeToWAV((outputDirectory + "other.wav").data(), testTrackOutputSamples);

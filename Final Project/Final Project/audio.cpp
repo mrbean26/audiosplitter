@@ -320,7 +320,7 @@ vector<int16_t> vocalSamples(const char* fullFileNameMP3, vector<vector<float>> 
 	for (int i = 0; i < audioSamples.size(); i++) {
 		maxInitialSample = max(maxInitialSample, abs(audioSamples[i]));
 	}
-	
+
 	vector<double> doubleAudioSamples(audioSamples.begin(), audioSamples.end());
 	vector<vector<double>> spectrogramChunks = spitChunks(doubleAudioSamples, audioConfig.samplesPerChunk, audioConfig.samplesPerOverlap, false);
 	pair<vector<int16_t>, int> resultantSamples = networkOutputToSamples(networkOutput, spectrogramChunks, audioConfig);
