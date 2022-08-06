@@ -57,8 +57,8 @@ void FinalProject::createInterfaceButtons() {
 	}
 
 	// Loading Bar
-	loadingBarOne = createButton(vec2(6.5f, 0.1f), vec3(-0.0f, 0.1f, 0.0f), false);
-	loadingBarTwo = createButton(vec2(6.5f, 0.1f), vec3(-0.0f, -0.2f, 0.0f), false);
+	loadingBarOne = createButton(vec2(0.0f, 0.1f), vec3(-0.0f, 0.1f, 0.0f), false);
+	loadingBarTwo = createButton(vec2(0.0f, 0.1f), vec3(-0.0f, -0.2f, 0.0f), false);
 	
 	scrollBarBackground = createButton(vec2(6.5f, 0.05f), vec3(0.0f, 0.3f, 0.0f), false);
 	scrollBar = createButton(vec2(0.1f, 0.2f), vec3(-0.8f, 0.3f, 0.0f), true);
@@ -230,6 +230,7 @@ void FinalProject::splitFile() {
 		removeTrack();
 	}
 
+	// choose to use network or decode samples
 	if (fileExtension == "mp3") {
 		mainSplitter.splitStems(STEMS_VOCALS_BACKING, chosenFilename.data(), "");
 	}

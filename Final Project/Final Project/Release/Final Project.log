@@ -10,12 +10,7 @@ D:\Projects\Audio Splitter App\Final Project\Final Project\FinalProject.cpp(183,
           [
               _Elem=char
           ]
-D:\Projects\Audio Splitter App\Final Project\Final Project\FinalProject.cpp(288,27): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-  main.cpp
-D:\Projects\Audio Splitter App\Final Project\Final Project\Headers\NeuralNetwork.h(133): warning C4091: 'static ': ignored on left of 'NeuralNetwork::randomMethodConfig' when no variable is declared
-D:\Projects\Audio Splitter App\Final Project\Final Project\Headers\NeuralNetwork.h(177): warning C4091: 'static ': ignored on left of 'NeuralNetwork::Node' when no variable is declared
-D:\Projects\Audio Splitter App\Final Project\Final Project\Headers\NeuralNetwork.h(194): warning C4091: 'static ': ignored on left of 'NeuralNetwork::Bias' when no variable is declared
-D:\Projects\Audio Splitter App\Final Project\Final Project\main.cpp(4,12): warning C4244: 'argument': conversion from 'time_t' to 'unsigned int', possible loss of data
+D:\Projects\Audio Splitter App\Final Project\Final Project\FinalProject.cpp(289,27): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
 LINK : warning LNK4098: defaultlib 'LIBCMT' conflicts with use of other libs; use /NODEFAULTLIB:library
   Generating code
   1 of 2553 functions (<0.1%) were compiled, the rest were copied from previous compilation.
