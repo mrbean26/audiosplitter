@@ -33,7 +33,7 @@ void FinalProject::createInterfaceButtons() {
 	allButtons[loadButton].colour = vec3(0.0f);
 
 	// Save
-	saveButton = createButton(vec2(0.25f), vec3(0.3f, 0.7f, 0.0f), true);
+	saveButton = createButton(vec2(0.25f), vec3(0.3f, 0.7f, 0.0f), false);
 	allButtons[saveButton].texture = loadTexture("Assets/Images/save.png");
 	allButtons[saveButton].colour = vec3(0.4f);
 
@@ -67,7 +67,7 @@ void FinalProject::createInterfaceButtons() {
 	playTexture = loadTexture("Assets/Images/play.png");
 	pauseTexture = loadTexture("Assets/Images/pause.png");
 
-	playButton = createButton(vec2(0.2f) * vec2(1.0f, 1.6f), vec3(0.0f, -0.45f, 0.0f), true);
+	playButton = createButton(vec2(0.2f) * vec2(1.0f, 1.6f), vec3(0.0f, -0.45f, 0.0f), false);
 	allButtons[playButton].texture = playTexture;
 	allButtons[playButton].colour = vec3(0.4f);
 }
@@ -193,6 +193,10 @@ void FinalProject::removeTrack() {
 	allButtons[playButton].colour = vec3(0.4f);
 	allButtons[loadButton].colour = vec3(0.4f);
 
+	allButtons[saveButton].interactive = false;
+	allButtons[playButton].interactive = false;
+	allButtons[loadButton].interactive = false;
+
 	// clear samples
 	mainSplitter.outputSamples.clear();
 	generatedTracks = false;
@@ -209,12 +213,22 @@ void FinalProject::removeTrack() {
 	alDeleteBuffers(1, &bufferInstrumentals);
 
 	allButtons[loadButton].colour = vec3(0.0f);
+
+	allButtons[loadButton].interactive = true;
 }
 void FinalProject::splitFile() {
 	allButtons[loadButton].colour = vec3(0.4f);
+	allButtons[loadButton].interactive = false;
 
 	string chosenFilename = loadFileExplorer();
 	string fileExtension = chosenFilename.substr(chosenFilename.find(".") + 1);
+
+	if (chosenFilename.data() == "") {
+		return;
+	}
+	if (generatedTracks) {
+		removeTrack();
+	}
 
 	if (fileExtension == "mp3") {
 		mainSplitter.splitStems(STEMS_VOCALS_BACKING, chosenFilename.data(), "");
@@ -226,6 +240,10 @@ void FinalProject::splitFile() {
 	allButtons[loadButton].colour = vec3(0.0f);
 	allButtons[playButton].colour = vec3(0.0f);
 	allButtons[saveButton].colour = vec3(0.0f);
+
+	allButtons[saveButton].interactive = true;
+	allButtons[playButton].interactive = true;
+	allButtons[loadButton].interactive = true;
 }
 
 void FinalProject::openGLMainloop() {
@@ -303,7 +321,14 @@ void FinalProject::saveSamplesToFile() {
 	allButtons[saveButton].colour = vec3(0.4f);
 	allButtons[loadButton].colour = vec3(0.4f);
 
+	allButtons[saveButton].interactive = false;
+	allButtons[loadButton].interactive = false;
+
 	const char* saveFileName = saveFileExplorer();
+	if (saveFileName == ".splittersamples") {
+		return;
+	}
+
 	ofstream outputFile(saveFileName, ios::out | ios::binary);
 
 	// Sample Rate
@@ -327,6 +352,9 @@ void FinalProject::saveSamplesToFile() {
 
 	allButtons[saveButton].colour = vec3(0.0f);
 	allButtons[loadButton].colour = vec3(0.0f);
+
+	allButtons[saveButton].interactive = true;
+	allButtons[loadButton].interactive = true;
 }
 void FinalProject::loadSamplesFromFile(const char* fileName) {
 	ifstream stream(fileName, std::ios::in | std::ios::binary);

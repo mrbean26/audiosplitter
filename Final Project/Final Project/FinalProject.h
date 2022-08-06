@@ -33,6 +33,7 @@ public:
 	int loadingBarOne;
 	int loadingBarTwo;
 
+	// progress
 	int scrollBarBackground;
 	int scrollBar;
 
