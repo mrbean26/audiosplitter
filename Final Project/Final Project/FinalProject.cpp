@@ -60,6 +60,9 @@ void FinalProject::createInterfaceButtons() {
 	loadingBarOne = createButton(vec2(6.5f, 0.1f), vec3(-0.0f, 0.1f, 0.0f), false);
 	loadingBarTwo = createButton(vec2(6.5f, 0.1f), vec3(-0.0f, -0.2f, 0.0f), false);
 	
+	scrollBarBackground = createButton(vec2(6.5f, 0.05f), vec3(0.0f, 0.3f, 0.0f), false);
+	scrollBar = createButton(vec2(0.1f, 0.2f), vec3(-0.8f, 0.3f, 0.0f), true);
+
 	// Pause and play
 	playTexture = loadTexture("Assets/Images/play.png");
 	pauseTexture = loadTexture("Assets/Images/pause.png");
@@ -233,6 +236,7 @@ void FinalProject::openGLMainloop() {
 		interfaceButtonMainloop();
 		
 		updateLoadingBar();
+		updateScrollBar();
 		generateAudioObjects();
 
 		glfwSwapBuffers(window);
@@ -254,6 +258,45 @@ void FinalProject::updateLoadingBar() {
 
 	allButtons[loadingBarTwo].scale = vec2(xScale, 0.1f);
 	allButtons[loadingBarTwo].position = vec3(xPosition, -0.2f, 0.0f);
+}
+void FinalProject::updateScrollBar() {
+	if (generatedTracks) {
+		// scrollbar button interactions
+		if (allButtons[scrollBar].clickDown) {
+			float minScrollbar = -0.8f;
+			float maxScrollbar = 0.8f;
+
+			// calculate mouse x as a proportion of screen
+			float mouseXProportion = (mousePosX / (display_x / 2.0)) - 1.0f;
+
+			// get new position
+			float newXPosition = mouseXProportion;
+			newXPosition = max(newXPosition, minScrollbar);
+			newXPosition = min(newXPosition, maxScrollbar);
+
+			allButtons[scrollBar].position.x = newXPosition;
+		}
+		if (allButtons[scrollBar].clickUp) {
+			float currentScrollbarPosition = allButtons[scrollBar].position.x;
+			float scrollbarProportion = (currentScrollbarPosition + 0.8f) / 1.6f;
+
+			// set new track time
+			float newSampleOffset = scrollbarProportion * float(mainSplitter.outputSamples[0].size());
+			alSourcef(sourceVocals, AL_SAMPLE_OFFSET, newSampleOffset);
+			alSourcef(sourceInstrumentals, AL_SAMPLE_OFFSET, newSampleOffset);
+		}
+
+		// update scrollbar naturally with track progression
+		if (!allButtons[scrollBar].clickDown && !allButtons[scrollBar].clickUp) {
+			float currentTrackSample;
+			alGetSourcef(sourceVocals, AL_SAMPLE_OFFSET, &currentTrackSample);
+
+			float currentTrackPercentage = currentTrackSample / float(mainSplitter.outputSamples[0].size());
+			float newScrollbarXPosition = (currentTrackPercentage * 1.6f) - 0.8f;
+
+			allButtons[scrollBar].position.x = newScrollbarXPosition;
+		}
+	}
 }
 
 void FinalProject::saveSamplesToFile() {

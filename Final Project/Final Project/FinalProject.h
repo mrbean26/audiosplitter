@@ -20,6 +20,7 @@ public:
 	// Display
 	void openGLMainloop();
 	void updateLoadingBar();
+	void updateScrollBar();
 
 	// Saving and Loading
 	void saveSamplesToFile();
@@ -31,6 +32,9 @@ public:
 	
 	int loadingBarOne;
 	int loadingBarTwo;
+
+	int scrollBarBackground;
+	int scrollBar;
 
 	// pause play
 	int playButton;
