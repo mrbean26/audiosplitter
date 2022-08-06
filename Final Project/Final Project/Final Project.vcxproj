@@ -151,10 +151,7 @@
     <ClCompile Include="FinalProject.cpp" />
     <ClCompile Include="graphics.cpp" />
     <ClCompile Include="interface.cpp" />
-    <ClCompile Include="KNearestNeighbors.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="matrices.cpp" />
-    <ClCompile Include="NaiveBayes.cpp" />
     <ClCompile Include="NeuralNetwork.cpp" />
     <ClCompile Include="splitter.cpp" />
     <ClCompile Include="texture.cpp" />
@@ -166,9 +163,6 @@
     <ClInclude Include="Headers\filesShaders.h" />
     <ClInclude Include="Headers\graphics.h" />
     <ClInclude Include="Headers\interface.h" />
-    <ClInclude Include="Headers\KNearestNeighbors.h" />
-    <ClInclude Include="Headers\matrices.h" />
-    <ClInclude Include="Headers\NaiveBayes.h" />
     <ClInclude Include="Headers\NeuralNetwork.h" />
     <ClInclude Include="Headers\splitter.h" />
     <ClInclude Include="Headers\texture.h" />

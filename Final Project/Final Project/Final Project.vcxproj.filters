@@ -30,16 +30,7 @@
     <ClCompile Include="files.cpp">
       <Filter>Source Files\CPP</Filter>
     </ClCompile>
-    <ClCompile Include="KNearestNeighbors.cpp">
-      <Filter>Source Files\CPP</Filter>
-    </ClCompile>
     <ClCompile Include="main.cpp">
-      <Filter>Source Files\CPP</Filter>
-    </ClCompile>
-    <ClCompile Include="matrices.cpp">
-      <Filter>Source Files\CPP</Filter>
-    </ClCompile>
-    <ClCompile Include="NaiveBayes.cpp">
       <Filter>Source Files\CPP</Filter>
     </ClCompile>
     <ClCompile Include="NeuralNetwork.cpp">
@@ -69,15 +60,6 @@
       <Filter>Source Files\Headers</Filter>
     </ClInclude>
     <ClInclude Include="Headers\files.h">
-      <Filter>Source Files\Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="Headers\KNearestNeighbors.h">
-      <Filter>Source Files\Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="Headers\matrices.h">
-      <Filter>Source Files\Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="Headers\NaiveBayes.h">
       <Filter>Source Files\Headers</Filter>
     </ClInclude>
     <ClInclude Include="Headers\NeuralNetwork.h">
